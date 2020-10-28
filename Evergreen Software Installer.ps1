@@ -14,7 +14,6 @@ To install a software package just switch from 0 to 1 in the section "Select sof
 $NotePadPlusPlus = 1 installs Notepad++
 
 .NOTES
-Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework!
 There are no install scripts for VMWare Tools, openJDK and Oracle Java 8 yet!
 Run as admin!
 #>
