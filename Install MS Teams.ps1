@@ -16,6 +16,8 @@ The script compares the software version and will install or update the software
 
 .NOTES
 Always call this script with the Software Installer script!
+The parameter OPTIONS=noAutoStart=true doesn't work as expected. If you don't want Teams to start an logon delete it from
+HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run
 #>
 
 # define Error handling
