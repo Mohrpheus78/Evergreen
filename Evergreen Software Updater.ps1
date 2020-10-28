@@ -10,8 +10,8 @@ This script downloads software packages if new versions are available.
 .Description
 The script uses the excellent Powershell Evergreen module from Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein. 
 To update a software package just switch from 0 to 1 in the section "Select software to download".
-A new folder for every single package will be created, together with a Version file, a download date file and a log file. If a new version is available the scriot checks
-the version number and will update the package.
+A new folder for every single package will be created, together with a version file, a download date file and a log file. If a new version is available
+the scriot checks the version number and will update the package.
 
 .EXAMPLE
 '$NotePadPlusPlus = 1' Downloads Notepad++
@@ -19,6 +19,7 @@ the version number and will update the package.
 .NOTES
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
+You can run this script daily with a scheduled task.
 Run as admin!
 #>
 
