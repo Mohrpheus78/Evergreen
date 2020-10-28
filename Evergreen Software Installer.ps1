@@ -48,6 +48,7 @@ $GoogleChrome = 1
 $MSEdge = 1
 $VLCPlayer = 1
 $BISF = 1
+$FSLogix = 1
 $WorkspaceApp_Current_Release = 1
 $WorkspaceApp_LTSR_Release = 1
 $7ZIP = 1
@@ -90,6 +91,11 @@ IF ($BISF -eq 1)
 		& "$psscriptroot\Install BIS-F.ps1"
 	}
 
+# Install FSLogix
+IF ($FSLogix -eq 1)
+{
+	& "$psscriptroot\Install FSLogix.ps1"
+}
 
 # Install WorkspaceApp Current
 IF ($WorkspaceApp_Current_Release -eq 1)
