@@ -17,6 +17,7 @@ the scriot checks the version number and will update the package.
 '$NotePadPlusPlus = 1' Downloads Notepad++
 
 .NOTES
+Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework!
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 You can run this script daily with a scheduled task.
