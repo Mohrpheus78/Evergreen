@@ -123,7 +123,7 @@ else {
 
 # Check, if a new version is available
 $Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$Teams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Google Chrome"}).DisplayVersion
+$Teams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).DisplayVersion
 IF ($Teams -ne $Version) {
 
 #Uninstalling MS Teams
