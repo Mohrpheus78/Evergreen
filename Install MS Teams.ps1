@@ -18,6 +18,7 @@ The script compares the software version and will install or update the software
 Always call this script with the Software Installer script!
 The parameter OPTIONS=noAutoStart=true doesn't work as expected. If you don't want Teams to start an logon delete it from
 HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run
+I had to add a "0" to the $Teams Variable, because the version output is different
 #>
 
 # define Error handling
@@ -125,6 +126,7 @@ else {
 # Check, if a new version is available
 $Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 $Teams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).DisplayVersion
+IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
 IF ($Teams -ne $Version) {
 
 #Uninstalling MS Teams
