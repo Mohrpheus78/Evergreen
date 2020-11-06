@@ -63,6 +63,7 @@ $7ZIP = 1
 $AdobeReaderDC_MUI = 1
 $FSLogix = 1
 $MSTeams = 1
+$OneDrive = 1
 $VMWareTools = 1
 $OpenJDK = 1
 $OracleJava8 = 1
@@ -412,6 +413,37 @@ IF (!($CurrentVersion -eq $Version)) {
 if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
+Start-Transcript $LogPS
+New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+Write-Verbose "Starting Download of $Product $Version" -Verbose
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Write-Verbose "Stop logging" -Verbose
+Stop-Transcript
+Write-Output ""
+}
+Write-Verbose "No new version available" -Verbose
+Write-Output ""
+}
+
+
+# Download OneDrive
+IF ($OneDrive -eq 1) {
+$Product = "MS OneDrive"
+$PackageName = "OneDriveSetup"
+$OneDrive = Get-MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production"}
+$Version = $OneDrive.Version
+$URL = $OneDrive.uri
+$InstallerType = "exe"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+Write-Verbose "Download $Product" -Verbose
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+Remove-Item "$PSScriptRoot\$Product\*" -Recurse
 Start-Transcript $LogPS
 New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
 Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
