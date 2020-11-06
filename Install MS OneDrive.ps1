@@ -88,7 +88,8 @@ IF ($OneDrive -ne $Version) {
 Write-Verbose "Installing $Product" -Verbose
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
-	Start-Process "$PSScriptRoot\$Product\OneDriveSetup.exe" –ArgumentList '/allusers' –NoNewWindow -Wait
+    Start-Process "$PSScriptRoot\$Product\OneDriveSetup.exe" –ArgumentList '/allusers' –NoNewWindow -Wait
+    Stop-Process -Name OneDrive
 	} catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }
