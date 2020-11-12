@@ -90,7 +90,7 @@ Write-Output ""
 IF ($NotePadPlusPlus -eq 1) {
 $Product = "NotePadPlusPlus"
 $PackageName = "NotePadPlusPlus_x64"
-$Notepad = Get-NotepadPlusPlus | Where-Object {$_.Architecture -eq "x64" -and $_.URI -match ".exe?"}
+$Notepad = Get-NotepadPlusPlus | Where-Object {$_.Architecture -eq "x64" -and $_.URI -match ".exe"}
 $Version = $Notepad.Version
 $URL = $Notepad.uri
 $InstallerType = "exe"
@@ -431,7 +431,7 @@ Write-Output ""
 IF ($OneDrive -eq 1) {
 $Product = "MS OneDrive"
 $PackageName = "OneDriveSetup"
-$OneDrive = Get-MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production"}
+$OneDrive = Get-MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production"} | Sort-Object -Property Version -Descending | Select-Object -Last 1
 $Version = $OneDrive.Version
 $URL = $OneDrive.uri
 $InstallerType = "exe"
