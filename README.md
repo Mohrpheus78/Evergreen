@@ -16,6 +16,7 @@ The updater always checks for the latest version of the Evergreen module, so you
 Let me show you an example:
 
 *MS Teams*
+
 Let's check the installed version:
 ```
 (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).DisplayVersion
