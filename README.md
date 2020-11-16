@@ -5,8 +5,7 @@ https://github.com/aaronparker/Evergreen
 I'm no powershell expert, so I'm sure there is much room for improvements! 
 
 ## How To
-The idea is, to select a client or server that periodically checks for updates and if updates are available, downloads them. This can be done every day or once a week by launching the script "Evergreen Software Updater.ps1" via scheduled task. 
-You decide which software do download by giving it a "0" or "1" in the script. 
+The idea is to select a client or server that periodically checks for updates and if updates are available, downloads them. This can be done every day or once a week by launching the script "Evergreen Software Updater.ps1" via scheduled task. You decide which software do download by giving it a "0" or "1" in the script. 
 
 The "Evergreen Software Installer.ps1" script must be launched on your clients. If you have a golden master like in Citrix MCS/PVS environments it's sufficient to launch the script only on this machine. This can be done manually or automatic, like you prefer. 
 Again, you decide which package gets installed by "0" or "1". 
