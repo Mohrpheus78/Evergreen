@@ -21,7 +21,7 @@ Let's check the installed version:
 ```
 (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).DisplayVersion
 ```
-The result is: **1.3.0.26064**
+The result is: **1.3.0.28779**
 
 Let's check the version with Evergreen:
 ```
