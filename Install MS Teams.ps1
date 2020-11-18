@@ -136,7 +136,7 @@ try {
     $UninstallTeams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).UninstallString
 	$UninstallTeams = $UninstallTeams -Replace("MsiExec.exe /I","")
 	Start-Process -FilePath msiexec.exe -ArgumentList "/X $UninstallTeams /qn"
-	Start-Sleep 10
+	Start-Sleep 20
     } catch {
 DS_WriteLog "E" "Ein Fehler ist aufgetreten beim Deinstallieren von $Product (error: $($Error[0]))" $LogFile       
 }
