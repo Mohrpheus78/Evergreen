@@ -461,7 +461,7 @@ Write-Output ""
 
 # Download Office Deployment Toolkit (ODT)
 IF ($OfficeDT -eq 1) {
-$Product = "Office 365"
+$Product = "MS Office 365"
 $PackageName = "officedeploymenttool"
 $URL = $(Get-ODTUri)
 $InstallerType = "exe"
