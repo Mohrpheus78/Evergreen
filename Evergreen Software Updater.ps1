@@ -60,10 +60,11 @@ $BISF = 1
 $WorkspaceApp_Current_Relase = 1 
 $WorkspaceApp_LTSR_Relase = 1 
 $7ZIP = 1
-$AdobeReaderDC_MUI = 1
+$AdobeReaderDC_MUI = 1 # Only MSP Updates
 $FSLogix = 1
 $MSTeams = 1
 $OneDrive = 1
+$OfficeDT = 1 # Office Deployment Toolkit for installing Office 365
 $VMWareTools = 1
 $OpenJDK = 1
 $OracleJava8 = 1
@@ -276,7 +277,7 @@ $URL = $WSA.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$PSScriptRoot\Citrix\$Product\Windows\LTSR\Version.txt" -EA SilentlyContinue
-Write-Verbose "Download $Product" -Verbose
+Write-Verbose "Download $Product LTSR" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
@@ -458,6 +459,39 @@ Write-Output ""
 }
 
 
+# Download Office Deployment Toolkit (ODT)
+IF ($OfficeDT -eq 1) {
+$Product = "Office 365"
+$PackageName = "officedeploymenttool"
+$URL = $(Get-ODTUri)
+$InstallerType = "exe"
+$Source = "$PackageName" + "." + "$InstallerType"
+$Version = $URL.Split("_") | Select-Object -Last 1
+$Version = $Version -replace ".{4}$"
+$CurrentVersion = Get-Content -Path "$UpdateFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Verbose "Download $Product" -Verbose
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+if (!(Test-Path -Path "$UpdateFolder\$Product")) {New-Item -Path "$UpdateFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$UpdateFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$UpdateFolder\$Product\*" -Recurse
+Start-Transcript $LogPS
+New-Item -Path "$UpdateFolder\$Product" -Name "Download date $Date" | Out-Null
+Set-Content -Path "$UpdateFolder\$Product\Version.txt" -Value "$Version"
+Write-Verbose "Starting Download of $Product $Version" -Verbose
+Invoke-WebRequest -Uri $URL -OutFile ("$UpdateFolder\$Product\" + ($Source))
+Start-Sleep 3
+Write-Verbose "Stop logging" -Verbose
+Stop-Transcript
+Write-Output ""
+& "$UpdateFolder\$Product\$PackageName.$InstallerType" /quiet /extract:"$UpdateFolder\$Product"
+}
+Write-Verbose "No new version available" -Verbose
+Write-Output ""
+}
+
+
 # Download VMWareTools
 IF ($VMWareTools -eq 1) {
 $Product = "VMWare Tools"
@@ -493,10 +527,10 @@ Write-Output ""
 IF ($OpenJDK -eq 1) {
 $Product = "open JDK"
 $PackageName = "OpenJDK"
-$OpenJDK = Get-OpenJDK | Where-Object {$_.Architecture -eq "x64"}
+$OpenJDK = Get-OpenJDK | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*msi*"} | Sort-Object -Property Version -Descending | Select-Object -First 1
 $Version = $OpenJDK.Version
 $URL = $OpenJDK.uri
-$InstallerType = "zip"
+$InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
 Write-Verbose "Download $Product" -Verbose
