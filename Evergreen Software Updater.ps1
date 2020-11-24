@@ -49,7 +49,7 @@ Write-Verbose "Setting Variables" -Verbose
 Write-Output ""
 
 # Variables
-$Date = Get-Date -Format "dd/MM/yyyy"
+$Date = $Date = Get-Date -UFormat "%m.%d.%Y"
 
 # Select software to download
 $NotePadPlusPlus = 1
