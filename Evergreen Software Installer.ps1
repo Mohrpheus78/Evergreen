@@ -54,6 +54,7 @@ $WorkspaceApp_LTSR_Release = 1
 $7ZIP = 1
 $AdobeReaderDCUpdate = 1
 $MSTeams = 1
+$OneDrive = 1
 $KeepPass = 1
 $mRemoteNG = 1
 $TreeSizeFree = 1
@@ -125,6 +126,12 @@ IF ($AdobeReaderDCUpdate -eq 1)
 IF ($MSTeams -eq 1)
 	{
 		& "$psscriptroot\Install MS Teams.ps1"
+	}
+	
+# Install MS OneDrive
+IF ($OneDrive -eq 1)
+	{
+		& "$psscriptroot\Install MS OneDrive.ps1"
 	}
 
 # Install KeePass
