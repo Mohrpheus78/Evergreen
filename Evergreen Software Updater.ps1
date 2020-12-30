@@ -334,7 +334,7 @@ Write-Output ""
 IF ($AdobeReaderDC_MUI -eq 1) {
 $Product = "Adobe Reader DC MUI"
 $PackageName = "Adobe_DC_MUI_Update"
-$Adobe = Get-AdobeAcrobatReaderDC | Where-Object {$_.Platform -eq "Windows" -and $_.Language -eq "Multi"}
+$Adobe = Get-AdobeAcrobatReaderDC | Where-Object {$_.Type -eq "Updater" -and $_.Language -eq "Multi"}
 $Version = $Adobe.Version
 $URL = $Adobe.uri
 $InstallerType = "msp"
