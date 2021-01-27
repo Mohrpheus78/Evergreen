@@ -148,6 +148,9 @@ Write-Verbose "Installing $Product" -Verbose
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
     "$PSScriptRoot\$Product\Teams_windows_x64.msi" | Install-MSIFile
+    Start-Sleep 5
+    # Prevents MS Teams from starting at logon, better do this with WEM or similar
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name "Teams" -Force
     } catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }
