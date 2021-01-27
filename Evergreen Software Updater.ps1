@@ -64,7 +64,8 @@ $AdobeReaderDC_MUI = 1 # Only MSP Updates
 $FSLogix = 1
 $MSTeams = 1
 $OneDrive = 1
-$OfficeDT = 1 # Office Deployment Toolkit for installing Office 365
+$MS365Apps = 1 # Office Deployment Toolkit for installing Office 365
+$MSOffice2019 = 1 # Deployment Toolkit for installing Office 2019
 $VMWareTools = 1
 $OpenJDK = 1
 $OracleJava8 = 1
@@ -458,34 +459,62 @@ Write-Verbose "No new version available" -Verbose
 Write-Output ""
 }
 
-
-# Download Office Deployment Toolkit (ODT)
-IF ($OfficeDT -eq 1) {
-$Product = "MS Office 365"
-$PackageName = "officedeploymenttool"
-$URL = $(Get-ODTUri)
+# Download MS Office365Apps
+IF ($MS365Apps -eq 1) {
+$Product = "MS 365 Apps (Semi Annual Channel)"
+$PackageName = "setup"
+$MS365Apps = Get-Microsoft365Apps | Where-Object {$_.Channel -eq "Semi-Annual Channel"}
+$Version = $MS365Apps.Version
+$URL = $MS365Apps.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$Version = $URL.Split("_") | Select-Object -Last 1
-$Version = $Version -replace ".{4}$"
-$CurrentVersion = Get-Content -Path "$UpdateFolder\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
 Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$UpdateFolder\$Product")) {New-Item -Path "$UpdateFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$UpdateFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$UpdateFolder\$Product\*" -Recurse
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+Remove-Item "$PSScriptRoot\$Product\*" -Recurse
 Start-Transcript $LogPS
-New-Item -Path "$UpdateFolder\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$UpdateFolder\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
 Write-Verbose "Starting Download of $Product $Version" -Verbose
-Invoke-WebRequest -Uri $URL -OutFile ("$UpdateFolder\$Product\" + ($Source))
-Start-Sleep 3
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
 Write-Verbose "Stop logging" -Verbose
 Stop-Transcript
 Write-Output ""
-& "$UpdateFolder\$Product\$PackageName.$InstallerType" /quiet /extract:"$UpdateFolder\$Product"
+}
+Write-Verbose "No new version available" -Verbose
+Write-Output ""
+}
+
+
+# Download MS Office 2019
+IF ($MSOffice2019 -eq 1) {
+$Product = "MS Office 2019"
+$PackageName = "setup"
+$MSOffice2019 = Get-Microsoft365Apps | Where-Object {$_.Channel -eq "Office 2019 Enterprise"}
+$Version = $MSOffice2019.Version
+$URL = $MSOffice2019.uri
+$InstallerType = "exe"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+Write-Verbose "Download $Product" -Verbose
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+Start-Transcript $LogPS
+New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+Write-Verbose "Starting Download of $Product $Version" -Verbose
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Write-Verbose "Stop logging" -Verbose
+Stop-Transcript
+Write-Output ""
 }
 Write-Verbose "No new version available" -Verbose
 Write-Output ""
