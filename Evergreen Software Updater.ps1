@@ -72,6 +72,7 @@ $OracleJava8 = 1
 $KeepPass = 1
 $mRemoteNG = 1
 $TreeSizeFree = 1
+$WinSCP = 1
 
 # Disable progress bar while downloading
 $ProgressPreference = 'SilentlyContinue'
@@ -705,3 +706,38 @@ Write-Output ""
 Write-Verbose "No new version available" -Verbose
 Write-Output ""
 }
+
+
+# Download WinSCP
+IF ($WinSCP -eq 1) {
+   $Product = "WinSCP"
+   $PackageName = "WinSCP"
+   $WinSCP = Get-WinSCP | Where-Object {$_.URI -like "*Portable*"}
+   $Version = $WinSCP.Version
+   $URL = $WinSCP.uri
+   $InstallerType = "zip"
+   $Source = "$PackageName" + "." + "$InstallerType"
+   $CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+   Write-Verbose "Download $Product" -Verbose
+   Write-Host "Download Version: $Version"
+   Write-Host "Current Version: $CurrentVersion"
+   IF (!($CurrentVersion -eq $Version)) {
+   if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+   $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+   Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+   Start-Transcript $LogPS
+   New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+   Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+   Write-Verbose "Starting Download of $Product.txt" -Verbose
+   Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+   expand-archive -path "$PSScriptRoot\$Product\$Source" -destinationpath "$PSScriptRoot\$Product"
+   Remove-Item -Path "$PSScriptRoot\$Product\$PackageName.zip" -Force
+   Remove-Item -Path "$PSScriptRoot\$Product\readme.txt" -Force
+   Remove-Item -Path "$PSScriptRoot\$Product\license.txt" -Force
+   Write-Verbose "Stop logging" -Verbose
+   Stop-Transcript
+   Write-Output ""
+   }
+   Write-Verbose "No new version available" -Verbose
+   Write-Output ""
+   }
