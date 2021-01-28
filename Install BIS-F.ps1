@@ -137,6 +137,20 @@ DS_WriteLog "-" "" $LogFile
 write-Output ""
 }
 
+# Customize scripts, it's best practise to enable Task Offload and RSS and to disable DEP
+write-Verbose "Customize scripts" -Verbose
+DS_WriteLog "I" "Customize scripts" $LogFile
+try {
+	((Get-Content "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1" -Raw) -replace "DisableTaskOffload' -Value '1'","DisableTaskOffload' -Value '0'") | Set-Content -Path "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1"
+	((Get-Content "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1" -Raw) -replace 'nx AlwaysOff','nx OptOut') | Set-Content -Path "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1"
+	((Get-Content "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1" -Raw) -replace 'rss=disable','rss=enable') | Set-Content -Path "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1"
+	} catch {
+DS_WriteLog "E" "Error beim Anpassen der Skripte (error: $($Error[0]))" $LogFile       
+}
+DS_WriteLog "-" "" $LogFile
+write-Output ""
+}
+
 # Stop, if no new version is available
 Else {
 Write-Verbose "No Update available for $Product" -Verbose
