@@ -16,6 +16,7 @@ The script compares the software version and will install or update the software
 
 .NOTES
 Always call this script with the Software Installer script!
+It's no longer best practices to disable Task Offload and RSS, so I added some code to edit the appropriate scripts after install
 #>
 
 
