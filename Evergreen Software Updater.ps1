@@ -66,6 +66,7 @@ $MSTeams = 1
 $OneDrive = 1
 $MS365Apps = 1 # Office Deployment Toolkit for installing Office 365
 $MSOffice2019 = 1 # Deployment Toolkit for installing Office 2019
+$CitrixTools = 1
 $VMWareTools = 1
 $OpenJDK = 1
 $OracleJava8 = 1
@@ -81,8 +82,8 @@ $ProgressPreference = 'SilentlyContinue'
 Write-Verbose "Installing/updating Evergreen module... please wait" -Verbose
 Write-Output ""
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-if (!(Test-Path -Path "C:\Program Files\PackageManagement\ProviderAssemblies\nuget")) {Find-PackageProvider -Name 'Nuget' -ForceBootstrap -IncludeDependencies}
-if (!(Get-Module -ListAvailable -Name Evergreen)) {Install-Module Evergreen -Force | Import-Module Evergreen}
+IF (!(Test-Path -Path "C:\Program Files\PackageManagement\ProviderAssemblies\nuget")) {Find-PackageProvider -Name 'Nuget' -ForceBootstrap -IncludeDependencies}
+IF (!(Get-Module -ListAvailable -Name Evergreen)) {Install-Module Evergreen -Force | Import-Module Evergreen}
 Update-Module Evergreen -force
 
 Write-Output "Starting downloads..."
@@ -103,7 +104,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Get-ChildItem "$PSScriptRoot\$Product\" -Exclude lang | Remove-Item -Recurse
 Start-Transcript $LogPS
@@ -130,7 +131,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Recurse
 Start-Transcript $LogPS
@@ -158,7 +159,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Recurse
 Start-Transcript $LogPS
@@ -189,7 +190,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Recurse
 Start-Transcript $LogPS
@@ -220,7 +221,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Exclude *.ps1, *.lnk -Recurse
 Start-Transcript $LogPS
@@ -251,7 +252,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\Citrix\$Product\Windows\Current")) {New-Item -Path "$PSScriptRoot\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\Citrix\$Product\Windows\Current")) {New-Item -Path "$PSScriptRoot\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\Citrix\$Product\Windows\Current\*" -Recurse
 Start-Transcript $LogPS
@@ -283,7 +284,7 @@ Write-Verbose "Download $Product LTSR" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\Citrix\$Product\Windows\LTSR")) {New-Item -Path "$PSScriptRoot\Citrix\$Product\Windows\LTSR" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\Citrix\$Product\Windows\LTSR")) {New-Item -Path "$PSScriptRoot\Citrix\$Product\Windows\LTSR" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\Citrix\$Product\Windows\LTSR\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\Citrix\$Product\Windows\LTSR\*" -Recurse
 Start-Transcript $LogPS
@@ -315,7 +316,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Recurse
 Start-Transcript $LogPS
@@ -346,7 +347,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
 Start-Transcript $LogPS
@@ -377,7 +378,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product\Install")) {New-Item -Path "$PSScriptRoot\$Product\Install" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product\Install")) {New-Item -Path "$PSScriptRoot\$Product\Install" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\Install\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\Install\*" -Recurse
 Start-Transcript $LogPS
@@ -403,9 +404,18 @@ Write-Output ""
 IF ($MSTeams -eq 1) {
 $Product = "MS Teams"
 $PackageName = "Teams_windows_x64"
+# Evergreen doesn't get the latest version
+<#
 $Teams = Get-MicrosoftTeams | Where-Object {$_.Architecture -eq "x64"}
 $Version = $Teams.Version
 $URL = $Teams.uri
+#>
+$URLVersion = "https://whatpulse.org/app/microsoft-teams#versions"
+$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
+$regexAppVersion = "<td>\d.\d.\d{2}.\d+</td>"
+$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+$Version = $webVersion.Trim("</td>").Trim("</td>")
+$URL = "https://statics.teams.cdn.office.net/production-windows-x64/$Version/Teams_windows_x64.msi"
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
@@ -413,14 +423,16 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
 Start-Transcript $LogPS
 New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
 Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
 Write-Verbose "Starting Download of $Product $Version" -Verbose
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+# Evergreen
+# Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$UpdateFolder\$Product\" + ($Source))
 Write-Verbose "Stop logging" -Verbose
 Stop-Transcript
 Write-Output ""
@@ -459,6 +471,7 @@ Write-Output ""
 Write-Verbose "No new version available" -Verbose
 Write-Output ""
 }
+
 
 # Download MS Office365Apps
 IF ($MS365Apps -eq 1) {
@@ -522,6 +535,38 @@ Write-Output ""
 }
 
 
+# Download Citrix Hypervisor Tools
+IF ($CitrixTools -eq 1) {
+$Product = "Citrix Hypervisor Tools"
+$PackageName = "managementagentx64"
+$CitrixTools = Get-CitrixVMTools | Where-Object {$_.Architecture -eq "x64"} | Select-Object -Last 1
+$Version = $CitrixTools.Version
+$URL = $CitrixTools.uri
+$InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+Write-Verbose "Download $Product" -Verbose
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Verbose "Update available" -Verbose
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+Start-Transcript $LogPS
+New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+Write-Verbose "Starting Download of $Product $Version" -Verbose
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Write-Verbose "Stop logging" -Verbose
+Stop-Transcript
+Write-Output ""
+}
+Write-Verbose "No new version available" -Verbose
+Write-Output ""
+}
+
+
 # Download VMWareTools
 IF ($VMWareTools -eq 1) {
 $Product = "VMWare Tools"
@@ -536,7 +581,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Recurse
 Start-Transcript $LogPS
@@ -567,7 +612,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Recurse
 Start-Transcript $LogPS
@@ -598,7 +643,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Recurse
 Start-Transcript $LogPS
@@ -629,7 +674,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Recurse
 Start-Transcript $LogPS
@@ -660,7 +705,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Recurse
 Start-Transcript $LogPS
@@ -691,7 +736,7 @@ Write-Verbose "Download $Product" -Verbose
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
 Remove-Item "$PSScriptRoot\$Product\*" -Recurse
 Start-Transcript $LogPS
@@ -710,34 +755,34 @@ Write-Output ""
 
 # Download WinSCP
 IF ($WinSCP -eq 1) {
-   $Product = "WinSCP"
-   $PackageName = "WinSCP"
-   $WinSCP = Get-WinSCP | Where-Object {$_.URI -like "*Portable*"}
-   $Version = $WinSCP.Version
-   $URL = $WinSCP.uri
-   $InstallerType = "zip"
-   $Source = "$PackageName" + "." + "$InstallerType"
-   $CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
-   Write-Verbose "Download $Product" -Verbose
-   Write-Host "Download Version: $Version"
-   Write-Host "Current Version: $CurrentVersion"
-   IF (!($CurrentVersion -eq $Version)) {
-   if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-   $LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-   Remove-Item "$PSScriptRoot\$Product\*" -Recurse
-   Start-Transcript $LogPS
-   New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-   Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
-   Write-Verbose "Starting Download of $Product.txt" -Verbose
-   Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
-   expand-archive -path "$PSScriptRoot\$Product\$Source" -destinationpath "$PSScriptRoot\$Product"
-   Remove-Item -Path "$PSScriptRoot\$Product\$PackageName.zip" -Force
-   Remove-Item -Path "$PSScriptRoot\$Product\readme.txt" -Force
-   Remove-Item -Path "$PSScriptRoot\$Product\license.txt" -Force
-   Write-Verbose "Stop logging" -Verbose
-   Stop-Transcript
-   Write-Output ""
-   }
-   Write-Verbose "No new version available" -Verbose
-   Write-Output ""
-   }
+$Product = "WinSCP"
+$PackageName = "WinSCP"
+$WinSCP = Get-WinSCP | Where-Object {$_.URI -like "*Portable*"}
+$Version = $WinSCP.Version
+$URL = $WinSCP.uri
+$InstallerType = "zip"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+Write-Verbose "Download $Product" -Verbose
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+Start-Transcript $LogPS
+New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+Write-Verbose "Starting Download of $Product.txt" -Verbose
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+expand-archive -path "$PSScriptRoot\$Product\$Source" -destinationpath "$PSScriptRoot\$Product"
+Remove-Item -Path "$PSScriptRoot\$Product\$PackageName.zip" -Force
+Remove-Item -Path "$PSScriptRoot\$Product\readme.txt" -Force
+Remove-Item -Path "$PSScriptRoot\$Product\license.txt" -Force
+Write-Verbose "Stop logging" -Verbose
+Stop-Transcript
+Write-Output ""
+}
+Write-Verbose "No new version available" -Verbose
+Write-Output ""
+}
