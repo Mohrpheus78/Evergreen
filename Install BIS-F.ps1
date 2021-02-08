@@ -138,6 +138,9 @@ DS_WriteLog "-" "" $LogFile
 write-Output ""
 }
 
+IF ($BISF) {
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Login Consultants\BISF" -Name LIC_BISF_PersState -Value Finished -Force }
+
 # Customize scripts, it's best practise to enable Task Offload and RSS and to disable DEP
 write-Verbose "Customize scripts" -Verbose
 DS_WriteLog "I" "Customize scripts" $LogFile
