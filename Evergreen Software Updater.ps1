@@ -432,7 +432,7 @@ Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
 Write-Verbose "Starting Download of $Product $Version" -Verbose
 # Evergreen
 # Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
-Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$UpdateFolder\$Product\" + ($Source))
+Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
 Write-Verbose "Stop logging" -Verbose
 Stop-Transcript
 Write-Output ""
