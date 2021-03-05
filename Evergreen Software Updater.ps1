@@ -404,18 +404,9 @@ Write-Output ""
 IF ($MSTeams -eq 1) {
 $Product = "MS Teams"
 $PackageName = "Teams_windows_x64"
-# Evergreen doesn't get the latest version
-<#
-$Teams = Get-MicrosoftTeams | Where-Object {$_.Architecture -eq "x64"}
+$Teams = Get-MicrosoftTeams | Where-Object {$_.Architecture -eq "x64" -and $_.Ring -eq "General"}
 $Version = $Teams.Version
 $URL = $Teams.uri
-#>
-$URLVersion = "https://whatpulse.org/app/microsoft-teams#versions"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "<td>\d.\d.\d{2}.\d+</td>"
-$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$Version = $webVersion.Trim("</td>").Trim("</td>")
-$URL = "https://statics.teams.cdn.office.net/production-windows-x64/$Version/Teams_windows_x64.msi"
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
@@ -430,9 +421,7 @@ Start-Transcript $LogPS
 New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
 Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
 Write-Verbose "Starting Download of $Product $Version" -Verbose
-# Evergreen
-# Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
-Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
 Write-Verbose "Stop logging" -Verbose
 Stop-Transcript
 Write-Output ""
@@ -664,10 +653,10 @@ Write-Output ""
 IF ($KeepPass -eq 1) {
 $Product = "KeePass"
 $PackageName = "KeePass"
-$KeepPass = Get-KeePass | Where-Object {$_.URI -like "*msi*"}
-$Version = $KeepPass.Version
-$URL = $KeepPass.uri
-$InstallerType = "msi"
+$KeePass = Get-KeePass | Where-Object {$_.URI -like "*exe*"}
+$Version = $KeePass.Version
+$URL = $KeePass.uri
+$InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
 Write-Verbose "Download $Product" -Verbose

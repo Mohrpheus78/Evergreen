@@ -79,46 +79,6 @@ DS_WriteLog "-" "" $LogFile
 
 #========================================================================================================================================
 
-
-# FUNCTION MSI Installation
-#========================================================================================================================================
-function Install-MSIFile {
-
-[CmdletBinding()]
- Param(
-  [parameter(mandatory=$true,ValueFromPipeline=$true,ValueFromPipelinebyPropertyName=$true)]
-        [ValidateNotNullorEmpty()]
-        [string]$msiFile,
-
-        [parameter()]
-        [ValidateNotNullorEmpty()]
-        [string]$targetDir
- )
-if (!(Test-Path $msiFile)){
-    throw "Pfad zu der MSI Datei $($msiFile) ist ungültig. Bitte Pfad und Dateinamen überprüfen!"
-}
-$arguments = @(
-    "/i"
-    "`"$msiFile`""
-    "/qn"
-)
-if ($targetDir){
-    if (!(Test-Path $targetDir)){
-        throw "Pfad zum Installationsverzeichnis $($targetDir) ist ungültig. Bitte Pfad und Dateinamen überprüfen!"
-    }
-    $arguments += "INSTALLDIR=`"$targetDir`""
-}
-$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -NoNewWindow -PassThru
-if ($process.ExitCode -eq 0){
-    }
-else {
-    Write-Verbose "Installer Exit Code  $($process.ExitCode) für Datei  $($msifile)"
-}
-}
-
-#========================================================================================================================================
-
-
 # Check, if a new version is available
 $Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 $KeePass = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*KeePass*"}).DisplayVersion
@@ -129,7 +89,7 @@ IF ($KeePass -ne $Version) {
 Write-Verbose "Installing $Product" -Verbose
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
-    "$PSScriptRoot\$Product\KeePass.msi" | Install-MSIFile
+    Start-Process "$PSScriptRoot\$Product\KeePass.exe" -ArgumentList '/COMPONENTS="KeePass core files" /VERYSILENT /NORESTART' -Wait
     } catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }
