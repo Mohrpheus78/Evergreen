@@ -34,7 +34,6 @@ IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
 ```
 
 ## Examples
-![Installer](https://github.com/Mohrpheus78/Citrix/blob/main/Citrix%20Client%20notification/Images/HTML.png)
-![MAC client](https://github.com/Mohrpheus78/Citrix/blob/main/Citrix%20Client%20notification/Images/Mac.png)
-![MAC client](https://github.com/Mohrpheus78/Citrix/blob/main/Citrix%20Client%20notification/Images/Mail.png)
-![MAC client](https://github.com/Mohrpheus78/Citrix/blob/main/Citrix%20Client%20notification/Images/Mail2.png)
+![Installer](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Download.png)
+![MAC client](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Installer.png)
+![MAC client](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Updater.png)
