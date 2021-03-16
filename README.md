@@ -5,10 +5,9 @@ https://github.com/aaronparker/Evergreen
 I'm no powershell expert, so I'm sure there is much room for improvements! 
 
 ## How To
-The idea is to select a client or server that periodically checks for updates and if updates are available, downloads them. This can be done every day or once a week by launching the script "Evergreen Software Updater.ps1" via scheduled task. You decide which software do download by giving it a "0" or "1" in the script. 
-
+The idea is to select a client or server that periodically checks for updates and if updates are available, downloads them. This can be done every day or once a week by launching the script "Evergreen Software Updater.ps1" via scheduled task and the -noGUI parameter. You decide which software do download by launching the script once amd make your selection. The selected items are stored in a XML file. 
 The "Evergreen Software Installer.ps1" script must be launched on your clients. If you have a golden master like in Citrix MCS/PVS environments it's sufficient to launch the script only on this machine. This can be done manually or automatic, like you prefer. 
-Again, you decide which package gets installed by "0" or "1". 
+Again, you decide which package gets installed by selecting the software, the selection is also stored in a XML file. 
 
 ## Version check
 The updater always checks for the latest version of the Evergreen module, so you don't have to do this. Sometimes the software version found with Evergreen differs from the installed version in the registry, that's stupid, but we can't influence that. Don't blame the Evergreen module!
@@ -33,3 +32,9 @@ So there is one "0" more! We have to insert a "0" to the installed version to be
 ```
 IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
 ```
+
+## Examples
+![Installer](https://github.com/Mohrpheus78/Citrix/blob/main/Citrix%20Client%20notification/Images/HTML.png)
+![MAC client](https://github.com/Mohrpheus78/Citrix/blob/main/Citrix%20Client%20notification/Images/Mac.png)
+![MAC client](https://github.com/Mohrpheus78/Citrix/blob/main/Citrix%20Client%20notification/Images/Mail.png)
+![MAC client](https://github.com/Mohrpheus78/Citrix/blob/main/Citrix%20Client%20notification/Images/Mail2.png)
