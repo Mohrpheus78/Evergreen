@@ -565,7 +565,7 @@ IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true)
 	}
 	
 # Install WorkspaceApp Current Web
-IF ($SoftwareSelection.WorkspaceApp_CR_Web_ -eq $true)
+IF ($SoftwareSelection.WorkspaceApp_CR_Web -eq $true)
 	{
 		& "$PSScriptRoot\Install WorkspaceApp Current Web.ps1"
 	}
