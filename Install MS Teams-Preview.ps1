@@ -94,7 +94,8 @@ $Teams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentV
 IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
 IF ($Teams -ne $Version) {
 
-#Uninstalling MS Teams
+# Uninstalling MS Teams
+IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where DisplayName -like "*Teams Machine*") {
 Write-Host -ForegroundColor Yellow "Uninstalling $Product"
 DS_WriteLog "I" "Uninstalling $Product" $LogFile
 try {
@@ -108,8 +109,9 @@ DS_WriteLog "E" "Ein Fehler ist aufgetreten beim Deinstallieren von $Product (er
 DS_WriteLog "-" "" $LogFile
 Write-Host -ForegroundColor Green " ...ready!" 
 Write-Output ""
+}
 
-#MS Teams Installation
+# MS Teams Installation
 Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
@@ -119,15 +121,31 @@ DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile
 }
 DS_WriteLog "-" "" $LogFile
 
-# Configure Teams Settings with json template
-copy-item -Path "$PSScriptRoot\$Product\desktop-config.json" -Destination "C:\USers\Default\AppData\Roaming\Microsoft\Teams"
-
 # Prevents MS Teams from starting at logon
 Start-Sleep 5
 Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name "Teams" -Force
 Write-Host -ForegroundColor Green " ...ready!" 
 Write-Output ""
 }
+
+# Register Teams add-in for Outlook - https://microsoftteams.uservoice.com/forums/555103-public/suggestions/38846044-fix-the-teams-meeting-addin-for-outlook
+$appDLLs = (Get-ChildItem -Path "${env:ProgramFiles(x86)}\Microsoft\TeamsMeetingAddin" -Include "Microsoft.Teams.AddinLoader.dll" -Recurse).FullName
+$appX64DLL = $appDLLs[0]
+$appX86DLL = $appDLLs[1]
+Start-Process "$env:WinDir\SysWOW64\regsvr32.exe" -ArgumentList "/s /n /i:user `"$appX64DLL`"" -wait
+Start-Process "$env:WinDir\SysWOW64\regsvr32.exe" -ArgumentList "/s /n /i:user `"$appX86DLL`"" -wait
+	
+# Register Teams as the chat app for Office
+$(
+New-Item -Path "HKLM:\SOFTWARE\IM Providers\Teams" -Force
+New-Item -Path "HKLM:\SOFTWARE\WOW6432Node\IM Providers\Teams" -Force
+New-ItemProperty -Path "HKLM:\SOFTWARE\IM Providers\Teams" -Name "FriendlyName" -Type "String" -Value "Microsoft Teams"
+New-ItemProperty -Path "HKLM:\SOFTWARE\IM Providers\Teams" -Name "GUID" -Type "String" -Value "{00425F68-FFC1-445F-8EDF-EF78B84BA1C7}"
+New-ItemProperty -Path "HKLM:\SOFTWARE\IM Providers\Teams" -Name "ProcessName" -Type "String" -Value "Teams.exe"
+New-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\IM Providers\Teams" -Name "FriendlyName" -Type "String" -Value "Microsoft Teams"
+New-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\IM Providers\Teams" -Name "GUID" -Type "String" -Value "{00425F68-FFC1-445F-8EDF-EF78B84BA1C7}"
+New-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\IM Providers\Teams" -Name "ProcessName" -Type "String" -Value "Teams.exe"
+) | Out-Null
 
 # Stop, if no new version is available
 Else {
