@@ -90,7 +90,7 @@ else {
 # Check, if a new version is available
 $Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 $BISF = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Base Image*"}).DisplayVersion | Sort-Object -Property Version -Descending | Select-Object -First 1
-IF ($BISF) {$BISF = $BISF -replace ".{6}$"}
+$BISF = $BISF -replace ".{6}$"
 IF ($BISF -ne $Version) {
 
 # Base Image Script Framework

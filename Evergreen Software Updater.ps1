@@ -66,10 +66,10 @@ else
 
 Clear-Host
 
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " SuL Software-Updater (Powered by Evergreen-Module)   "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                     "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------------- "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Evergreen Software-Updater (Powered by Evergreen-Module) "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                         "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------------- "
 Write-Output ""
 
 Write-Host -ForegroundColor Cyan "Setting Variables"
