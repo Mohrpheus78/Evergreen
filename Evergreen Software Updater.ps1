@@ -89,42 +89,13 @@ if (Test-Path -Path $SoftwareToUpdate) {$SoftwareSelection = Import-Clixml $Soft
 
 # FUNCTION Logging
 #========================================================================================================================================
-Function DS_WriteLog {
-    
-    [CmdletBinding()]
-    Param( 
-        [Parameter(Mandatory=$true, Position = 0)][ValidateSet("I","S","W","E","-",IgnoreCase = $True)][String]$InformationType,
-        [Parameter(Mandatory=$true, Position = 1)][AllowEmptyString()][String]$Text,
-        [Parameter(Mandatory=$true, Position = 2)][AllowEmptyString()][String]$LogFile
-    )
- 
-    begin {
-    }
- 
-    process {
-     $DateTime = (Get-Date -format dd-MM-yyyy) + " " + (Get-Date -format HH:mm:ss)
- 
-        if ( $Text -eq "" ) {
-            Add-Content $LogFile -value ("") # Write an empty line
-        } Else {
-         Add-Content $LogFile -value ($DateTime + " " + $InformationType.ToUpper() + " - " + $Text)
-        }
-    }
- 
-    end {
-    }
-}
-#========================================================================================================================================
-
-# FUNCTION GUI
-# ========================================================================================================================================
 function gui_mode{
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.Application]::EnableVisualStyles()
 
     # Set the size of your form
     $Form = New-Object system.Windows.Forms.Form
-    $Form.ClientSize = New-Object System.Drawing.Point(600,520)
+    $Form.ClientSize = New-Object System.Drawing.Point(800,520)
     $Form.text = "SuL Software-Updater"
     $Form.TopMost = $false
     $Form.AutoSize = $true
@@ -402,37 +373,37 @@ function gui_mode{
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
 
-    # TreeSizeFree Checkbox
-    $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
-    $TreeSizeFreeBox.text = "TreeSize Free"
-    $TreeSizeFreeBox.width = 95
-    $TreeSizeFreeBox.height = 20
-    $TreeSizeFreeBox.autosize = $true
-    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(250,295)
-    $form.Controls.Add($TreeSizeFreeBox)
-	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
+    # MS WVD Boot Loader
+    $MSWVDBootLoaderBox = New-Object system.Windows.Forms.CheckBox
+    $MSWVDBootLoaderBox.text = "Microsoft WVD Boot Loader"
+    $MSWVDBootLoaderBox.width = 95
+    $MSWVDBootLoaderBox.height = 20
+    $MSWVDBootLoaderBox.autosize = $true
+    $MSWVDBootLoaderBox.location = New-Object System.Drawing.Point(250,295)
+    $form.Controls.Add($MSWVDBootLoaderBox)
+	$MSWVDBootLoaderBox.Checked = $SoftwareSelection.MSWVDBootLoader
 
-    # VLCPlayer Checkbox
-    $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
-    $VLCPlayerBox.text = "VLC Player"
-    $VLCPlayerBox.width = 95
-    $VLCPlayerBox.height = 20
-    $VLCPlayerBox.autosize = $true
-    $VLCPlayerBox.location = New-Object System.Drawing.Point(250,320)
-    $form.Controls.Add($VLCPlayerBox)
-	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
+    # MS WVD Desktop Agent
+    $MSWVDDesktopAgentBox = New-Object system.Windows.Forms.CheckBox
+    $MSWVDDesktopAgentBox.text = "Microsoft WVD Desktop Agent"
+    $MSWVDDesktopAgentBox.width = 95
+    $MSWVDDesktopAgentBox.height = 20
+    $MSWVDDesktopAgentBox.autosize = $true
+    $MSWVDDesktopAgentBox.location = New-Object System.Drawing.Point(250,320)
+    $form.Controls.Add($MSWVDDesktopAgentBox)
+	$MSWVDDesktopAgentBox.Checked = $SoftwareSelection.MSWVDDesktopAgent
 	
-	# OpenJDK Checkbox
-    $OpenJDKBox = New-Object system.Windows.Forms.CheckBox
-    $OpenJDKBox.text = "Open JDK"
-    $OpenJDKBox.width = 95
-    $OpenJDKBox.height = 20
-    $OpenJDKBox.autosize = $true
-    $OpenJDKBox.location = New-Object System.Drawing.Point(250,345)
-    $form.Controls.Add($OpenJDKBox)
-	$OpenJDKBox.Checked =  $SoftwareSelection.OpenJDK
-
-    # OracleJava8 Checkbox
+	# MS WVD RTC Service for Teams
+    $MSWVDRTCServiceBox = New-Object system.Windows.Forms.CheckBox
+    $MSWVDRTCServiceBox.text = "Microsoft WVD WebSocket Service for Teams"
+    $MSWVDRTCServiceBox.width = 95
+    $MSWVDRTCServiceBox.height = 20
+    $MSWVDRTCServiceBox.autosize = $true
+    $MSWVDRTCServiceBox.location = New-Object System.Drawing.Point(250,345)
+    $form.Controls.Add($MSWVDRTCServiceBox)
+	$MSWVDRTCServiceBox.Checked = $SoftwareSelection.MSWVDRTCService
+	
+	# OracleJava8 Checkbox
     $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
     $OracleJava8Box.text = "Oracle Java 8"
     $OracleJava8Box.width = 95
@@ -452,6 +423,67 @@ function gui_mode{
     $form.Controls.Add($OracleJava8_32Box)
 	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
 	
+	# OpenJDK Checkbox
+    $OpenJDKBox = New-Object system.Windows.Forms.CheckBox
+    $OpenJDKBox.text = "Open JDK"
+    $OpenJDKBox.width = 95
+    $OpenJDKBox.height = 20
+    $OpenJDKBox.autosize = $true
+    $OpenJDKBox.location = New-Object System.Drawing.Point(250,420)
+    $form.Controls.Add($OpenJDKBox)
+	$OpenJDKBox.Checked =  $SoftwareSelection.OpenJDK
+	
+	# TreeSizeFree Checkbox
+    $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
+    $TreeSizeFreeBox.text = "TreeSize Free"
+    $TreeSizeFreeBox.width = 95
+    $TreeSizeFreeBox.height = 20
+    $TreeSizeFreeBox.autosize = $true
+    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(615,45)
+    $form.Controls.Add($TreeSizeFreeBox)
+	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
+	
+	# VLCPlayer Checkbox
+    $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
+    $VLCPlayerBox.text = "VLC Player"
+    $VLCPlayerBox.width = 95
+    $VLCPlayerBox.height = 20
+    $VLCPlayerBox.autosize = $true
+    $VLCPlayerBox.location = New-Object System.Drawing.Point(615,70)
+    $form.Controls.Add($VLCPlayerBox)
+	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
+	
+	# Zoom Host Checkbox
+    $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
+    $ZoomVDIBox.text = "Zoom VDI Host Installer"
+    $ZoomVDIBox.width = 95
+    $ZoomVDIBox.height = 20
+    $ZoomVDIBox.autosize = $true
+    $ZoomVDIBox.location = New-Object System.Drawing.Point(615,95)
+    $form.Controls.Add($ZoomVDIBox)
+	$ZoomVDIBox.Checked =  $SoftwareSelection.ZoomVDI
+	
+	# Zoom Citrix client Checkbox
+    $ZoomCitrixBox = New-Object system.Windows.Forms.CheckBox
+    $ZoomCitrixBox.text = "Zoom Citrix Client"
+    $ZoomCitrixBox.width = 95
+    $ZoomCitrixBox.height = 20
+    $ZoomCitrixBox.autosize = $true
+    $ZoomCitrixBox.location = New-Object System.Drawing.Point(615,120)
+    $form.Controls.Add($ZoomCitrixBox)
+	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
+	
+	# Zoom VMWare client Checkbox
+    $ZoomVMWareBox = New-Object system.Windows.Forms.CheckBox
+    $ZoomVMWareBox.text = "Zoom VMWare Client"
+    $ZoomVMWareBox.width = 95
+    $ZoomVMWareBox.height = 20
+    $ZoomVMWareBox.autosize = $true
+    $ZoomVMWareBox.location = New-Object System.Drawing.Point(615,145)
+    $form.Controls.Add($ZoomVMWareBox)
+	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
+	
+		
 	# Select Button
     $SelectButton = New-Object system.Windows.Forms.Button
     $SelectButton.text = "Select all"
@@ -485,7 +517,13 @@ function gui_mode{
 		$MSDotNetBox.checked = $True
 		$MSSQLManagementStudioDEBox.checked = $True
 		$MSSQLManagementStudioENBox.checked = $True
+		$MSWVDDesktopAgentBox.checked = $True
+		$MSWVDRTCServiceBox.checked = $True
+		$MSWVDBootLoaderBox.checked = $True
 		$TreeSizeFreeBox.checked = $True
+		$ZoomVDIBox.checked = $True
+		$ZoomCitrixBox.checked = $True
+		$ZoomVMWareBox.checked = $True
 		$VLCPlayerBox.checked = $True
 		$OpenJDKBox.checked = $True
 		$OracleJava8Box.checked = $True
@@ -526,7 +564,13 @@ function gui_mode{
 		$MSDotNetBox.checked = $False
 		$MSSQLManagementStudioDEBox.checked = $False
 		$MSSQLManagementStudioENBox.checked = $False
+		$MSWVDDesktopAgentBox.checked = $False
+		$MSWVDRTCServiceBox.checked = $False
+		$MSWVDBootLoaderBox.checked = $False
 		$TreeSizeFreeBox.checked = $False
+		$ZoomVDIBox.checked = $False
+		$ZoomCitrixBox.checked = $False
+		$ZoomVMWareBox.checked = $False
 		$VLCPlayerBox.checked = $False
 		$OpenJDKBox.checked = $False
 		$OracleJava8Box.checked = $False
@@ -542,8 +586,7 @@ function gui_mode{
     $OKButton.location = New-Object System.Drawing.Point(271,470)
 	#$OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
     $OKButton.Add_Click({		
-		#if (!(Test-Path -Path $SoftwareToUpdate))
-        $SoftwareSelection = New-Object PSObject
+		$SoftwareSelection = New-Object PSObject
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "NotepadPlusPlus" -Value $NotePadPlusPlusBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "SevenZip" -Value $SevenZipBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "AdobeReaderDC_MUI" -Value $AdobeReaderDCBoxUpdate.checked -Force
@@ -565,10 +608,16 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSDotNetFramework" -Value $MSDotNetBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsEN" -Value $MSSQLManagementStudioENBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsDE" -Value $MSSQLManagementStudioDEBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDDesktopAgent" -Value $MSWVDDesktopAgentBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDRTCService" -Value $MSWVDRTCServiceBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDBootLoader" -Value $MSWVDBootLoaderBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "openJDK" -Value $OpenJDKBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8" -Value $OracleJava8Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8_32" -Value $OracleJava8_32Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "TreeSizeFree" -Value $TreeSizeFreeBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVDI" -Value $ZoomVDIBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomCitrix" -Value $ZoomCitrixBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVMWare" -Value $ZoomVMWareBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VLCPlayer" -Value $VLCPlayerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "deviceTRUST" -Value $deviceTRUSTBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VMWareTools" -Value $VMWareToolsBox.checked -Force
@@ -618,6 +667,7 @@ Write-Output ""
 IF (!(Test-Path -Path "C:\Program Files\PackageManagement\ProviderAssemblies\nuget")) {Find-PackageProvider -Name 'Nuget' -ForceBootstrap -IncludeDependencies}
 IF (!(Get-Module -ListAvailable -Name Evergreen)) {Install-Module Evergreen -Force | Import-Module Evergreen}
 Update-Module Evergreen -force
+
 
 # Logfile UpdateLog
 Start-Transcript $UpdateLog | Out-Null
@@ -909,9 +959,9 @@ Write-Output ""
 IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
 $Product = "Adobe Reader DC MUI"
 $PackageName = "Adobe_DC_MUI_Update"
-$Adobe = Get-AdobeAcrobat| Where-Object {$_.Track -eq "DC"}
+$Adobe = Get-AdobeAcrobat | Where-Object {$_.Track -eq "DC" -and $_.Product -eq "Reader" -and $_.Language -eq "Multi"}
 $Version = $Adobe.Version
-$URL = $Adobe.uri.Replace("acrobat", "reader").Replace("AcrobatDCUpd", "AcroRdrDCUpd").Replace(".msp", "_MUI.msp")
+$URL = $Adobe.uri
 $InstallerType = "msp"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
@@ -1267,6 +1317,94 @@ $MSSQLManagementStudioDE = Get-MicrosoftSsms | Where-Object {$_.Language -eq "Ge
 $Version = $MSSQLManagementStudioDE.Version
 $URL = $MSSQLManagementStudioDE.uri
 $InstallerType = "exe"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
+# Download MS WVD Desktop Agent
+IF ($SoftwareSelection.MSWVDDesktopAgent -eq $true) {
+$Product = "MS WVD Desktop Agent"
+$PackageName = "Microsoft.RDInfra.RDAgent.Installer-x64"
+$MSWVDDesktopAgent = Get-MicrosoftWvdInfraAgent
+$Version = $MSWVDDesktopAgent.Version
+$URL = $MSWVDDesktopAgent.uri
+$InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
+# Download MS WVD Boot Loader
+IF ($SoftwareSelection.MSWVDBootLoader -eq $true) {
+$Product = "MS WVD Boot Loader"
+$MSWVDBootLoader = Get-MicrosoftWvdBootloader
+$PackageName = $MSWVDBootLoader.Filename
+$URL = $MSWVDBootLoader.uri
+Write-Host -ForegroundColor Yellow "Download $Product"
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+Write-Host -ForegroundColor Yellow "Starting Download of $Product"
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($PackageName))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+
+
+# Download MS WVD WebSocket Service
+IF ($SoftwareSelection.MSWVDRTCService -eq $true) {
+$Product = "MS WVD RTC Service for Teams"
+$PackageName = "MsRdcWebRTCSvc_HostSetup_x64"
+$MSWVDRTCService = Get-MicrosoftWvdRtcService
+$Version = $MSWVDRTCService.Version
+$URL = $MSWVDRTCService.uri
+$InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
@@ -1759,6 +1897,117 @@ Write-Output ""
 
 # Stop UpdateLog
 Stop-Transcript | Out-Null
+
+
+# Download Zoom VDI Installer
+IF ($SoftwareSelection.ZoomVDI -eq $true) {
+$Product = "Zoom VDI Host"
+$PackageName = "ZoomInstallerVDI"
+$ZoomVDI = Get-Zoom | Where-Object {$_.Platform -eq "VDI"}
+$URLVersion = "https://support.zoom.us/hc/en-us/articles/360041602711"
+$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
+$regexAppVersion = "(\d\.\d\.\d)"
+$Version = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Descending | Select-Object -First 1
+$URL = $ZoomVDI.uri
+$InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
+# Download Zoom Citrix client
+IF ($SoftwareSelection.ZoomCitrix -eq $true) {
+$Product = "Zoom Citrix Client"
+$PackageName = "ZoomCitrixHDXMediaPlugin"
+$ZoomCitrix = Get-Zoom | Where-Object {$_.Platform -eq "Citrix"}
+$URLVersion = "https://support.zoom.us/hc/en-us/articles/360041602711"
+$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
+$regexAppVersion = "(\d\.\d\.\d)"
+$Version = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Descending | Select-Object -First 1
+$URL = $ZoomCitrix.uri
+$InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
+# Download Zoom VMWare client
+IF ($SoftwareSelection.ZoomVMWare -eq $true) {
+$Product = "Zoom VMWare Client"
+$PackageName = "ZoomVMWareMediaPlugin"
+$ZoomVMWare = Get-Zoom | Where-Object {$_.Platform -eq "VMWare"}
+$URLVersion = "https://support.zoom.us/hc/en-us/articles/360041602711"
+$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
+$regexAppVersion = "(\d\.\d\.\d)"
+$Version = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Descending | Select-Object -First 1
+$URL = $ZoomVMWare.uri
+$InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
 
 # Format UpdateLog
 $Content = Get-Content -Path $UpdateLog | Select-Object -Skip 18
