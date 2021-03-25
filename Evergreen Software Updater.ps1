@@ -16,7 +16,7 @@ the scriot checks the version number and will update the package.
 
 .EXAMPLE
 
-.PARAMETER
+.PARAMETER -noGUI
 If you made your selection once, you can run the script with the -noGUI parameter.
 
 .NOTES

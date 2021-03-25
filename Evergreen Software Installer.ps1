@@ -13,7 +13,7 @@ The selection is stored in a XML file, so you can easily replace the script and 
 
 .EXAMPLE
 
-.PARAMETER
+.PARAMETER -noGUI
 If you made your selection once, you can run the script with the -noGUI parameter.
 
 .NOTES
