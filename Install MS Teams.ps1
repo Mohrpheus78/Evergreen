@@ -94,7 +94,7 @@ $Teams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentV
 IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
 IF ($Teams -ne $Version) {
 
-#Uninstalling MS Teams
+# Uninstalling MS Teams
 IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where DisplayName -like "*Teams Machine*") {
 Write-Host -ForegroundColor Yellow "Uninstalling $Product"
 DS_WriteLog "I" "Uninstalling $Product" $LogFile
@@ -111,7 +111,7 @@ Write-Host -ForegroundColor Green " ...ready!"
 Write-Output ""
 }
 
-#MS Teams Installation
+# MS Teams Installation
 Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
