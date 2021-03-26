@@ -555,7 +555,7 @@ IF ($SoftwareSelection.GoogleChrome -eq $true)
 # Install WorkspaceApp Current
 IF ($SoftwareSelection.WorkspaceApp_CR -eq $true)
 	{
-		& "$PSScriptRoot\Install WorkspaceApp Current Server.ps1"
+		& "$PSScriptRoot\Install WorkspaceApp Current.ps1"
 	}
 
 # Install WorkspaceApp LTSR
