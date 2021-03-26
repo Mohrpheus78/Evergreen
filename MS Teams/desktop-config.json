@@ -1,0 +1,8 @@
+{
+   "appPreferenceSettings": {
+      "runningOnClose": true,
+      "disableGpu": true,
+      "callingMWEnabledPreferenceKey": false
+   },
+   "theme": "default"
+}

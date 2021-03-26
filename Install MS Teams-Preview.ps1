@@ -91,10 +91,10 @@ else {
 # Check, if a new version is available
 $Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 $Teams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).DisplayVersion
-IF ($Teams) {$Teams.Insert(5,'0')}
+IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
 IF ($Teams -ne $Version) {
 
-#Uninstalling MS Teams
+# Uninstalling MS Teams
 IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where DisplayName -like "*Teams Machine*") {
 Write-Host -ForegroundColor Yellow "Uninstalling $Product"
 DS_WriteLog "I" "Uninstalling $Product" $LogFile
@@ -111,7 +111,7 @@ Write-Host -ForegroundColor Green " ...ready!"
 Write-Output ""
 }
 
-#MS Teams Installation
+# MS Teams Installation
 Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
@@ -121,8 +121,8 @@ DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile
 }
 DS_WriteLog "-" "" $LogFile
 
-# Configure Teams Settings with json template
-copy-item -Path "$PSScriptRoot\$Product\desktop-config.json" -Destination "C:\USers\Default\AppData\Roaming\Microsoft\Teams"
+# Configure Teams Settings with json template, template must exist
+# copy-item -Path "$PSScriptRoot\$Product\desktop-config.json" -Destination "C:\USers\Default\AppData\Roaming\Microsoft\Teams"
 
 # Prevents MS Teams from starting at logon
 Start-Sleep 5
