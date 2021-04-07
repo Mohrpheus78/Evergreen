@@ -26,12 +26,13 @@ https://github.com/aaronparker/Evergreen
 You can run this script daily with a scheduled task.
 Run as admin!
 
-Version:		1.1
+Version:		1.2
 Author:         Dennis Mohrmann <@mohrpheus78>
 Creation Date:  2020-11-19
 Purpose/Change:	
 2020-11-19     Inital version
 2021-03-16     Added forms and xml selection
+2021-04-07     Changed Evergreen commands because of new Evergreen module 
 #>
 
 Param (
