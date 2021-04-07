@@ -97,7 +97,7 @@ function gui_mode{
     # Set the size of your form
     $Form = New-Object system.Windows.Forms.Form
     $Form.ClientSize = New-Object System.Drawing.Point(800,520)
-    $Form.text = "SuL Software-Updater"
+    $Form.text = "Evergreen Software-Updater"
     $Form.TopMost = $false
     $Form.AutoSize = $true
 
@@ -454,13 +454,23 @@ function gui_mode{
     $form.Controls.Add($VLCPlayerBox)
 	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
 	
+	# FileZilla Checkbox
+    $FileZillaBox = New-Object system.Windows.Forms.CheckBox
+    $FileZillaBox.text = "FileZilla Client"
+    $FileZillaBox.width = 95
+    $FileZillaBox.height = 20
+    $FileZillaBox.autosize = $true
+    $FileZillaBox.location = New-Object System.Drawing.Point(615,95)
+    $form.Controls.Add($FileZillaBox)
+	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
+	
 	# Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
     $ZoomVDIBox.text = "Zoom VDI Host Installer"
     $ZoomVDIBox.width = 95
     $ZoomVDIBox.height = 20
     $ZoomVDIBox.autosize = $true
-    $ZoomVDIBox.location = New-Object System.Drawing.Point(615,95)
+    $ZoomVDIBox.location = New-Object System.Drawing.Point(615,120)
     $form.Controls.Add($ZoomVDIBox)
 	$ZoomVDIBox.Checked =  $SoftwareSelection.ZoomVDI
 	
@@ -470,7 +480,7 @@ function gui_mode{
     $ZoomCitrixBox.width = 95
     $ZoomCitrixBox.height = 20
     $ZoomCitrixBox.autosize = $true
-    $ZoomCitrixBox.location = New-Object System.Drawing.Point(615,120)
+    $ZoomCitrixBox.location = New-Object System.Drawing.Point(615,145)
     $form.Controls.Add($ZoomCitrixBox)
 	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
 	
@@ -480,7 +490,7 @@ function gui_mode{
     $ZoomVMWareBox.width = 95
     $ZoomVMWareBox.height = 20
     $ZoomVMWareBox.autosize = $true
-    $ZoomVMWareBox.location = New-Object System.Drawing.Point(615,145)
+    $ZoomVMWareBox.location = New-Object System.Drawing.Point(615,170)
     $form.Controls.Add($ZoomVMWareBox)
 	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
 	
@@ -526,6 +536,7 @@ function gui_mode{
 		$ZoomCitrixBox.checked = $True
 		$ZoomVMWareBox.checked = $True
 		$VLCPlayerBox.checked = $True
+		$FileZillaBox.checked = $True
 		$OpenJDKBox.checked = $True
 		$OracleJava8Box.checked = $True
 		$OracleJava8_32Box.checked = $True
@@ -573,6 +584,7 @@ function gui_mode{
 		$ZoomCitrixBox.checked = $False
 		$ZoomVMWareBox.checked = $False
 		$VLCPlayerBox.checked = $False
+		$FileZillaBox.checked = $False
 		$OpenJDKBox.checked = $False
 		$OracleJava8Box.checked = $False
 		$OracleJava8_32Box.checked = $False
@@ -620,6 +632,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomCitrix" -Value $ZoomCitrixBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVMWare" -Value $ZoomVMWareBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VLCPlayer" -Value $VLCPlayerBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FileZilla" -Value $FileZillaBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "deviceTRUST" -Value $deviceTRUSTBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VMWareTools" -Value $VMWareToolsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "RemoteDesktopManager" -Value $RemoteDesktopManagerBox.checked -Force
@@ -792,6 +805,40 @@ $VLC = Get-EvergreenApp -Name VideoLanVlcPlayer | Where-Object {$_.Platform -eq 
 $Version = $VLC.Version
 $URL = $VLC.uri
 $InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product" 
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available" 
+IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
+Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Write-Host "Stop logging" 
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
+# Download FileZilla Client
+IF ($SoftwareSelection.FileZilla -eq $true) {
+$Product = "FileZilla"
+$PackageName = "FileZilla"
+$FileZilla = Get-EvergreenApp -Name FileZilla
+$Version = $FileZilla.Version
+$URL = $FileZilla.uri
+$InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product" 
