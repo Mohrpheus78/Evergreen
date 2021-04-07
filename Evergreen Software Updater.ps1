@@ -685,7 +685,7 @@ Write-Output ""
 IF ($SoftwareSelection.NotePadPlusPlus -eq $true) {
 $Product = "NotePadPlusPlus"
 $PackageName = "NotePadPlusPlus_x64"
-$Notepad = Get-NotepadPlusPlus | Where-Object {$_.Architecture -eq "x64" -and $_.URI -match ".exe"}
+$Notepad = Get-EvergreenApp -Name NotepadPlusPlus | Where-Object {$_.Architecture -eq "x64" -and $_.URI -match ".exe"}
 $Version = $Notepad.Version
 $URL = $Notepad.uri
 $InstallerType = "exe"
@@ -719,7 +719,7 @@ Write-Output ""
 IF ($SoftwareSelection.GoogleChrome -eq $true) {
 $Product = "Google Chrome"
 $PackageName = "GoogleChromeStandaloneEnterprise64"
-$Chrome = Get-GoogleChrome | Where-Object {$_.Architecture -eq "x64"}
+$Chrome = Get-EvergreenApp -Name GoogleChrome | Where-Object {$_.Architecture -eq "x64"}
 $Version = $Chrome.Version
 $URL = $Chrome.uri
 $InstallerType = "msi"
@@ -753,7 +753,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSEdge -eq $true) {
 $Product = "MS Edge"
 $PackageName = "MicrosoftEdgeEnterpriseX64"
-$Edge = Get-MicrosoftEdge | Where-Object {$_.Platform -eq "Windows" -and $_.Channel -eq "stable" -and $_.Architecture -eq "x64"}
+$Edge = Get-EvergreenApp -Name MicrosoftEdge | Where-Object {$_.Platform -eq "Windows" -and $_.Channel -eq "stable" -and $_.Architecture -eq "x64"}
 $Version = $Edge.Version
 $URL = $Edge.uri
 $InstallerType = "msi"
@@ -787,7 +787,7 @@ Write-Output ""
 IF ($SoftwareSelection.VLCPlayer -eq $true) {
 $Product = "VLC Player"
 $PackageName = "VLC-Player"
-$VLC = Get-VideoLanVlcPlayer | Where-Object {$_.Platform -eq "Windows"  -and $_.Architecture -eq "x64" -and $_.Type -eq "MSI"}
+$VLC = Get-EvergreenApp -Name VideoLanVlcPlayer | Where-Object {$_.Platform -eq "Windows"  -and $_.Architecture -eq "x64" -and $_.Type -eq "MSI"}
 $Version = $VLC.Version
 $URL = $VLC.uri
 $InstallerType = "msi"
@@ -821,7 +821,7 @@ Write-Output ""
 IF ($SoftwareSelection.BISF -eq $true) {
 $Product = "BIS-F"
 $PackageName = "setup-BIS-F"
-$BISF = Get-BISF| Where-Object {$_.URI -like "*msi*"}
+$BISF = Get-EvergreenApp -Name BISF
 $Version = $BISF.Version
 $URL = $BISF.uri
 $InstallerType = "msi"
@@ -855,7 +855,7 @@ Write-Output ""
 IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 $Product = "WorkspaceApp"
 $PackageName = "CitrixWorkspaceApp"
-$WSA = Get-CitrixWorkspaceApp | Where-Object {$_.Title -like "*Workspace*" -and "*Current*" -and $_.Platform -eq "Windows" -and $_.Title -like "*Current*" }
+$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "*Workspace*" -and "*Current*" -and $_.Platform -eq "Windows" -and $_.Title -like "*Current*" }
 $Version = $WSA.Version
 $URL = $WSA.uri
 $InstallerType = "exe"
@@ -890,7 +890,7 @@ Write-Output ""
 IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 $Product = "WorkspaceApp"
 $PackageName = "CitrixWorkspaceApp"
-$WSA = Get-CitrixWorkspaceApp | Where-Object {$_.Title -like "*Workspace*" -and "*LTSR*" -and $_.Platform -eq "Windows" -and $_.Title -like "*LTSR*" }
+$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "*Workspace*" -and "*LTSR*" -and $_.Platform -eq "Windows" -and $_.Title -like "*LTSR*" }
 $Version = $WSA.Version
 $URL = $WSA.uri
 $InstallerType = "exe"
@@ -925,7 +925,7 @@ Write-Output ""
 IF ($SoftwareSelection.SevenZip -eq $true) {
 $Product = "7-Zip"
 $PackageName = "7-Zip_x64"
-$7Zip = Get-7zip | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*exe*"}
+$7Zip = Get-EvergreenApp -Name 7zip | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*exe*"}
 $Version = $7Zip.Version
 $URL = $7Zip.uri
 $InstallerType = "exe"
@@ -959,7 +959,7 @@ Write-Output ""
 IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
 $Product = "Adobe Reader DC MUI"
 $PackageName = "Adobe_DC_MUI_Update"
-$Adobe = Get-AdobeAcrobat | Where-Object {$_.Track -eq "DC" -and $_.Product -eq "Reader" -and $_.Language -eq "Multi"}
+$Adobe = Get-EvergreenApp -Name AdobeAcrobat | Where-Object {$_.Track -eq "DC" -and $_.Product -eq "Reader" -and $_.Language -eq "Multi"}
 $Version = $Adobe.Version
 $URL = $Adobe.uri
 $InstallerType = "msp"
@@ -993,7 +993,7 @@ Write-Output ""
 IF ($SoftwareSelection.FSLogix -eq $true) {
 $Product = "FSLogix"
 $PackageName = "FSLogixAppsSetup"
-$FSLogix = Get-MicrosoftFSLogixApps
+$FSLogix = Get-EvergreenApp -Name MicrosoftFSLogixApps
 $Version = $FSLogix.Version
 $URL = $FSLogix.uri
 $InstallerType = "zip"
@@ -1032,17 +1032,9 @@ Write-Output ""
 IF ($SoftwareSelection.MSTeams -eq $true) {
 $Product = "MS Teams"
 $PackageName = "Teams_windows_x64"
-$Teams = Get-MicrosoftTeams | Where-Object {$_.Architecture -eq "x64" -and $_.Ring -eq "General"}
+$Teams = Get-EvergreenApp -Name MicrosoftTeams | Where-Object {$_.Architecture -eq "x64" -and $_.Ring -eq "General"}
 $Version = $Teams.Version
 $URL = $Teams.uri
-<#
-$URLVersion = "https://whatpulse.org/app/microsoft-teams#versions"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "<td>\d.\d.\d{2}.\d+</td>"
-$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$Version = $webVersion.Trim("</td>").Trim("</td>")
-$URL = "https://statics.teams.cdn.office.net/production-windows-x64/$Version/Teams_windows_x64.msi"
-#>
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
@@ -1059,7 +1051,6 @@ New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
 Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
-#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1075,7 +1066,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSTeamsPrev -eq $true) {
 $Product = "MS Teams - Preview Release"
 $PackageName = "Teams_windows_x64"
-$Teams = Get-MicrosoftTeams | Where-Object {$_.Architecture -eq "x64" -and $_.Ring -eq "Preview"}
+$Teams = Get-EvergreenApp -Name MicrosoftTeams | Where-Object {$_.Architecture -eq "x64" -and $_.Ring -eq "Preview"}
 $Version = $Teams.Version
 $URL = $Teams.uri
 $InstallerType = "msi"
@@ -1109,7 +1100,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSOneDrive -eq $true) {
 $Product = "MS OneDrive"
 $PackageName = "OneDriveSetup"
-$OneDrive = Get-MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production" -and $_.Type -eq "Exe"} | Select-Object -First 1
+$OneDrive = Get-EvergreenApp -Name MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production" -and $_.Type -eq "Exe"} Select-Object -First 1
 $Version = $OneDrive.Version
 $URL = $OneDrive.uri
 $InstallerType = "exe"
@@ -1143,7 +1134,7 @@ Write-Output ""
 IF ($SoftwareSelection.MS365Apps -eq $true) {
 $Product = "MS 365 Apps (Semi Annual Channel)"
 $PackageName = "setup"
-$MS365Apps = Get-Microsoft365Apps | Where-Object {$_.Channel -eq "Semi-Annual Channel"}
+$MS365Apps = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "Semi-Annual Channel"}
 $Version = $MS365Apps.Version
 $URL = $MS365Apps.uri
 $InstallerType = "exe"
@@ -1177,7 +1168,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSOffice2019 -eq $true) {
 $Product = "MS Office 2019"
 $PackageName = "setup"
-$MSOffice2019 = Get-Microsoft365Apps | Where-Object {$_.Channel -eq "Office 2019 Enterprise"}
+$MSOffice2019 = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "Office 2019 Enterprise"}
 $Version = $MSOffice2019.Version
 $URL = $MSOffice2019.uri
 $InstallerType = "exe"
@@ -1211,7 +1202,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSPowershell -eq $true) {
 $Product = "MS Powershell"
 $PackageName = "Powershell"
-$MSPowershell = Get-MicrosoftPowerShell | Where-Object {$_.Architecture -eq "x64" -and $_.Release -eq "Stable"}
+$MSPowershell = Get-EvergreenApp -Name MicrosoftPowerShell | Where-Object {$_.Architecture -eq "x64" -and $_.Release -eq "Stable"}
 $Version = $MSPowershell.Version
 $URL = $MSPowershell.uri
 $InstallerType = "msi"
@@ -1245,7 +1236,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSDotNetFramework -eq $true) {
 $Product = "MS DotNet Framework"
 $PackageName = "DotNetFramework-runtime"
-$MSDotNetFramework = Get-Microsoft.NET | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "Current"}
+$MSDotNetFramework = Get-EvergreenApp -Name Microsoft.NET | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "Current"}
 $Version = $MSDotNetFramework.Version
 $URL = $MSDotNetFramework.uri
 $InstallerType = "exe"
@@ -1279,7 +1270,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSSsmsEN -eq $true) {
 $Product = "MS SQL Management Studio EN"
 $PackageName = "SSMS-Setup-ENU"
-$MSSQLManagementStudioEN = Get-MicrosoftSsms | Where-Object {$_.Language -eq "English"}
+$MSSQLManagementStudioEN = Get-EvergreenApp -Name MicrosoftSsms | Where-Object {$_.Language -eq "English"}
 $Version = $MSSQLManagementStudioEN.Version
 $URL = $MSSQLManagementStudioEN.uri
 $InstallerType = "exe"
@@ -1313,7 +1304,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSSsmsDE -eq $true) {
 $Product = "MS SQL Management Studio DE"
 $PackageName = "SSMS-Setup-DEU"
-$MSSQLManagementStudioDE = Get-MicrosoftSsms | Where-Object {$_.Language -eq "German"}
+$MSSQLManagementStudioDE = Get-EvergreenApp -Name MicrosoftSsms | Where-Object {$_.Language -eq "German"}
 $Version = $MSSQLManagementStudioDE.Version
 $URL = $MSSQLManagementStudioDE.uri
 $InstallerType = "exe"
@@ -1347,7 +1338,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSWVDDesktopAgent -eq $true) {
 $Product = "MS WVD Desktop Agent"
 $PackageName = "Microsoft.RDInfra.RDAgent.Installer-x64"
-$MSWVDDesktopAgent = Get-MicrosoftWvdInfraAgent
+$MSWVDDesktopAgent = Get-EvergreenApp -Name MicrosoftWvdInfraAgent
 $Version = $MSWVDDesktopAgent.Version
 $URL = $MSWVDDesktopAgent.uri
 $InstallerType = "msi"
@@ -1380,7 +1371,7 @@ Write-Output ""
 # Download MS WVD Boot Loader
 IF ($SoftwareSelection.MSWVDBootLoader -eq $true) {
 $Product = "MS WVD Boot Loader"
-$MSWVDBootLoader = Get-MicrosoftWvdBootloader
+$MSWVDBootLoader = Get-EvergreenApp -Name MicrosoftWvdBootloader
 $PackageName = $MSWVDBootLoader.Filename
 $URL = $MSWVDBootLoader.uri
 Write-Host -ForegroundColor Yellow "Download $Product"
@@ -1401,7 +1392,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSWVDRTCService -eq $true) {
 $Product = "MS WVD RTC Service for Teams"
 $PackageName = "MsRdcWebRTCSvc_HostSetup_x64"
-$MSWVDRTCService = Get-MicrosoftWvdRtcService
+$MSWVDRTCService = Get-EvergreenApp -Name MicrosoftWvdRtcService
 $Version = $MSWVDRTCService.Version
 $URL = $MSWVDRTCService.uri
 $InstallerType = "msi"
@@ -1431,46 +1422,11 @@ Write-Output ""
 }
 
 
-<#
-# Download Office Deployment Toolkit (ODT)
-IF ($OfficeDT -eq 1) {
-$Product = "MS Office 365"
-$PackageName = "officedeploymenttool"
-$URL = $(Get-ODTUri)
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$Version = $URL.Split("_") | Select-Object -Last 1
-$Version = $Version -replace ".{4}$"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
-Write-Verbose "Download $Product" -Verbose
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-if (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Exclude Beispiel
-Start-Transcript $LogPS
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
-Write-Verbose "Starting Download of $Product $Version" -Verbose
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
-Start-Sleep 3
-Write-Verbose "Stop logging" -Verbose
-Stop-Transcript
-Write-Output ""
-& "$PSScriptRoot\$Product\$PackageName.$InstallerType" /quiet /extract:"$PSScriptRoot\$Product"
-}
-Write-Verbose "No new version available" -Verbose
-Write-Output ""
-}
-#>
-
-
 # Download Citrix Hypervisor Tools
 IF ($SoftwareSelection.CitrixHypervisorTools -eq $true) {
 $Product = "Citrix Hypervisor Tools"
 $PackageName = "managementagentx64"
-$CitrixTools = Get-CitrixVMTools | Where-Object {$_.Architecture -eq "x64"} | Select-Object -Last 1
+$CitrixTools = Get-EvergreenApp -Name CitrixVMTools | Where-Object {$_.Architecture -eq "x64"} | Select-Object -Last 1
 $Version = $CitrixTools.Version
 $URL = $CitrixTools.uri
 $InstallerType = "msi"
@@ -1504,7 +1460,7 @@ Write-Output ""
 IF ($SoftwareSelection.VMWareTools -eq $true) {
 $Product = "VMWare Tools"
 $PackageName = "VMWareTools"
-$VMWareTools = Get-VMwareTools | Where-Object {$_.Architecture -eq "x64"}
+$VMWareTools = Get-EvergreenApp -Name VMwareTools | Where-Object {$_.Architecture -eq "x64"}
 $Version = $VMWareTools.Version
 $URL = $VMWareTools.uri
 $InstallerType = "exe"
@@ -1619,7 +1575,7 @@ Write-Output ""
 IF ($SoftwareSelection.OpenJDK -eq $true) {
 $Product = "open JDK"
 $PackageName = "OpenJDK"
-$OpenJDK = Get-OpenJDK | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*msi*"} | Sort-Object -Property Version -Descending | Select-Object -First 1
+$OpenJDK = Get-EvergreenApp -Name OpenJDK | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*msi*"} | Sort-Object -Property Version -Descending | Select-Object -First 1
 $Version = $OpenJDK.Version
 $URL = $OpenJDK.uri
 $InstallerType = "msi"
@@ -1653,7 +1609,7 @@ Write-Output ""
 IF ($SoftwareSelection.OracleJava8 -eq $true) {
 $Product = "Oracle Java 8"
 $PackageName = "Oracle Java 8"
-$OracleJava8 = Get-OracleJava8 | Where-Object {$_.Architecture -eq "x64"}
+$OracleJava8 = Get-EvergreenApp -Name OracleJava8 | Where-Object {$_.Architecture -eq "x64"}
 $Version = $OracleJava8.Version
 $Version = $Version -replace ".{4}$"
 $URL = $OracleJava8.uri
@@ -1688,7 +1644,7 @@ Write-Output ""
 IF ($SoftwareSelection.OracleJava8_32 -eq $true) {
 $Product = "Oracle Java 8 - 32 Bit"
 $PackageName = "Oracle Java 8"
-$OracleJava8 = Get-OracleJava8 | Where-Object {$_.Architecture -eq "x86"}
+$OracleJava8 = Get-EvergreenApp -Name OracleJava8 | Where-Object {$_.Architecture -eq "x86"}
 $Version = $OracleJava8.Version
 $Version = $Version -replace ".{4}$"
 $URL = $OracleJava8.uri
@@ -1723,7 +1679,7 @@ Write-Output ""
 IF ($SoftwareSelection.KeePass -eq $true) {
 $Product = "KeePass"
 $PackageName = "KeePass"
-$KeePass = Get-KeePass | Where-Object {$_.URI -like "*exe*"}
+$KeePass = Get-EvergreenApp -Name KeePass | Where-Object {$_.URI -like "*exe*"}
 $Version = $KeePass.Version
 $URL = $KeePass.uri
 $InstallerType = "exe"
@@ -1757,7 +1713,7 @@ Write-Output ""
 IF ($SoftwareSelection.mRemoteNG -eq $true) {
 $Product = "mRemoteNG"
 $PackageName = "mRemoteNG"
-$mRemoteNG = Get-mRemoteNG | Where-Object {$_.URI -like "*msi*"}
+$mRemoteNG = Get-EvergreenApp -Name mRemoteNG | Where-Object {$_.URI -like "*msi*"}
 $Version = $mRemoteNG.Version
 $URL = $mRemoteNG.uri
 $InstallerType = "msi"
@@ -1791,7 +1747,7 @@ Write-Output ""
 IF ($SoftwareSelection.TreeSizeFree -eq $true) {
 $Product = "TreeSizeFree"
 $PackageName = "TreeSizeFree"
-$TreeSizeFree = Get-JamTreeSizeFree
+$TreeSizeFree = Get-EvergreenApp -Name JamTreeSizeFree
 $Version = $TreeSizeFree.Version
 $URL = $TreeSizeFree.uri
 $InstallerType = "exe"
@@ -1825,7 +1781,7 @@ Write-Output ""
 IF ($SoftwareSelection.WinSCP -eq $true) {
 $Product = "WinSCP"
 $PackageName = "WinSCP"
-$WinSCP = Get-WinSCP | Where-Object {$_.URI -like "*Portable*"}
+$WinSCP = Get-EvergreenApp -Name WinSCP | Where-Object {$_.URI -like "*Portable*"}
 $Version = $WinSCP.Version
 $URL = $WinSCP.uri
 $InstallerType = "zip"
@@ -1903,7 +1859,7 @@ Stop-Transcript | Out-Null
 IF ($SoftwareSelection.ZoomVDI -eq $true) {
 $Product = "Zoom VDI Host"
 $PackageName = "ZoomInstallerVDI"
-$ZoomVDI = Get-Zoom | Where-Object {$_.Platform -eq "VDI"}
+$ZoomVDI = Get-EvergreenApp -Name Zoom | Where-Object {$_.Platform -eq "VDI"}
 $URLVersion = "https://support.zoom.us/hc/en-us/articles/360041602711"
 $webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
 $regexAppVersion = "(\d\.\d\.\d)"
@@ -1940,7 +1896,7 @@ Write-Output ""
 IF ($SoftwareSelection.ZoomCitrix -eq $true) {
 $Product = "Zoom Citrix Client"
 $PackageName = "ZoomCitrixHDXMediaPlugin"
-$ZoomCitrix = Get-Zoom | Where-Object {$_.Platform -eq "Citrix"}
+$ZoomCitrix = Get-EvergreenApp -Name Zoom | Where-Object {$_.Platform -eq "Citrix"}
 $URLVersion = "https://support.zoom.us/hc/en-us/articles/360041602711"
 $webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
 $regexAppVersion = "(\d\.\d\.\d)"
@@ -1977,7 +1933,7 @@ Write-Output ""
 IF ($SoftwareSelection.ZoomVMWare -eq $true) {
 $Product = "Zoom VMWare Client"
 $PackageName = "ZoomVMWareMediaPlugin"
-$ZoomVMWare = Get-Zoom | Where-Object {$_.Platform -eq "VMWare"}
+$ZoomVMWare = Get-EvergreenApp -Name Zoom | Where-Object {$_.Platform -eq "VMWare"}
 $URLVersion = "https://support.zoom.us/hc/en-us/articles/360041602711"
 $webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
 $regexAppVersion = "(\d\.\d\.\d)"
