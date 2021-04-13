@@ -1180,7 +1180,7 @@ Write-Output ""
 
 # Download MS Office365Apps
 IF ($SoftwareSelection.MS365Apps -eq $true) {
-$Product = "MS 365 Apps (Semi Annual Channel)"
+$Product = "MS 365 Apps-Semi Annual Channel"
 $PackageName = "setup"
 $MS365Apps = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "Semi-Annual Channel"}
 $Version = $MS365Apps.Version
