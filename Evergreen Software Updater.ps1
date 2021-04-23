@@ -767,7 +767,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSEdge -eq $true) {
 $Product = "MS Edge"
 $PackageName = "MicrosoftEdgeEnterpriseX64"
-$Edge = Get-EvergreenApp -Name MicrosoftEdge | Where-Object {$_.Platform -eq "Windows" -and $_.Channel -eq "stable" -and $_.Architecture -eq "x64"}
+$Edge = Get-EvergreenApp -Name MicrosoftEdge | Where-Object {$_.Platform -eq "Windows" -and $_.Channel -eq "stable" -and $_.Architecture -eq "x64" -and $_.Release -eq "Enterprise"}
 $Version = $Edge.Version
 $URL = $Edge.uri
 $InstallerType = "msi"
