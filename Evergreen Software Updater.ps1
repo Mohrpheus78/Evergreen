@@ -1148,7 +1148,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSOneDrive -eq $true) {
 $Product = "MS OneDrive"
 $PackageName = "OneDriveSetup"
-$OneDrive = Get-EvergreenApp -Name MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production" -and $_.Type -eq "Exe"} Select-Object -First 1
+$OneDrive = Get-EvergreenApp -Name MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production" -and $_.Type -eq "Exe"} | Select-Object -First 1
 $Version = $OneDrive.Version
 $URL = $OneDrive.uri
 $InstallerType = "exe"
