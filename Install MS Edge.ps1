@@ -71,6 +71,7 @@ $arguments = @(
     "`"$msiFile`""
     "/qn"
     "DONOTCREATEDESKTOPSHORTCUT=TRUE"
+    "DONOTCREATETASKBARSHORTCUT=TRUE"
 )
 if ($targetDir){
     if (!(Test-Path $targetDir)){
@@ -102,13 +103,30 @@ DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile
 }
 DS_WriteLog "-" "" $LogFile
 
-# Disable scheduled tasks
-Start-Sleep -s 5
-Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateTaskMachineCore | Out-Null
-Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateTaskMachineUA | Out-Null
-Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateBrowserReplacementTask | Out-Null
-Write-Host -ForegroundColor Green " ...ready!" 
-Write-Output ""
+# Disable scheduled tasks and Microsoft Edge services if PVS Target
+if ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*) | Where-Object {$_.DisplayName -like "*Citrix Provisioning*"})
+{
+    Start-Sleep -s 5
+    Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateTaskMachineCore | Out-Null
+    Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateTaskMachineUA | Out-Null
+    Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateBrowserReplacementTask | Out-Null
+    
+    $Services = "edgeupdate","MicrosoftEdgeElevationService"
+    ForEach ($Service in $Services)
+    {
+    If ((Get-Service -Name $Service).Status -eq "Stopped")
+    {
+    Set-Service -Name $Service -StartupType Disabled
+    }
+    else
+    {
+    Stop-Service -Name $Service -Force -Verbose
+    Set-Service -Name $Service -StartupType Disabled
+    }
+    }
+    Write-Host -ForegroundColor Green " ...ready!" 
+    Write-Output ""
+}
 
 # Disable Citrix API Hooks (MS Edge) on Citrix VDA
 $(
@@ -123,6 +141,9 @@ Set-ItemProperty -Path $RegPath -Name $RegName -Value "$CurrentValues$EdgeRegval
 }
 ) | Out-Null
 }
+
+# Remove Microsoft Edge Active Setup registry key
+Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{9459C573-B17A-45AE-9F64-1857B5D58CEE}" -Force
 
 # Stop, if no new version is available
 Else {

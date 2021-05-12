@@ -56,7 +56,6 @@ IF ($WSA -ne $Version) {
 # Citrix WSA Installation
 $Options = @(
 "/silent"
-"/EnableCEIP=false"
 "/FORCE_LAA=1"
 "/AutoUpdateCheck=disabled"
 "/EnableCEIP=false"

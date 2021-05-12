@@ -84,7 +84,6 @@ $Options = @(
 "/EnableCEIP=false"
 "/FORCE_LAA=1"
 "/AutoUpdateCheck=disabled"
-"/EnableCEIP=false"
 "/ALLOWADDSTORE=S"
 "/ALLOWSAVEPWD=S"
 "/includeSSON"
