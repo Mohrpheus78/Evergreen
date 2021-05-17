@@ -111,7 +111,7 @@ if ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\
     Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateTaskMachineUA | Out-Null
     Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateBrowserReplacementTask | Out-Null
     
-    $Services = "edgeupdate","MicrosoftEdgeElevationService"
+    $Services = "edgeupdate","MicrosoftEdgeElevationService","edgeupdatem"
     ForEach ($Service in $Services)
     {
     If ((Get-Service -Name $Service).Status -eq "Stopped")
