@@ -140,12 +140,13 @@ $CurrentValues = Get-ItemProperty -Path $RegPath | Select-Object -ExpandProperty
 Set-ItemProperty -Path $RegPath -Name $RegName -Value "$CurrentValues$EdgeRegvalue;"
 }
 ) | Out-Null
-}
+
 
 # Remove Microsoft Edge Active Setup registry key
 Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{9459C573-B17A-45AE-9F64-1857B5D58CEE}" -Force
 
 # Stop, if no new version is available
+}
 Else {
 Write-Host "No Update available for $Product"
 Write-Output ""
