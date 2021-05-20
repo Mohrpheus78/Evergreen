@@ -72,7 +72,7 @@ Write-Output ""
 
 # Variables
 $ErrorActionPreference = "Continue"
-$SoftwareToInstall = "$PSScriptRoot\Software-to-install.xml"
+$SoftwareToInstall = "$PSScriptRoot\Software-to-install-$ENV:Computername.xml"
 
 # General install logfile
 $Date = $Date = Get-Date -UFormat "%d.%m.%Y"
@@ -141,8 +141,6 @@ function gui_mode{
     $Headline2.location = New-Object System.Drawing.Point(11,4)
     $form.Controls.Add($Headline2)
 	
-	
-
 	# NotePadPlusPlus Checkbox
     $NotePadPlusPlusBox = New-Object system.Windows.Forms.CheckBox
     $NotePadPlusPlusBox.text = "NotePad++"
@@ -363,7 +361,7 @@ function gui_mode{
     $form.Controls.Add($deviceTRUSTBox)
 	$deviceTRUSTBox.Checked =  $SoftwareSelection.deviceTRUST
 	
-		# RemoteDesktopManager Checkbox
+	# RemoteDesktopManager Checkbox
     $RemoteDesktopManagerBox = New-Object system.Windows.Forms.CheckBox
     $RemoteDesktopManagerBox.text = "Remote Desktop Manager Free"
     $RemoteDesktopManagerBox.width = 95
