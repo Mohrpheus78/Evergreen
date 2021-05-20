@@ -122,7 +122,12 @@ DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile
 DS_WriteLog "-" "" $LogFile
 
 # Configure Teams Settings with json template, template must exist!
-# copy-item -Path "$PSScriptRoot\$Product\desktop-config.json" -Destination "C:\USers\Default\AppData\Roaming\Microsoft\Teams"
+IF (!(Test-Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams"))
+	{
+	New-Item -ItemType Directory -Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams" | out-null
+	Write-Host -ForegroundColor Cyan "Default Teams settings configured for Default User profile, please check settings!"
+	copy-item -Path "$PSScriptRoot\$Product\desktop-config.json" -Destination "C:\Users\Default\AppData\Roaming\Microsoft\Teams\desktop-config.json"
+	}
 
 # Prevents MS Teams from starting at logon
 Start-Sleep 5
