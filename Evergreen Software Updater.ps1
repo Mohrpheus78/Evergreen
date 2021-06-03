@@ -1041,7 +1041,7 @@ Write-Output ""
 IF ($SoftwareSelection.FSLogix -eq $true) {
 $Product = "FSLogix"
 $PackageName = "FSLogixAppsSetup"
-$FSLogix = Get-EvergreenApp -Name MicrosoftFSLogixApps
+$FSLogix = Get-EvergreenApp -Name MicrosoftFSLogixApps | Where-Object {$_.Channel -eq "Public"}
 $Version = $FSLogix.Version
 $URL = $FSLogix.uri
 $InstallerType = "zip"
@@ -1829,7 +1829,7 @@ Write-Output ""
 IF ($SoftwareSelection.WinSCP -eq $true) {
 $Product = "WinSCP"
 $PackageName = "WinSCP"
-$WinSCP = Get-EvergreenApp -Name WinSCP | Where-Object {$_.URI -like "*Portable*"}
+$WinSCP = Get-EvergreenApp -Name WinSCP
 $Version = $WinSCP.Version
 $URL = $WinSCP.uri
 $InstallerType = "zip"
