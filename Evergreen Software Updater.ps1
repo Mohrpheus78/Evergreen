@@ -306,7 +306,7 @@ function gui_mode{
 
     # MS OneDrive Checkbox
     $MSOneDriveBox = New-Object system.Windows.Forms.CheckBox
-    $MSOneDriveBox.text = "Microsoft OneDrive (Machine-Based Install)"
+    $MSOneDriveBox.text = "Microsoft OneDrive x64 (Machine-Based Install)"
     $MSOneDriveBox.width = 95
     $MSOneDriveBox.height = 20
     $MSOneDriveBox.autosize = $true
@@ -1149,7 +1149,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSOneDrive -eq $true) {
 $Product = "MS OneDrive"
 $PackageName = "OneDriveSetup"
-$OneDrive = Get-EvergreenApp -Name MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production" -and $_.Type -eq "Exe"} | Select-Object -First 1
+$OneDrive = Get-EvergreenApp -Name MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production" -and $_.Type -eq "Exe" -and $_.Architecture -eq "AMD64"} | Select-Object -First 1
 $Version = $OneDrive.Version
 $URL = $OneDrive.uri
 $InstallerType = "exe"
