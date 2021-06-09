@@ -1833,7 +1833,7 @@ $PackageName = "WinSCP"
 $WinSCP = Get-EvergreenApp -Name WinSCP
 $Version = $WinSCP.Version
 $URL = $WinSCP.uri
-$InstallerType = "zip"
+$InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
