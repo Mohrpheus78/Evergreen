@@ -1042,7 +1042,7 @@ Write-Output ""
 IF ($SoftwareSelection.FSLogix -eq $true) {
 $Product = "FSLogix"
 $PackageName = "FSLogixAppsSetup"
-$FSLogix = Get-EvergreenApp -Name MicrosoftFSLogixApps | Where-Object {$_.Channel -eq "Public"}
+$FSLogix = Get-EvergreenApp -Name MicrosoftFSLogixApps
 $Version = $FSLogix.Version
 $URL = $FSLogix.uri
 $InstallerType = "zip"
