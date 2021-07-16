@@ -1475,7 +1475,7 @@ Write-Output ""
 IF ($SoftwareSelection.CitrixHypervisorTools -eq $true) {
 $Product = "Citrix Hypervisor Tools"
 $PackageName = "managementagentx64"
-$CitrixTools = Get-EvergreenApp -Name CitrixVMTools | Where-Object {$_.Architecture -eq "x64"} | Select-Object -Last 1
+$CitrixTools = Get-EvergreenApp -Name CitrixVMTools | Where-Object {$_.Architecture -eq "x64"} | Select-Object -First 1
 $Version = $CitrixTools.Version
 $URL = $CitrixTools.uri
 $InstallerType = "msi"
