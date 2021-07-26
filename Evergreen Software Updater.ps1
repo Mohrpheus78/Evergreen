@@ -904,7 +904,7 @@ Write-Output ""
 IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 $Product = "WorkspaceApp"
 $PackageName = "CitrixWorkspaceApp"
-$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "*Workspace*" -and "*Current*" -and $_.Platform -eq "Windows" -and $_.Title -like "*Current*" }
+$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "Current"}
 $Version = $WSA.Version
 $URL = $WSA.uri
 $InstallerType = "exe"
@@ -939,7 +939,7 @@ Write-Output ""
 IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 $Product = "WorkspaceApp"
 $PackageName = "CitrixWorkspaceApp"
-$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "*Workspace*" -and "*LTSR*" -and $_.Platform -eq "Windows" -and $_.Title -like "*LTSR*" }
+$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "LTSR"}
 $Version = $WSA.Version
 $URL = $WSA.uri
 $InstallerType = "exe"
