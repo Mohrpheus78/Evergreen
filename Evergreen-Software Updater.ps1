@@ -1,39 +1,28 @@
-﻿# ***********************************************************
+﻿# ***************************************************************************
 # D. Mohrmann, S&L Firmengruppe, Twitter: @mohrpheus78
 # Download Software packages with Evergreen powershell module
-# ***********************************************************
+# Bitte die Produkte auswählen, die runtergeladen werden sollen (Ab Zeile 70)
+# ***************************************************************************
 
 <#
 .SYNOPSIS
 This script downloads software packages if new versions are available.
 		
-.Description
+.DESCRIPTION
 The script uses the excellent Powershell Evergreen module from Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein. 
-To update a software package just launch the Evergreen Software Updater.ps1 script and select the software you want to update.
-The selection is stored in a XML file, so you can easily replace the script and you don't have to make your selection again every time.
-A new folder for every single package will be created, together with a version file, a download date file and a log file. If a new version is available
-the scriot checks the version number and will update the package.
+To update a software package just switch from 0 to 1 in the section "Select software to download".
+A new folder for every single package will be created, together with a Version file, a download date file and a log file. IF a new version is available the scriot checks
+the version number and will update the package.
 
 .EXAMPLE
-
-.PARAMETER -noGUI
-If you made your selection once, you can run the script with the -noGUI parameter.
+'$NotePadPlusPlus = 1' Downloads Notepad++
 
 .NOTES
-Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework!
-Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module! Thanks to Manuel Winkel for the forms ;-)
+Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
-You can run this script daily with a scheduled task.
 Run as admin!
-
-Version:		1.2
-Author:         Dennis Mohrmann <@mohrpheus78>
-Creation Date:  2020-11-19
-Purpose/Change:	
-2020-11-19     Inital version
-2021-03-16     Added forms and xml selection
-2021-04-07     Changed Evergreen commands because of new Evergreen module 
 #>
+
 
 Param (
 		[Parameter(
@@ -67,37 +56,66 @@ else
 
 Clear-Host
 
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------------- "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Evergreen Software-Updater (Powered by Evergreen-Module) "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                         "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------------- "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " SuL Software-Updater (Powered by Evergreen-Module)   "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                     "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
 Write-Output ""
 
 Write-Host -ForegroundColor Cyan "Setting Variables"
 Write-Output ""
 
 # Variables
+$SoftwareFolder = ("$PSScriptRoot" + "\" + "Software\")
 $ErrorActionPreference = "SilentlyContinue"
-$SoftwareToUpdate = "$PSScriptRoot\Software-to-update.xml"
+$SoftwareToUpdate = "$SoftwareFolder\Software-to-update.xml"
 
 # General update logfile
-IF (!(Test-Path -Path "$PSScriptRoot\_Update Logs")) {New-Item -Path "$PSScriptRoot\_Update Logs" -ItemType Directory}
 $Date = $Date = Get-Date -UFormat "%d.%m.%Y"
-$UpdateLog = "$PSScriptRoot\_Update Logs\Software Updates $Date.log"
+$UpdateLog = "$SoftwareFolder\_Update Logs\Software Updates $Date.log"
 
 # Import values (selected software) from XML file
 if (Test-Path -Path $SoftwareToUpdate) {$SoftwareSelection = Import-Clixml $SoftwareToUpdate}
 
 # FUNCTION Logging
 #========================================================================================================================================
+Function DS_WriteLog {
+    
+    [CmdletBinding()]
+    Param( 
+        [Parameter(Mandatory=$true, Position = 0)][ValidateSet("I","S","W","E","-",IgnoreCase = $True)][String]$InformationType,
+        [Parameter(Mandatory=$true, Position = 1)][AllowEmptyString()][String]$Text,
+        [Parameter(Mandatory=$true, Position = 2)][AllowEmptyString()][String]$LogFile
+    )
+ 
+    begin {
+    }
+ 
+    process {
+     $DateTime = (Get-Date -format dd-MM-yyyy) + " " + (Get-Date -format HH:mm:ss)
+ 
+        if ( $Text -eq "" ) {
+            Add-Content $LogFile -value ("") # Write an empty line
+        } Else {
+         Add-Content $LogFile -value ($DateTime + " " + $InformationType.ToUpper() + " - " + $Text)
+        }
+    }
+ 
+    end {
+    }
+}
+#========================================================================================================================================
+
+# FUNCTION GUI
+# ========================================================================================================================================
 function gui_mode{
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.Application]::EnableVisualStyles()
 
     # Set the size of your form
     $Form = New-Object system.Windows.Forms.Form
-    $Form.ClientSize = New-Object System.Drawing.Point(800,520)
-    $Form.text = "Evergreen Software-Updater"
+    $Form.ClientSize = New-Object System.Drawing.Point(960,520)
+    $Form.text = "SuL Software-Updater"
     $Form.TopMost = $false
     $Form.AutoSize = $true
 
@@ -204,13 +222,23 @@ function gui_mode{
     $form.Controls.Add($Citrix_HypervisorToolsBox)
 	$Citrix_HypervisorToolsBox.Checked = $SoftwareSelection.CitrixHypervisorTools
 	
+	# Citrix Files Checkbox
+    $CitrixFilesBox = New-Object system.Windows.Forms.CheckBox
+    $CitrixFilesBox.text = "Citrix Files"
+    $CitrixFilesBox.width = 95
+    $CitrixFilesBox.height = 20
+    $CitrixFilesBox.autosize = $true
+    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,270)
+    $form.Controls.Add($CitrixFilesBox)
+	$CitrixFilesBox.Checked = $SoftwareSelection.CitrixFiles
+	
 	# VMWareTools Checkbox
     $VMWareToolsBox = New-Object system.Windows.Forms.CheckBox
     $VMWareToolsBox.text = "VMWare Tools"
     $VMWareToolsBox.width = 95
     $VMWareToolsBox.height = 20
     $VMWareToolsBox.autosize = $true
-    $VMWareToolsBox.location = New-Object System.Drawing.Point(11,270)
+    $VMWareToolsBox.location = New-Object System.Drawing.Point(11,295)
     $form.Controls.Add($VMWareToolsBox)
 	$VMWareToolsBox.Checked = $SoftwareSelection.VMWareTools
 
@@ -220,7 +248,7 @@ function gui_mode{
     $RemoteDesktopManagerBox.width = 95
     $RemoteDesktopManagerBox.height = 20
     $RemoteDesktopManagerBox.autosize = $true
-    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(11,295)
+    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(11,320)
     $form.Controls.Add($RemoteDesktopManagerBox)
 	$RemoteDesktopManagerBox.Checked = $SoftwareSelection.RemoteDesktopManager
 
@@ -230,20 +258,10 @@ function gui_mode{
     $deviceTRUSTBox.width = 95
     $deviceTRUSTBox.height = 20
     $deviceTRUSTBox.autosize = $true
-    $deviceTRUSTBox.location = New-Object System.Drawing.Point(11,320)
+    $deviceTRUSTBox.location = New-Object System.Drawing.Point(11,345)
     $form.Controls.Add($deviceTRUSTBox)
 	$deviceTRUSTBox.Checked = $SoftwareSelection.deviceTRUST
     
-    # KeePass Checkbox
-    $KeePassBox = New-Object system.Windows.Forms.CheckBox
-    $KeePassBox.text = "KeePass"
-    $KeePassBox.width = 95
-    $KeePassBox.height = 20
-    $KeePassBox.autosize = $true
-    $KeePassBox.location = New-Object System.Drawing.Point(11,345)
-    $form.Controls.Add($KeePassBox)
-	$KeePassBox.Checked = $SoftwareSelection.KeePass
-
     # mRemoteNG Checkbox
     $mRemoteNGBox = New-Object system.Windows.Forms.CheckBox
     $mRemoteNGBox.text = "mRemoteNG"
@@ -276,7 +294,7 @@ function gui_mode{
 
     # MS365 Apps Checkbox
     $MS365AppsBox = New-Object system.Windows.Forms.CheckBox
-    $MS365AppsBox.text = "Microsoft 365 Apps (64Bit / Semi Annual Channel)"
+    $MS365AppsBox.text = "Microsoft 365 Apps/Office 2019 (64Bit / Semi Annual Channel)"
     $MS365AppsBox.width = 95
     $MS365AppsBox.height = 20
     $MS365AppsBox.autosize = $true
@@ -284,6 +302,7 @@ function gui_mode{
     $form.Controls.Add($MS365AppsBox)
 	$MS365AppsBox.Checked = $SoftwareSelection.MS365Apps
 
+	<#
 	# MS Office2019 Checkbox
     $MSOffice2019Box = New-Object system.Windows.Forms.CheckBox
     $MSOffice2019Box.text = "Microsoft Office 2019 (64Bit)"
@@ -293,6 +312,7 @@ function gui_mode{
     $MSOffice2019Box.location = New-Object System.Drawing.Point(250,70)
     $form.Controls.Add($MSOffice2019Box)
 	$MSOffice2019Box.Checked = $SoftwareSelection.MSOffice2019
+	#>
 	
     # MS Edge Checkbox
     $MSEdgeBox = New-Object system.Windows.Forms.CheckBox
@@ -306,7 +326,7 @@ function gui_mode{
 
     # MS OneDrive Checkbox
     $MSOneDriveBox = New-Object system.Windows.Forms.CheckBox
-    $MSOneDriveBox.text = "Microsoft OneDrive x64 (Machine-Based Install)"
+    $MSOneDriveBox.text = "Microsoft OneDrive (Machine-Based Install)"
     $MSOneDriveBox.width = 95
     $MSOneDriveBox.height = 20
     $MSOneDriveBox.autosize = $true
@@ -373,36 +393,128 @@ function gui_mode{
     $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,270)
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
-
-    # MS WVD Boot Loader
-    $MSWVDBootLoaderBox = New-Object system.Windows.Forms.CheckBox
-    $MSWVDBootLoaderBox.text = "Microsoft WVD Boot Loader"
-    $MSWVDBootLoaderBox.width = 95
-    $MSWVDBootLoaderBox.height = 20
-    $MSWVDBootLoaderBox.autosize = $true
-    $MSWVDBootLoaderBox.location = New-Object System.Drawing.Point(250,295)
-    $form.Controls.Add($MSWVDBootLoaderBox)
-	$MSWVDBootLoaderBox.Checked = $SoftwareSelection.MSWVDBootLoader
-
-    # MS WVD Desktop Agent
-    $MSWVDDesktopAgentBox = New-Object system.Windows.Forms.CheckBox
-    $MSWVDDesktopAgentBox.text = "Microsoft WVD Desktop Agent"
-    $MSWVDDesktopAgentBox.width = 95
-    $MSWVDDesktopAgentBox.height = 20
-    $MSWVDDesktopAgentBox.autosize = $true
-    $MSWVDDesktopAgentBox.location = New-Object System.Drawing.Point(250,320)
-    $form.Controls.Add($MSWVDDesktopAgentBox)
-	$MSWVDDesktopAgentBox.Checked = $SoftwareSelection.MSWVDDesktopAgent
 	
-	# MS WVD RTC Service for Teams
-    $MSWVDRTCServiceBox = New-Object system.Windows.Forms.CheckBox
-    $MSWVDRTCServiceBox.text = "Microsoft WVD WebSocket Service for Teams"
-    $MSWVDRTCServiceBox.width = 95
-    $MSWVDRTCServiceBox.height = 20
-    $MSWVDRTCServiceBox.autosize = $true
-    $MSWVDRTCServiceBox.location = New-Object System.Drawing.Point(250,345)
-    $form.Controls.Add($MSWVDRTCServiceBox)
-	$MSWVDRTCServiceBox.Checked = $SoftwareSelection.MSWVDRTCService
+	# MS Sysinternals Checkbox
+    $MSSysinternalsBox = New-Object system.Windows.Forms.CheckBox
+    $MSSysinternalsBox.text = "Microsoft Sysinternals Suite"
+    $MSSysinternalsBox.width = 95
+    $MSSysinternalsBox.height = 20
+    $MSSysinternalsBox.autosize = $true
+    $MSSysinternalsBox.location = New-Object System.Drawing.Point(250,70)
+    $form.Controls.Add($MSSysinternalsBox)
+	$MSSysinternalsBox.Checked = $SoftwareSelection.MSSysinternals
+
+	# Zoom Host Checkbox
+    $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
+    $ZoomVDIBox.text = "Zoom VDI Host Installer"
+    $ZoomVDIBox.width = 95
+    $ZoomVDIBox.height = 20
+    $ZoomVDIBox.autosize = $true
+    $ZoomVDIBox.location = New-Object System.Drawing.Point(250,295)
+    $form.Controls.Add($ZoomVDIBox)
+	$ZoomVDIBox.Checked =  $SoftwareSelection.ZoomVDI
+	
+	# Zoom Citrix client Checkbox
+    $ZoomCitrixBox = New-Object system.Windows.Forms.CheckBox
+    $ZoomCitrixBox.text = "Zoom Citrix Client"
+    $ZoomCitrixBox.width = 95
+    $ZoomCitrixBox.height = 20
+    $ZoomCitrixBox.autosize = $true
+    $ZoomCitrixBox.location = New-Object System.Drawing.Point(250,320)
+    $form.Controls.Add($ZoomCitrixBox)
+	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
+	
+	# Zoom VMWare client Checkbox
+    $ZoomVMWareBox = New-Object system.Windows.Forms.CheckBox
+    $ZoomVMWareBox.text = "Zoom VMWare Client"
+    $ZoomVMWareBox.width = 95
+    $ZoomVMWareBox.height = 20
+    $ZoomVMWareBox.autosize = $true
+    $ZoomVMWareBox.location = New-Object System.Drawing.Point(250,345)
+    $form.Controls.Add($ZoomVMWareBox)
+	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
+	
+	<#
+	# Cisco WebEx VDI Plugin Checkbox
+    $CiscoWebExVDIBox = New-Object system.Windows.Forms.CheckBox
+    $CiscoWebExVDIBox.text = "Cisco WebEx VDI Plugin"
+    $CiscoWebExVDIBox.width = 95
+    $CiscoWebExVDIBox.height = 20
+    $CiscoWebExVDIBox.autosize = $true
+    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(250,395)
+    $form.Controls.Add($CiscoWebExVDIBox)
+	$CiscoWebExVDIBox.Checked =  $SoftwareSelection.CiscoWebExVDI
+	
+	# Cisco WebEx Desktop Checkbox
+    $CiscoWebExDesktopBox = New-Object system.Windows.Forms.CheckBox
+    $CiscoWebExDesktopBox.text = "Cisco WebEx Desktop"
+    $CiscoWebExDesktopBox.width = 95
+    $CiscoWebExDesktopBox.height = 20
+    $CiscoWebExDesktopBox.autosize = $true
+    $CiscoWebExDesktopBox.location = New-Object System.Drawing.Point(250,420)
+    $form.Controls.Add($CiscoWebExDesktopBox)
+	$CiscoWebExDesktopBox.Checked =  $SoftwareSelection.CiscoWebExDesktop
+	#>
+	
+	# TreeSizeFree Checkbox
+    $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
+    $TreeSizeFreeBox.text = "TreeSize Free"
+    $TreeSizeFreeBox.width = 95
+    $TreeSizeFreeBox.height = 20
+    $TreeSizeFreeBox.autosize = $true
+    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(693,45)
+    $form.Controls.Add($TreeSizeFreeBox)
+	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
+	
+	# VLCPlayer Checkbox
+    $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
+    $VLCPlayerBox.text = "VLC Player"
+    $VLCPlayerBox.width = 95
+    $VLCPlayerBox.height = 20
+    $VLCPlayerBox.autosize = $true
+    $VLCPlayerBox.location = New-Object System.Drawing.Point(693,70)
+    $form.Controls.Add($VLCPlayerBox)
+	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
+	
+	# FileZilla Checkbox
+    $FileZillaBox = New-Object system.Windows.Forms.CheckBox
+    $FileZillaBox.text = "FileZilla Client"
+    $FileZillaBox.width = 95
+    $FileZillaBox.height = 20
+    $FileZillaBox.autosize = $true
+    $FileZillaBox.location = New-Object System.Drawing.Point(693,95)
+    $form.Controls.Add($FileZillaBox)
+	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
+	
+	# KeePass Checkbox
+    $KeePassBox = New-Object system.Windows.Forms.CheckBox
+    $KeePassBox.text = "KeePass"
+    $KeePassBox.width = 95
+    $KeePassBox.height = 20
+    $KeePassBox.autosize = $true
+    $KeePassBox.location = New-Object System.Drawing.Point(693,120)
+    $form.Controls.Add($KeePassBox)
+	$KeePassBox.Checked = $SoftwareSelection.KeePass
+	
+	# IGEL Universal Management Suite Checkbox
+    $IGELUniversalManagementSuiteBox = New-Object system.Windows.Forms.CheckBox
+    $IGELUniversalManagementSuiteBox.text = "IGEL Universal Management Suite"
+    $IGELUniversalManagementSuiteBox.width = 95
+    $IGELUniversalManagementSuiteBox.height = 20
+    $IGELUniversalManagementSuiteBox.autosize = $true
+    $IGELUniversalManagementSuiteBox.location = New-Object System.Drawing.Point(693,145)
+    $form.Controls.Add($IGELUniversalManagementSuiteBox)
+	$IGELUniversalManagementSuiteBox.Checked = $SoftwareSelection.IGELUniversalManagementSuite
+	
+	# ImageGlass Checkbox
+    $ImageGlassBox = New-Object system.Windows.Forms.CheckBox
+    $ImageGlassBox.text = "ImageGlass"
+    $ImageGlassBox.width = 95
+    $ImageGlassBox.height = 20
+    $ImageGlassBox.autosize = $true
+    $ImageGlassBox.location = New-Object System.Drawing.Point(693,170)
+    $form.Controls.Add($ImageGlassBox)
+	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
 	
 	# OracleJava8 Checkbox
     $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
@@ -434,66 +546,16 @@ function gui_mode{
     $form.Controls.Add($OpenJDKBox)
 	$OpenJDKBox.Checked =  $SoftwareSelection.OpenJDK
 	
-	# TreeSizeFree Checkbox
-    $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
-    $TreeSizeFreeBox.text = "TreeSize Free"
-    $TreeSizeFreeBox.width = 95
-    $TreeSizeFreeBox.height = 20
-    $TreeSizeFreeBox.autosize = $true
-    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(615,45)
-    $form.Controls.Add($TreeSizeFreeBox)
-	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
-	
-	# VLCPlayer Checkbox
-    $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
-    $VLCPlayerBox.text = "VLC Player"
-    $VLCPlayerBox.width = 95
-    $VLCPlayerBox.height = 20
-    $VLCPlayerBox.autosize = $true
-    $VLCPlayerBox.location = New-Object System.Drawing.Point(615,70)
-    $form.Controls.Add($VLCPlayerBox)
-	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
-	
-	# FileZilla Checkbox
-    $FileZillaBox = New-Object system.Windows.Forms.CheckBox
-    $FileZillaBox.text = "FileZilla Client"
-    $FileZillaBox.width = 95
-    $FileZillaBox.height = 20
-    $FileZillaBox.autosize = $true
-    $FileZillaBox.location = New-Object System.Drawing.Point(615,95)
-    $form.Controls.Add($FileZillaBox)
-	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
-	
-	# Zoom Host Checkbox
-    $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomVDIBox.text = "Zoom VDI Host Installer"
-    $ZoomVDIBox.width = 95
-    $ZoomVDIBox.height = 20
-    $ZoomVDIBox.autosize = $true
-    $ZoomVDIBox.location = New-Object System.Drawing.Point(615,120)
-    $form.Controls.Add($ZoomVDIBox)
-	$ZoomVDIBox.Checked =  $SoftwareSelection.ZoomVDI
-	
-	# Zoom Citrix client Checkbox
-    $ZoomCitrixBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomCitrixBox.text = "Zoom Citrix Client"
-    $ZoomCitrixBox.width = 95
-    $ZoomCitrixBox.height = 20
-    $ZoomCitrixBox.autosize = $true
-    $ZoomCitrixBox.location = New-Object System.Drawing.Point(615,145)
-    $form.Controls.Add($ZoomCitrixBox)
-	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
-	
-	# Zoom VMWare client Checkbox
-    $ZoomVMWareBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomVMWareBox.text = "Zoom VMWare Client"
-    $ZoomVMWareBox.width = 95
-    $ZoomVMWareBox.height = 20
-    $ZoomVMWareBox.autosize = $true
-    $ZoomVMWareBox.location = New-Object System.Drawing.Point(615,170)
-    $form.Controls.Add($ZoomVMWareBox)
-	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
-	
+	# Greenshot Checkbox
+    $GreenshotBox = New-Object system.Windows.Forms.CheckBox
+    $GreenshotBox.text = "Greenshot"
+    $GreenshotBox.width = 95
+    $GreenshotBox.height = 20
+    $GreenshotBox.autosize = $true
+    $GreenshotBox.location = New-Object System.Drawing.Point(693,195)
+    $form.Controls.Add($GreenshotBox)
+	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
+		
 		
 	# Select Button
     $SelectButton = New-Object system.Windows.Forms.Button
@@ -511,15 +573,17 @@ function gui_mode{
 		$WorkspaceApp_CRBox.checked = $True
 		$WorkspaceApp_LTSRBox.checked = $True
 		$Citrix_HypervisorToolsBox.checked = $True
+		$CitrixFilesBox.checked = $True
 		$VMWareToolsBox.checked = $True
 		$RemoteDesktopManagerBox.checked = $True
 		$deviceTRUSTBox.checked = $True
 		$KeePassBox.checked = $True
+		$IGELUniversalManagementSuiteBox.checked = $True
 		$mRemoteNGBox.checked = $True
 		$WinSCPBox.checked = $True
 		$PuttyBox.checked = $True
 		$MS365AppsBox.checked = $True
-		$MSOffice2019Box.checked = $True
+		#$MSOffice2019Box.checked = $True
 		$MSEdgeBox.checked = $True
 		$MSOneDriveBox.checked = $True
 		$MSTeamsBox.checked = $True
@@ -528,6 +592,7 @@ function gui_mode{
 		$MSDotNetBox.checked = $True
 		$MSSQLManagementStudioDEBox.checked = $True
 		$MSSQLManagementStudioENBox.checked = $True
+		$MSSysinternalsBox.checked = $True
 		$MSWVDDesktopAgentBox.checked = $True
 		$MSWVDRTCServiceBox.checked = $True
 		$MSWVDBootLoaderBox.checked = $True
@@ -537,9 +602,13 @@ function gui_mode{
 		$ZoomVMWareBox.checked = $True
 		$VLCPlayerBox.checked = $True
 		$FileZillaBox.checked = $True
+		#$CiscoWebExVDIBox.checked = $True
+		#$CiscoWebExDesktopBox.checked = $True
 		$OpenJDKBox.checked = $True
+		$GreenshotBox.checked = $True
 		$OracleJava8Box.checked = $True
 		$OracleJava8_32Box.checked = $True
+		$ImageGlassBox.checked = $True
 		})
     $form.Controls.Add($SelectButton)
 	
@@ -559,15 +628,17 @@ function gui_mode{
 		$WorkspaceApp_CRBox.checked = $False
 		$WorkspaceApp_LTSRBox.checked = $False
 		$Citrix_HypervisorToolsBox.checked = $False
+		$CitrixFilesBox.checked = $False
 		$VMWareToolsBox.checked = $False
 		$RemoteDesktopManagerBox.checked = $False
 		$deviceTRUSTBox.checked = $False
 		$KeePassBox.checked = $False
+		$IGELUniversalManagementSuiteBox.checked = $False
 		$mRemoteNGBox.checked = $False
 		$WinSCPBox.checked = $False
 		$PuttyBox.checked = $False
 		$MS365AppsBox.checked = $False
-		$MSOffice2019Box.checked = $False
+		#$MSOffice2019Box.checked = $False
 		$MSEdgeBox.checked = $False
 		$MSOneDriveBox.checked = $False
 		$MSTeamsBox.checked = $False
@@ -576,6 +647,7 @@ function gui_mode{
 		$MSDotNetBox.checked = $False
 		$MSSQLManagementStudioDEBox.checked = $False
 		$MSSQLManagementStudioENBox.checked = $False
+		$MSSysinternalsBox.checked = $False
 		$MSWVDDesktopAgentBox.checked = $False
 		$MSWVDRTCServiceBox.checked = $False
 		$MSWVDBootLoaderBox.checked = $False
@@ -585,9 +657,13 @@ function gui_mode{
 		$ZoomVMWareBox.checked = $False
 		$VLCPlayerBox.checked = $False
 		$FileZillaBox.checked = $False
+		#$CiscoWebExVDIBox.checked = $False
+		#$CiscoWebExDesktopBox.checked = $False
 		$OpenJDKBox.checked = $False
+		$GreenshotBox.checked = $False
 		$OracleJava8Box.checked = $False
 		$OracleJava8_32Box.checked = $False
+		$ImageGlassBox.checked = $False
 		})
     $form.Controls.Add($UnselectButton)
 
@@ -609,9 +685,11 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_CR" -Value $WorkspaceApp_CRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_LTSR" -Value $WorkspaceApp_LTSRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixHypervisorTools" -Value $Citrix_HypervisorToolsBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixFiles" -Value $CitrixFilesBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps" -Value $MS365AppsBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2019" -Value $MSOffice2019Box.checked -Force
+		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2019" -Value $MSOffice2019Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePass" -Value $KeePassBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "IGELUniversalManagementSuite" -Value $IGELUniversalManagementSuiteBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "mRemoteNG" -Value $mRemoteNGBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSEdge" -Value $MSEdgeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOneDrive" -Value $MSOneDriveBox.checked -Force
@@ -621,10 +699,12 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSDotNetFramework" -Value $MSDotNetBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsEN" -Value $MSSQLManagementStudioENBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsDE" -Value $MSSQLManagementStudioDEBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSysinternals" -Value $MSSysinternalsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDDesktopAgent" -Value $MSWVDDesktopAgentBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDRTCService" -Value $MSWVDRTCServiceBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDBootLoader" -Value $MSWVDBootLoaderBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "openJDK" -Value $OpenJDKBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Greenshot" -Value $GreenshotBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8" -Value $OracleJava8Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8_32" -Value $OracleJava8_32Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "TreeSizeFree" -Value $TreeSizeFreeBox.checked -Force
@@ -633,11 +713,14 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVMWare" -Value $ZoomVMWareBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VLCPlayer" -Value $VLCPlayerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FileZilla" -Value $FileZillaBox.checked -Force
+		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExVDI" -Value $CiscoWebExVDIBox.checked -Force
+		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExDesktop" -Value $CiscoWebExDesktopBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "deviceTRUST" -Value $deviceTRUSTBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VMWareTools" -Value $VMWareToolsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "RemoteDesktopManager" -Value $RemoteDesktopManagerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinSCP" -Value $WinSCPBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Putty" -Value $PuttyBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ImageGlass" -Value $ImageGlassBox.checked -Force
 	
 	# Export objects to	XML
 	$SoftwareSelection | Export-Clixml $SoftwareToUpdate
@@ -674,14 +757,39 @@ gui_mode
 # Disable progress bar while downloading
 $ProgressPreference = 'SilentlyContinue'
 
-# Install/Update Evergreen module
-Write-Host -ForegroundColor Cyan "Installing/updating Evergreen module... please wait"
+<#
+# Install/Update Evergreen and Nevergreen modules
+Write-Host -ForegroundColor Cyan "Installing/updating Evergreen and Nevergreen modules... please wait"
 Write-Output ""
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 IF (!(Test-Path -Path "C:\Program Files\PackageManagement\ProviderAssemblies\nuget")) {Find-PackageProvider -Name 'Nuget' -ForceBootstrap -IncludeDependencies}
 IF (!(Get-Module -ListAvailable -Name Evergreen)) {Install-Module Evergreen -Force | Import-Module Evergreen}
-Update-Module Evergreen -force
+IF (!(Get-Module -ListAvailable -Name Nevergreen)) {Install-Module Nevergreen -Force | Import-Module Nevergreen}
+# Check for Updates
+$LocalEvergreenVersion = (Get-Module -Name Evergreen -ListAvailable | Select-Object -First 1).Version
+$CurrentEvergreenVersion = (Find-Module -Name Evergreen -Repository PSGallery).Version
+if (($LocalEvergreenVersion -lt $CurrentEvergreenVersion))
+{
+    Update-Module Evergreen -force
+}
+$LocalNevergreenVersion = (Get-Module -Name Nevergreen -ListAvailable | Select-Object -First 1).Version
+$CurrentNevergreenVersion = (Find-Module -Name Nevergreen -Repository PSGallery).Version
+if (($LocalNevergreenVersion -lt $CurrentNevergreenVersion))
+{
+    Update-Module Nevergreen -force
+}
 
+IF (!(Get-Module -ListAvailable -Name Evergreen))
+	{
+	Write-Host -ForegroundColor Cyan "Evergreen module not found, check module installation!"
+	BREAK
+	}
+IF (!(Get-Module -ListAvailable -Name Nevergreen))
+	{
+	Write-Host -ForegroundColor Cyan "Nevergreen module not found, check module installation!"
+	BREAK
+	}
+#>
 
 # Logfile UpdateLog
 Start-Transcript $UpdateLog | Out-Null
@@ -705,20 +813,20 @@ $Version = $Notepad.Version
 $URL = $Notepad.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available for $Product"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Get-ChildItem "$PSScriptRoot\$Product\" -Exclude lang | Remove-Item -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Get-ChildItem "$SoftwareFolder\$Product\" -Exclude lang | Remove-Item -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -739,20 +847,20 @@ $Version = $Chrome.Version
 $URL = $Chrome.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -773,20 +881,20 @@ $Version = $Edge.Version
 $URL = $Edge.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue 
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue 
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS  | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -807,20 +915,20 @@ $Version = $VLC.Version
 $URL = $VLC.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product" 
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available" 
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging" 
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -841,20 +949,20 @@ $Version = $FileZilla.Version
 $URL = $FileZilla.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product" 
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available" 
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging" 
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -875,20 +983,20 @@ $Version = $BISF.Version
 $URL = $BISF.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Exclude *.ps1, SubCall -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.ps1, SubCall -Recurse
 Start-Transcript $LogPS
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -904,26 +1012,26 @@ Write-Output ""
 IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 $Product = "WorkspaceApp"
 $PackageName = "CitrixWorkspaceApp"
-$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "Current"}
+$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "Current"}
 $Version = $WSA.Version
 $URL = $WSA.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\Citrix\$Product\Windows\Current\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-if (!(Test-Path -Path "$PSScriptRoot\Citrix\$Product\Windows\Current")) {New-Item -Path "$PSScriptRoot\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\Citrix\$Product\Windows\Current\*" -Recurse
+if (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\Citrix\$Product\Windows\Current" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\Citrix\$Product\Windows\Current\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\Citrix\$Product\Windows\Current\" + ($Source))
-Copy-Item -Path "$PSScriptRoot\Citrix\$Product\Windows\Current\CitrixWorkspaceApp.exe" -Destination "$PSScriptRoot\Citrix\$Product\Windows\Current\CitrixWorkspaceAppWeb.exe" | Out-Null
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
+Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceAppWeb.exe" | Out-Null
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -939,26 +1047,26 @@ Write-Output ""
 IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 $Product = "WorkspaceApp"
 $PackageName = "CitrixWorkspaceApp"
-$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "LTSR"}
+$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "LTSR"}
 $Version = $WSA.Version
 $URL = $WSA.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\Citrix\$Product\Windows\LTSR\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product LTSR"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\Citrix\$Product\Windows\LTSR")) {New-Item -Path "$PSScriptRoot\Citrix\$Product\Windows\LTSR" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\Citrix\$Product\Windows\LTSR\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\Citrix\$Product\Windows\LTSR\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\LTSR\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\Citrix\$Product\Windows\LTSR" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\Citrix\$Product\Windows\LTSR\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version LTSR Release"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\Citrix\$Product\Windows\LTSR\" + ($Source))
-Copy-Item -Path "$PSScriptRoot\Citrix\$Product\Windows\LTSR\CitrixWorkspaceApp.exe" -Destination "$PSScriptRoot\Citrix\$Product\Windows\LTSR\CitrixWorkspaceAppWeb.exe" | Out-Null
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + ($Source))
+Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceAppWeb.exe" | Out-Null
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -979,20 +1087,20 @@ $Version = $7Zip.Version
 $URL = $7Zip.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1008,25 +1116,26 @@ Write-Output ""
 IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
 $Product = "Adobe Reader DC MUI"
 $PackageName = "Adobe_DC_MUI_Update"
-$Adobe = Get-EvergreenApp -Name AdobeAcrobat | Where-Object {$_.Track -eq "DC" -and $_.Product -eq "Reader" -and $_.Language -eq "Multi"}
+# $Adobe = Get-EvergreenApp -Name AdobeAcrobat | Where-Object {$_.Track -eq "DC" -and $_.Product -eq "Reader" -and $_.Language -eq "Multi"}
+$Adobe = Get-NevergreenApp -Name AdobeAcrobatReader | Where-Object {$_.Language -eq "Multi"}
 $Version = $Adobe.Version
 $URL = $Adobe.uri
 $InstallerType = "msp"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available for $Product"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source)) 
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) 
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1047,25 +1156,25 @@ $Version = $FSLogix.Version
 $URL = $FSLogix.uri
 $InstallerType = "zip"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Install\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Install\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product\Install")) {New-Item -Path "$PSScriptRoot\$Product\Install" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\Install\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\Install\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product\Install")) {New-Item -Path "$SoftwareFolder\$Product\Install" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\Install\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\Install\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product\Install" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Install\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product\Install" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Install\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\Install\" + ($Source))
-expand-archive -path "$PSScriptRoot\$Product\Install\FSLogixAppsSetup.zip" -destinationpath "$PSScriptRoot\$Product\Install"
-Remove-Item -Path "$PSScriptRoot\$Product\Install\FSLogixAppsSetup.zip" -Force
-Move-Item -Path "$PSScriptRoot\$Product\Install\x64\Release\*" -Destination "$PSScriptRoot\$Product\Install"
-Remove-Item -Path "$PSScriptRoot\$Product\Install\Win32" -Force -Recurse
-Remove-Item -Path "$PSScriptRoot\$Product\Install\x64" -Force -Recurse
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\Install\" + ($Source))
+expand-archive -path "$SoftwareFolder\$Product\Install\FSLogixAppsSetup.zip" -destinationpath "$SoftwareFolder\$Product\Install"
+Remove-Item -Path "$SoftwareFolder\$Product\Install\FSLogixAppsSetup.zip" -Force
+Move-Item -Path "$SoftwareFolder\$Product\Install\x64\Release\*" -Destination "$SoftwareFolder\$Product\Install"
+Remove-Item -Path "$SoftwareFolder\$Product\Install\Win32" -Force -Recurse
+Remove-Item -Path "$SoftwareFolder\$Product\Install\x64" -Force -Recurse
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1084,22 +1193,31 @@ $PackageName = "Teams_windows_x64"
 $Teams = Get-EvergreenApp -Name MicrosoftTeams | Where-Object {$_.Architecture -eq "x64" -and $_.Ring -eq "General"}
 $Version = $Teams.Version
 $URL = $Teams.uri
+<#
+$URLVersion = "https://whatpulse.org/app/microsoft-teams#versions"
+$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
+$regexAppVersion = "<td>\d.\d.\d{2}.\d+</td>"
+$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+$Version = $webVersion.Trim("</td>").Trim("</td>")
+$URL = "https://statics.teams.cdn.office.net/production-windows-x64/$Version/Teams_windows_x64.msi"
+#>
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1120,20 +1238,20 @@ $Version = $Teams.Version
 $URL = $Teams.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1149,25 +1267,25 @@ Write-Output ""
 IF ($SoftwareSelection.MSOneDrive -eq $true) {
 $Product = "MS OneDrive"
 $PackageName = "OneDriveSetup"
-$OneDrive = Get-EvergreenApp -Name MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production" -and $_.Type -eq "Exe" -and $_.Architecture -eq "AMD64"} | Select-Object -First 1
+$OneDrive = Get-EvergreenApp -Name MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production" -and $_.Type -eq "exe" -and $_.Architecture -eq "AMD64"} | Select-Object -First 1
 $Version = $OneDrive.Version
 $URL = $OneDrive.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1183,25 +1301,32 @@ Write-Output ""
 IF ($SoftwareSelection.MS365Apps -eq $true) {
 $Product = "MS 365 Apps-Semi Annual Channel"
 $PackageName = "setup"
-$MS365Apps = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "Semi-Annual Channel"}
+$MS365Apps = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "Broad"}
 $Version = $MS365Apps.Version
 $URL = $MS365Apps.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
+	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+		Write-Host -ForegroundColor DarkRed "Achtung! Keine Configuration.xml Datei gefunden, Office kann nicht runtergeladen werden! Bitte eine XML Datei erstellen!" }
+	else {
+		  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
+		  $MS365AppsUpdate = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+		  }
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1212,30 +1337,30 @@ Write-Output ""
 }
 }
 
-
+<#
 # Download MS Office 2019
 IF ($SoftwareSelection.MSOffice2019 -eq $true) {
 $Product = "MS Office 2019"
 $PackageName = "setup"
-$MSOffice2019 = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "Office 2019 Enterprise"}
+$MSOffice2019 = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "Broad"}
 $Version = $MSOffice2019.Version
 $URL = $MSOffice2019.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1245,7 +1370,7 @@ Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
 }
-
+#>
 
 # Download MS Powershell
 IF ($SoftwareSelection.MSPowershell -eq $true) {
@@ -1256,20 +1381,20 @@ $Version = $MSPowershell.Version
 $URL = $MSPowershell.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1290,20 +1415,20 @@ $Version = $MSDotNetFramework.Version
 $URL = $MSDotNetFramework.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1324,20 +1449,20 @@ $Version = $MSSQLManagementStudioEN.Version
 $URL = $MSSQLManagementStudioEN.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1358,20 +1483,53 @@ $Version = $MSSQLManagementStudioDE.Version
 $URL = $MSSQLManagementStudioDE.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+# Download MS Sysinternals Suite
+IF ($SoftwareSelection.MSSysinternals -eq $true) {
+$Product = "MS Sysinternals Suite"
+$PackageName = "SysinternalsSuite"
+$MSSysinternals = Get-NevergreenApp -Name MicrosoftSysinternals | Where-Object {$_.Name -eq "Microsoft Sysinternals Suite" -and $_.Architecture -eq "Multi"}
+$Version = $MSSysinternals.Version
+$URL = $MSSysinternals.uri
+$InstallerType = "zip"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1392,20 +1550,20 @@ $Version = $MSWVDDesktopAgent.Version
 $URL = $MSWVDDesktopAgent.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1424,13 +1582,13 @@ $MSWVDBootLoader = Get-EvergreenApp -Name MicrosoftWvdBootloader
 $PackageName = $MSWVDBootLoader.Filename
 $URL = $MSWVDBootLoader.uri
 Write-Host -ForegroundColor Yellow "Download $Product"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Write-Host -ForegroundColor Yellow "Starting Download of $Product"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($PackageName))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($PackageName))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1446,20 +1604,20 @@ $Version = $MSWVDRTCService.Version
 $URL = $MSWVDRTCService.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1480,20 +1638,54 @@ $Version = $CitrixTools.Version
 $URL = $CitrixTools.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
+# Download Citrix Files
+IF ($SoftwareSelection.CitrixFiles -eq $true) {
+$Product = "Citrix Files"
+$PackageName = "CitrixFiles"
+$CitrixFiles = Get-NevergreenApp -Name CitrixFiles | Where-Object {$_.Type -eq "msi"}
+$Version = $CitrixFiles.Version
+$URL = $CitrixFiles.uri
+$InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product")) {New-Item -Path "$SoftwareFolder\Citrix\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\Citrix\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\Citrix\$Product\*" -Include *.exe, *.log, *.txt -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\Citrix\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\\Citrix\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1514,20 +1706,20 @@ $Version = $VMWareTools.Version
 $URL = $VMWareTools.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1551,20 +1743,20 @@ $Version = $webVersion.Trim("</td>").Trim("</td>")
 $URL = "https://cdn.devolutions.net/download/Setup.RemoteDesktopManagerFree.$Version.msi"
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1580,35 +1772,40 @@ Write-Output ""
 IF ($SoftwareSelection.deviceTRUST -eq $true) {
 $Product = "deviceTRUST"
 $PackageName = "deviceTRUST"
+<#
 $URLVersion = "https://docs.devicetrust.com/docs/download/"
 $webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
 $regexAppVersion = "<td>\d\d.\d.\d\d\d+</td>"
 $webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
 $Version = $webVersion.Trim("</td>").Trim("</td>")
 $URL = "https://storage.devicetrust.com/download/deviceTRUST-$Version.zip"
+#>
+$deviceTRUST = Get-EvergreenApp -Name deviceTRUST  | Where-Object {$_.Platform -eq "Windows" -and $_.Type -eq "Bundle"} | Select-Object -First 1
+$Version = $deviceTRUST.Version
+$URL = $deviceTRUST.uri
 $InstallerType = "zip"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
-expand-archive -path "$PSScriptRoot\$Product\deviceTRUST.zip" -destinationpath "$PSScriptRoot\$Product"
-Remove-Item -Path "$PSScriptRoot\$Product\deviceTRUST.zip" -Force
-expand-archive -path "$PSScriptRoot\$Product\dtpolicydefinitions-$Version.0.zip" -destinationpath "$PSScriptRoot\$Product\ADMX"
-copy-item -Path "$PSScriptRoot\$Product\ADMX\*" -Destination "$PSScriptRoot\ADMX\deviceTRUST" -Force
-Remove-Item -Path "$PSScriptRoot\$Product\ADMX" -Force -Recurse
-Remove-Item -Path "$PSScriptRoot\$Product\dtpolicydefinitions-$Version.0.zip" -Force
-Get-ChildItem -Path "$PSScriptRoot\$Product" | Where Name -like *"x86"* | Remove-Item
+Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+expand-archive -path "$SoftwareFolder\$Product\deviceTRUST.zip" -destinationpath "$SoftwareFolder\$Product"
+Remove-Item -Path "$SoftwareFolder\$Product\deviceTRUST.zip" -Force
+expand-archive -path "$SoftwareFolder\$Product\dtpolicydefinitions-$Version.0.zip" -destinationpath "$SoftwareFolder\$Product\ADMX"
+copy-item -Path "$SoftwareFolder\$Product\ADMX\*" -Destination "$PSScriptRoot\ADMX\deviceTRUST" -Force
+Remove-Item -Path "$SoftwareFolder\$Product\ADMX" -Force -Recurse
+Remove-Item -Path "$SoftwareFolder\$Product\dtpolicydefinitions-$Version.0.zip" -Force
+Get-ChildItem -Path "$SoftwareFolder\$Product" | Where-Object Name -like *"x86"* | Remove-Item
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1629,20 +1826,20 @@ $Version = $OpenJDK.Version
 $URL = $OpenJDK.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1664,20 +1861,20 @@ $Version = $Version -replace ".{4}$"
 $URL = $OracleJava8.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1699,20 +1896,20 @@ $Version = $Version -replace ".{4}$"
 $URL = $OracleJava8.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1733,20 +1930,54 @@ $Version = $KeePass.Version
 $URL = $KeePass.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
+# Download IGEL Universal Management Suite
+IF ($SoftwareSelection.IGELUniversalManagementSuite -eq $true) {
+$Product = "IGEL Universal Management Suite"
+$PackageName = "setup-igel-ums-windows"
+$IGELUniversalManagementSuite = Get-NevergreenApp -Name IGELUniversalManagementSuite
+$Version = $IGELUniversalManagementSuite.Version
+$URL = $IGELUniversalManagementSuite.uri
+$InstallerType = "exe"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1767,20 +1998,20 @@ $Version = $mRemoteNG.Version
 $URL = $mRemoteNG.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1801,20 +2032,20 @@ $Version = $TreeSizeFree.Version
 $URL = $TreeSizeFree.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source)) -EA SilentlyContinue
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) -EA SilentlyContinue
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1835,24 +2066,21 @@ $Version = $WinSCP.Version
 $URL = $WinSCP.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
-expand-archive -path "$PSScriptRoot\$Product\$Source" -destinationpath "$PSScriptRoot\$Product"
-Remove-Item -Path "$PSScriptRoot\$Product\$PackageName.zip" -Force
-Remove-Item -Path "$PSScriptRoot\$Product\readme.txt" -Force
-Remove-Item -Path "$PSScriptRoot\$Product\license.txt" -Force
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, Version.txt, Download* -Recurse
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1868,6 +2096,7 @@ Write-Output ""
 IF ($SoftwareSelection.Putty -eq $true) {
 $Product = "Putty"
 $PackageName = "Putty"
+<#
 $URLVersion = "https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html"
 $webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
 $regexAppVersion = "\(\d\.\d\d\)"
@@ -1875,21 +2104,26 @@ $webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -
 $Version = $webVersion.Trim("(").Trim(")")
 $InstallerType = "exe"
 $URL = "https://the.earth.li/~sgtatham/putty/latest/w64/putty.exe"
+#>
+$putty = Get-NevergreenApp -Name SimonTathamPuTTY | Where-Object {$_.Architecture -eq "x64"}
+$Version = $putty.Version
+$URL = $putty.uri
+$InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1908,28 +2142,33 @@ Stop-Transcript | Out-Null
 IF ($SoftwareSelection.ZoomVDI -eq $true) {
 $Product = "Zoom VDI Host"
 $PackageName = "ZoomInstallerVDI"
+$ZoomVDI = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom VDI Client"}
+$Version = $ZoomVDI.Version
+$URL = $ZoomVDI.Uri
+<#
 $ZoomVDI = Get-EvergreenApp -Name Zoom | Where-Object {$_.Platform -eq "VDI"}
 $URLVersion = "https://support.zoom.us/hc/en-us/articles/360041602711"
 $webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
 $regexAppVersion = "(\d\.\d\.\d)"
 $Version = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Descending | Select-Object -First 1
 $URL = $ZoomVDI.uri
+#>
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1945,28 +2184,33 @@ Write-Output ""
 IF ($SoftwareSelection.ZoomCitrix -eq $true) {
 $Product = "Zoom Citrix Client"
 $PackageName = "ZoomCitrixHDXMediaPlugin"
+$ZoomCitrix = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom Citrix HDX Media Plugin"}
+$Version = $ZoomCitrix.Version
+$URL = $ZoomCitrix.Uri
+<#
 $ZoomCitrix = Get-EvergreenApp -Name Zoom | Where-Object {$_.Platform -eq "Citrix"}
 $URLVersion = "https://support.zoom.us/hc/en-us/articles/360041602711"
 $webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
 $regexAppVersion = "(\d\.\d\.\d)"
 $Version = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Descending | Select-Object -First 1
 $URL = $ZoomCitrix.uri
+#>
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1982,28 +2226,33 @@ Write-Output ""
 IF ($SoftwareSelection.ZoomVMWare -eq $true) {
 $Product = "Zoom VMWare Client"
 $PackageName = "ZoomVMWareMediaPlugin"
+$ZoomVMWare = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom VMWare Media Plugin"}
+$Version = $ZoomVMWare.Version
+$URL = $ZoomVMWare.Uri
+<#
 $ZoomVMWare = Get-EvergreenApp -Name Zoom | Where-Object {$_.Platform -eq "VMWare"}
 $URLVersion = "https://support.zoom.us/hc/en-us/articles/360041602711"
 $webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
 $regexAppVersion = "(\d\.\d\.\d)"
 $Version = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Descending | Select-Object -First 1
 $URL = $ZoomVMWare.uri
+#>
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$PSScriptRoot\$Product\Version.txt" -EA SilentlyContinue
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$PSScriptRoot\$Product")) {New-Item -Path "$PSScriptRoot\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$PSScriptRoot\$Product\" + "$Product $Version.log"
-Remove-Item "$PSScriptRoot\$Product\*" -Recurse
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
-New-Item -Path "$PSScriptRoot\$Product" -Name "Download date $Date" | Out-Null
-Set-Content -Path "$PSScriptRoot\$Product\Version.txt" -Value "$Version"
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$PSScriptRoot\$Product\" + ($Source))
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -2014,8 +2263,148 @@ Write-Output ""
 }
 }
 
+<#
+# Download Cisco WebEx VDI Plugin
+IF ($SoftwareSelection.CiscoWebExVDI -eq $true) {
+$Product = "Cisco WebEx VDI Plugin"
+$PackageName = "WebExVDIPlugin"
+$CiscoWebExVDI = Get-EvergreenApp -Name CiscoWebEx | Where-Object {$_.Type -eq "VDI"}
+$Version = $CiscoWebExVDI.Version
+$URL = $CiscoWebExVDI.uri
+$InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) -EA SilentlyContinue
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
+
+# Download Cisco WebEx Desktop
+IF ($SoftwareSelection.CiscoWebExDesktop -eq $true) {
+$Product = "Cisco WebEx Desktop"
+$PackageName = "WebEx"
+$CiscoWebExDesktop = Get-EvergreenApp -Name CiscoWebEx | Where-Object {$_.Type -eq "Desktop"}
+$Version = $CiscoWebExDesktop.Version
+$URL = $CiscoWebExDesktop.uri
+$InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) -EA SilentlyContinue
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+#>
+
+
+# Download ImageGlass
+IF ($SoftwareSelection.ImageGlass -eq $true) {
+$Product = "ImageGlass"
+$PackageName = "ImageGlass"
+$ImageGlass = Get-EvergreenApp -Name ImageGlass | Where-Object {$_.Architecture -eq "x64"}
+$Version = $ImageGlass.Version
+$URL = $ImageGlass.uri
+$InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) -EA SilentlyContinue
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
+# Download Greenshot
+IF ($SoftwareSelection.Greenshot -eq $true) {
+$Product = "Greenshot"
+$PackageName = "Greenshot"
+$Greenshot = Get-EvergreenApp -Name Greenshot | Where-Object {$_.Type -eq "exe"} | Select-Object -Last 1
+$Version = $Greenshot.Version
+$URL = $Greenshot.uri
+$InstallerType = "exe"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) -EA SilentlyContinue
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
 # Format UpdateLog
 $Content = Get-Content -Path $UpdateLog | Select-Object -Skip 18
 Set-Content -Value $Content -Path $UpdateLog
 
 if ($noGUI -eq $False) {pause}
+

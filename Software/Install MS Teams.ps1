@@ -89,20 +89,20 @@ else {
 #========================================================================================================================================
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$Teams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).DisplayVersion
-IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
-IF ($Teams -ne $Version) {
+[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+[version]$Teams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).DisplayVersion
+# IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
+IF ($Teams -lt $Version) {
 
-# Uninstalling MS Teams
+#Uninstalling MS Teams
 IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where DisplayName -like "*Teams Machine*") {
 Write-Host -ForegroundColor Yellow "Uninstalling $Product"
 DS_WriteLog "I" "Uninstalling $Product" $LogFile
 try {
     $UninstallTeams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).UninstallString
 	$UninstallTeams = $UninstallTeams -Replace("MsiExec.exe /I","")
-	Start-Process -FilePath msiexec.exe -ArgumentList "/X $UninstallTeams /qn"
-	Start-Sleep 20
+	Start-Process -FilePath msiexec.exe -ArgumentList "/X $UninstallTeams /qn" -wait
+	Start-Sleep 25
     } catch {
 DS_WriteLog "E" "Ein Fehler ist aufgetreten beim Deinstallieren von $Product (error: $($Error[0]))" $LogFile       
 }
@@ -121,7 +121,7 @@ DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile
 }
 DS_WriteLog "-" "" $LogFile
 
-# Configure Teams Settings with json template, template must exist!
+# Configure Teams Settings with json template
 IF (!(Test-Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams"))
 	{
 	New-Item -ItemType Directory -Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams" | out-null

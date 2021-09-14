@@ -1,0 +1,8 @@
+[Setup]
+Lang=en
+Dir=C:\Program Files (x86)\WinSCP
+Group=(Default)
+NoIcons=0
+SetupType=full
+Components=main,shellext,pageant,puttygen,transl
+Tasks=desktopicon,sendtohook,urlhandler,searchpath

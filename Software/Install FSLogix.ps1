@@ -92,6 +92,22 @@ DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile
 DS_WriteLog "-" "" $LogFile
 Write-Host -ForegroundColor Green "...ready"
 Write-Output ""
+
+# Windows Search Task importieren bei Windows Server 2019 oder Windows 10
+IF (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name ProductName | Where-Object {$_.ProductName -match "Windows Server 2019" -or $_.ProductName -like "*Windows 10*"}) {
+IF (!(Get-ScheduledTask -TaskName "Windows Search Failure")) {
+Write-Host -ForegroundColor Yellow "Creating scheduled task for Windows Search error"
+DS_WriteLog "I" "Windows Search Task wird importiert" $LogFile
+try {
+Register-ScheduledTask -Xml (get-content "$PSScriptRoot\$Product\Task\Windows Search.xml" | out-string) -TaskName "Windows Search Failure" | Out-Null
+} catch {
+DS_WriteLog "E" "Ein Fehler ist aufgetreten beim Importieren des Windows Search Task (error: $($Error[0]))" $LogFile       
+}
+DS_WriteLog "-" "" $LogFile
+Write-Host -ForegroundColor Green "...ready"
+Write-Output ""
+}
+}
 }
 
 # Stop, if no new version is available

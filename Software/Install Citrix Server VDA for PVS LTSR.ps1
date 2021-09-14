@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs OneDrive on a MCS/PVS master server/client or wherever you want.
+This script installs TreeSizeFree on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -18,13 +18,15 @@ The script compares the software version and will install or update the software
 Always call this script with the Software Installer script!
 #>
 
+
 # define Error handling
 # note: do not change these values
 $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "MS OneDrive"
+$Product = "Citrix VDA for PVS LTSR"
+$InstDir = Split-Path $PSScriptRoot -Parent
 
 #========================================================================================================================================
 # Logging
@@ -47,29 +49,36 @@ DS_WriteLog "I" "START SCRIPT - $PackageName" $LogFile
 DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
-# Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$OneDrive = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*OneDrive*"}).DisplayVersion
-IF ($OneDrive -ne $Version) {
+# Ask again
+Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix VDA, otherwise please uncheck in the selection!"
+Write-Host ""
+    $Frage = Read-Host "( y / n )"
+	IF ($Frage -eq 'n') {
+	Write-Host ""
+	Write-host -ForegroundColor Red "Update canceled!"
+	Write-Host ""
+	BREAK
+	}
+Write-Host ""
 
-# Installation OneDrive
+# Installation Server VDA
 Write-Host -ForegroundColor Yellow "Installing $Product"
+IF (!(Test-Path "$InstDir\Citrix\LTSR\CVAD")) {
+		Write-Host ""
+		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Citrix\LTSR\CVAD'!"
+		BREAK }
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
-	$null = Start-Process "$PSScriptRoot\$Product\OneDriveSetup.exe" –ArgumentList '/allusers' –NoNewWindow -PassThru
-	while (Get-Process -Name "OneDriveSetup" -ErrorAction SilentlyContinue) { Start-Sleep -Seconds 10 }
-    # onedrive starts automatically after setup. kill!
-    Stop-Process -Name "OneDrive" -Force
+	Start-Process "$InstDir\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""AppDisks VDA Plug-in"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"" /COMPONENTS VDA /disableexperiencemetrics /enable_remote_assistance /enable_hdx_ports /enable_hdx_udp_ports /enable_real_time_transport /masterpvsimage" –NoNewWindow -Wait
 	} catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }
 DS_WriteLog "-" "" $LogFile
-Write-Host -ForegroundColor Green "...ready"
+Write-Host -ForegroundColor Green " ...ready!" 
 Write-Output ""
-}
+Write-Host -ForegroundColor Red "Attention, server needs to reboot! Wait for the installer to finish after reboot and reboot again!"
+Write-Output "Hit any key to reboot server"
+Read-Host
+Restart-Computer
 
-# Stop, if no new version is available
-Else {
-Write-Host "No Update available for $Product"
-Write-Output ""
-}
+

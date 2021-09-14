@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs VLC Player on a MCS/PVS master server/client or wherever you want.
+This script installs the current Zoom VDI Host on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -18,19 +18,18 @@ The script compares the software version and will install or update the software
 Always call this script with the Software Installer script!
 #>
 
-
 # define Error handling
 # note: do not change these values
 $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "VLC Player"
+$Product = "Zoom VDI Host"
 
 #========================================================================================================================================
 # Logging
-$BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of your log directory here
-$PackageName = "$Product" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
+$BaseLogDir = $ENV:Temp       				# [edit] add the location of your log directory here, local folder because network gets interrupted 
+$PackageName = "Zoom VDI Host" 	 # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
 $StartDir = $PSScriptRoot # the directory path of the script currently being executed
@@ -47,7 +46,6 @@ New-Item $LogFile -ItemType "file" -force | Out-Null
 DS_WriteLog "I" "START SCRIPT - $PackageName" $LogFile
 DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
-
 
 # FUNCTION MSI Installation
 #========================================================================================================================================
@@ -67,10 +65,11 @@ if (!(Test-Path $msiFile)){
     throw "Path to MSI file ($msiFile) is invalid. Please check name and path"
 }
 $arguments = @(
-    "/i"
+	"/i"
     "`"$msiFile`""
     "/qn"
-)
+	)
+
 if ($targetDir){
     if (!(Test-Path $targetDir)){
         throw "Pfad zum Installationsverzeichnis $($targetDir) ist ungültig. Bitte Pfad und Dateinamen überprüfen!"
@@ -86,22 +85,23 @@ else {
 }
 #========================================================================================================================================
 
+
 # Check, if a new version is available
 $Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$VLC = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*VLC*"}).DisplayVersion
-IF ($VLC) {$VLC = $VLC -replace ".{2}$"}
-IF ($VLC -ne $Version) {
-
-# VLC Player
+$ZoomInstallerVDI = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Zoom*VDI*"}).DisplayVersion
+IF ($ZoomInstallerVDI) {$ZoomInstallerVDI = $ZoomInstallerVDI.Substring(0,5)}
+IF ($ZoomInstallerVDI -ne $Version) {
+	
+# Zoom VDI Host Installation
 Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
-    "$PSScriptRoot\$Product\VLC-Player.msi" | Install-MSIFile
-    } catch {
-DS_WriteLog "E" "Ein Fehler ist aufgetreten beim Installieren von $Product (error: $($Error[0]))" $LogFile       
+	"$PSScriptRoot\$Product\ZoomInstallerVDI.msi" | Install-MSIFile
+	} catch {
+DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
+copy-item $LogFile "$PSScriptRoot\_Install Logs" 
 }
-DS_WriteLog "-" "" $LogFile
-Write-Host -ForegroundColor Green " ...ready!" 
+Write-Host -ForegroundColor Green "...ready"
 Write-Output ""
 }
 

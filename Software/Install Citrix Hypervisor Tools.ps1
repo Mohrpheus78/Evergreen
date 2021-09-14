@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs BIS-F on a MCS/PVS master server/client or wherever you want.
+This script installs the current Citrix Hypervisor Tools on a MCS/PVS master server/client or wherever you want. You have to perform a reverse image before installing the tools inside a PVS vDisk!
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -18,20 +18,18 @@ The script compares the software version and will install or update the software
 Always call this script with the Software Installer script!
 #>
 
-
 # define Error handling
 # note: do not change these values
 $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "BIS-F"
-$BISFDir = "C:\Program Files (x86)\Base Image Script Framework (BIS-F)\Framework\SubCall"
+$Product = "Citrix Hypervisor Tools"
 
 #========================================================================================================================================
 # Logging
-$BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of your log directory here
-$PackageName = "Base Image Script Framework" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
+$BaseLogDir = $ENV:Temp       				# [edit] add the location of your log directory here, local folder because network gets interrupted 
+$PackageName = "Citrix Hypervisor Tools" 	 # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
 $StartDir = $PSScriptRoot # the directory path of the script currently being executed
@@ -48,7 +46,6 @@ New-Item $LogFile -ItemType "file" -force | Out-Null
 DS_WriteLog "I" "START SCRIPT - $PackageName" $LogFile
 DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
-
 
 # FUNCTION MSI Installation
 #========================================================================================================================================
@@ -68,9 +65,15 @@ if (!(Test-Path $msiFile)){
     throw "Path to MSI file ($msiFile) is invalid. Please check name and path"
 }
 $arguments = @(
+	"ALLOWDRIVERSINSTALL=YES"
+	"ALLOWAUTOUPDATE=YES"
+	"ALLOWDRIVERUPDATE=NO"
+	"IDENTIFYAUTOUPDATE=NO"
+	"ALLUSERS=1"
     "/i"
     "`"$msiFile`""
-    "/qn"
+    "/quiet"
+	"/norestart"
 )
 if ($targetDir){
     if (!(Test-Path $targetDir)){
@@ -87,43 +90,25 @@ else {
 }
 #========================================================================================================================================
 
+
 # Check, if a new version is available
 $Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$BISF = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Base Image*"}).DisplayVersion | Sort-Object -Property Version -Descending | Select-Object -First 1
-IF ($BISF) {$BISF =$BISF -replace ".{6}$"}
-IF ($BISF -ne $Version) {
+Write-Host $Version
+$CitrixTools = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Hypervisor*"}).DisplayVersion
+IF ($CitrixTools) {$CitrixTools = $CitrixTools.Insert(4,'0.')}
+IF ($CitrixTools -ne $Version) {
 
-# Base Image Script Framework
-write-Host -ForegroundColor Yellow "Installing $Product"
+# Citrix Hypervisor Tools Installation
+Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
-	"$PSScriptRoot\$Product\setup-BIS-F.msi" | Install-MSIFile
+	"$PSScriptRoot\$Product\managementagentx64.msi" | Install-MSIFile
 	} catch {
-DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
+copy-item $LogFile "$PSScriptRoot\_Install Logs" 
 }
-DS_WriteLog "-" "" $LogFile
-write-Host -ForegroundColor Green "...ready"
-
-# Anpassungen der Skripte
-write-Host -ForegroundColor Yellow "Edit BIS-F scripts (TCP Offload, DEP, RSS)"
-DS_WriteLog "I" "Skripte anpassen" $LogFile
-try {
-	((Get-Content "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1" -Raw) -replace "DisableTaskOffload' -Value '1'","DisableTaskOffload' -Value '0'") | Set-Content -Path "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1"
-	((Get-Content "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1" -Raw) -replace 'nx AlwaysOff','nx OptOut') | Set-Content -Path "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1"
-	((Get-Content "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1" -Raw) -replace 'rss=disable','rss=enable') | Set-Content -Path "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1"
-	((Get-Content "$BISFDir\Preparation\10_PrepBISF_AV-TM.ps1" -Raw) -replace 'deleteTMData','# deleteTMData') | Set-Content -Path "$BISFDir\Preparation\10_PrepBISF_AV-TM.ps1"
-	((Get-Content "$BISFDir\Preparation\10_PrepBISF_AV-TM.ps1" -Raw) -replace 'function # deleteTMData','function deleteTMData') | Set-Content -Path "$BISFDir\Preparation\10_PrepBISF_AV-TM.ps1"
-	((Get-Content "$BISFDir\Global\BISF.psm1" -Raw) -replace 'New-PSDrive -Name \$Driveletter','New-PSDrive -Name "F"') | Set-Content -Path "$BISFDir\Global\BISF.psm1"
-	((Get-Content "$BISFDir\Global\BISF.psm1" -Raw) -replace 'Remove-PSDrive -Name \$Driveletter','Remove-PSDrive -Name "F"') | Set-Content -Path "$BISFDir\Global\BISF.psm1"
-	copy-item -Path "$PSScriptRoot\$Product\BIS-F Personalization ready.ps1" -Destination "$BISFDir\Personalization\Custom"
-	copy-item -Path "$PSScriptRoot\$Product\SubCall" -Destination "$BISFDir\Personalization\Custom" -Recurse -Force
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Login Consultants\BISF" -Name LIC_BISF_PersState -Value Finished
-	} catch {
-DS_WriteLog "E" "Error beim Anpassen der Skripte (error: $($Error[0]))" $LogFile       
-}
-DS_WriteLog "-" "" $LogFile
-write-Host -ForegroundColor Green "...ready"
-write-Output ""
+Write-Host -ForegroundColor Green "...ready"
+Write-Output ""
 }
 
 # Stop, if no new version is available

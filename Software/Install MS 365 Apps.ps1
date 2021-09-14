@@ -5,20 +5,18 @@
 
 <#
 .SYNOPSIS
-This script installs VMWare Tools Apps on a MCS/PVS master server/client or wherever you want.
+This script installs 365 Apps on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
-package it will be first uninstalled after that it gets installed. 
+package it gets installed. 
 The script compares the software version and will install or update the software. A log file will be created in the 'Install Logs' folder. 
 
 .EXAMPLE
 
 .NOTES
 Always call this script with the Software Installer script!
-Needs a reboot, call a second time after reboot.
 #>
-
 
 # define Error handling
 # note: do not change these values
@@ -26,12 +24,12 @@ $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "VMWare Tools"
+$Product = "MS 365 Apps-Semi Annual Channel"
 
 #========================================================================================================================================
 # Logging
-$BaseLogDir = "$PSScriptRoot\_Install Logs" # [edit] add the location of your log directory here
-$PackageName = "$Product" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
+$BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of your log directory here
+$PackageName = "$Product" 		    # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
 $StartDir = $PSScriptRoot # the directory path of the script currently being executed
@@ -50,18 +48,22 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$VMWareTools = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*VMWare Tools*"}).DisplayVersion
-$VMWareTools = $VMWareTools.substring(0,6)
-IF ($VMWareTools -ne $Version) {
+[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+[version]$MS365Apps = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft 365 Apps*"}).DisplayVersion | Select-Object -First 1
+[version]$MS365Apps = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft 365 Apps*"}).DisplayVersion | Select-Object -First 1
+IF ($MS365Apps -lt $Version) {
 
-# VMWareTools Install
+# Installation MS 365 Apps-Semi Annual Channel
 Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
-	if (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft Visual C++ 2015-2019*"})) {
-		Write-Host -ForegroundColor Red "Microsoft Visual C++ 2015-2019 Redistributable missing! A reboot is required to install VMWare Tools, call VMWare installer again after reboot!"}
-		Start-Process "$PSScriptRoot\$Product\VMWareTools.exe" -ArgumentList '/S /v "/qn REBOOT=R'  –NoNewWindow -Wait
+	$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
+	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+		Write-Host -ForegroundColor DarkRed "Achtung! Keine Configuration.xml Datei gefunden, Office kann nicht installiert werden! Bitte eine XML Datei erstellen!" }
+	else {
+		  $InstallArgs = "/Configure `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
+		  Start-Process "$SoftwareFolder\$Product\setup.exe" -ArgumentList $InstallArgs -NoNewWindow -Wait
+		  }
 	} catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }

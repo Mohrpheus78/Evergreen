@@ -1,0 +1,23 @@
+<Configuration ID="7a0c392c-8442-417a-89b2-6c14a04c1d1c">
+  <Info Description="" />
+  <Add OfficeClientEdition="32" Channel="PerpetualVL2019" SourcePath="\\testlab-nas\install\CAI\Software\MS 365 Apps-Semi Annual Channel" AllowCdnFallback="TRUE">
+    <Product ID="Standard2019Volume" PIDKEY="6NWWJ-YQWMR-QKGCB-6TMB3-9D9HK">
+      <Language ID="de-de" />
+      <Language ID="en-us" />
+      <ExcludeApp ID="Groove" />
+      <ExcludeApp ID="OneDrive" />
+      <ExcludeApp ID="Publisher" />
+    </Product>
+    <Product ID="LanguagePack">
+      <Language ID="de-de" />
+      <Language ID="en-us" />
+    </Product>
+  </Add>
+  <Property Name="SharedComputerLicensing" Value="0" />
+  <Property Name="SCLCacheOverride" Value="0" />
+  <Property Name="AUTOACTIVATE" Value="0" />
+  <Property Name="FORCEAPPSHUTDOWN" Value="FALSE" />
+  <Property Name="DeviceBasedLicensing" Value="0" />
+  <Updates Enabled="FALSE" UpdatePath="\\testlab-nas\install\CAI\Software\MS 365 Apps-Semi Annual Channel" />
+  <Display Level="Full" AcceptEULA="TRUE" />
+</Configuration>

@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs MS-Edge on a MCS/PVS master server/client or wherever you want.
+This script installs VLC Player on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -25,7 +25,7 @@ $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "MS Edge"
+$Product = "VLC Player"
 
 #========================================================================================================================================
 # Logging
@@ -70,8 +70,6 @@ $arguments = @(
     "/i"
     "`"$msiFile`""
     "/qn"
-    "DONOTCREATEDESKTOPSHORTCUT=TRUE"
-    "DONOTCREATETASKBARSHORTCUT=TRUE"
 )
 if ($targetDir){
     if (!(Test-Path $targetDir)){
@@ -90,63 +88,25 @@ else {
 
 # Check, if a new version is available
 $Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$Edge = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Edge"}).DisplayVersion
-IF ($Edge -ne $Version) {
+$VLC = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*VLC*"}).DisplayVersion
+IF ($VLC) {$VLC = $VLC -replace ".{2}$"}
+IF ($VLC -ne $Version) {
 
-# MS Edge
+# VLC Player
 Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
-    "$PSScriptRoot\$Product\MicrosoftEdgeEnterpriseX64.msi" | Install-MSIFile
+    "$PSScriptRoot\$Product\VLC-Player.msi" | Install-MSIFile
+	 If (Test-Path -Path "$env:PUBLIC\Desktop\VLC media player.lnk") {Remove-Item -Path "$env:PUBLIC\Desktop\VLC media player.lnk" -Force}
     } catch {
-DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+DS_WriteLog "E" "Ein Fehler ist aufgetreten beim Installieren von $Product (error: $($Error[0]))" $LogFile       
 }
 DS_WriteLog "-" "" $LogFile
-
-# Disable scheduled tasks and Microsoft Edge services if PVS Target
-if ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*) | Where-Object {$_.DisplayName -like "*Citrix Provisioning*"})
-{
-    Start-Sleep -s 5
-    Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateTaskMachineCore | Out-Null
-    Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateTaskMachineUA | Out-Null
-    Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateBrowserReplacementTask | Out-Null
-    
-    $Services = "edgeupdate","MicrosoftEdgeElevationService","edgeupdatem"
-    ForEach ($Service in $Services)
-    {
-    If ((Get-Service -Name $Service).Status -eq "Stopped")
-    {
-    Set-Service -Name $Service -StartupType Disabled
-    }
-    else
-    {
-    Stop-Service -Name $Service -Force -Verbose
-    Set-Service -Name $Service -StartupType Disabled
-    }
-    }
-    Write-Host -ForegroundColor Green " ...ready!" 
-    Write-Output ""
+Write-Host -ForegroundColor Green " ...ready!" 
+Write-Output ""
 }
-
-# Disable Citrix API Hooks (MS Edge) on Citrix VDA
-$(
-$RegPath = "HKLM:SYSTEM\CurrentControlSet\services\CtxUvi"
-IF (Test-Path $RegPath) {
-$RegName = "UviProcessExcludes"
-$EdgeRegvalue = "msedge.exe"
-# Get current values in UviProcessExcludes
-$CurrentValues = Get-ItemProperty -Path $RegPath | Select-Object -ExpandProperty $RegName
-# Add the msedge.exe value to existing values in UviProcessExcludes
-Set-ItemProperty -Path $RegPath -Name $RegName -Value "$CurrentValues$EdgeRegvalue;"
-}
-) | Out-Null
-
-
-# Remove Microsoft Edge Active Setup registry key
-Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{9459C573-B17A-45AE-9F64-1857B5D58CEE}" -Force
 
 # Stop, if no new version is available
-}
 Else {
 Write-Host "No Update available for $Product"
 Write-Output ""

@@ -1,0 +1,106 @@
+﻿# *****************************************************
+# D. Mohrmann, S&L Firmengruppe, Twitter: @mohrpheus78
+# Install Software package on your master server/client
+# *****************************************************
+
+<#
+.SYNOPSIS
+This script installs TreeSizeFree on a MCS/PVS master server/client or wherever you want.
+		
+.Description
+Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
+package it gets installed. 
+The script compares the software version and will install or update the software. A log file will be created in the 'Install Logs' folder. 
+
+.EXAMPLE
+
+.NOTES
+Always call this script with the Software Installer script!
+#>
+
+
+# define Error handling
+# note: do not change these values
+$global:ErrorActionPreference = "Stop"
+if($verbose){ $global:VerbosePreference = "Continue" }
+
+# Variables
+$Product = "Citrix WEM Agent for MCS"
+$InstDir = Split-Path $PSScriptRoot -Parent
+
+#========================================================================================================================================
+# Logging
+$BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of your log directory here
+$PackageName = "$Product" 		    # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
+
+# Global variables
+$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+$LogDir = (Join-Path $BaseLogDir $PackageName)
+$LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
+$LogFile = Join-path $LogDir $LogFileName
+
+# Create the log directory if it does not exist
+if (!(Test-Path $LogDir)) { New-Item -Path $LogDir -ItemType directory | Out-Null }
+
+# Create new log file (overwrite existing one)
+New-Item $LogFile -ItemType "file" -force | Out-Null
+
+DS_WriteLog "I" "START SCRIPT - $PackageName" $LogFile
+DS_WriteLog "-" "" $LogFile
+#========================================================================================================================================
+
+# Ask again
+Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix WEM Agent, otherwise please uncheck in the selection!"
+Write-Host ""
+    $Frage = Read-Host "( y / n )"
+	IF ($Frage -eq 'n') {
+	Write-Host ""
+	Write-host -ForegroundColor Red "Update canceled!"
+	Write-Host ""
+	BREAK
+	}
+Write-Host ""
+
+# Cloud or onPrem?
+Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix WEM Agent for WEM Cloud service?"
+Write-Host ""
+    $Frage = Read-Host "( y / n )"
+	IF ($Frage -eq 'n') {
+	# Installation WEM Agent onPrem
+	Write-Host -ForegroundColor Yellow "Installing $Product On-Prem"
+	IF (!(Test-Path "$InstDir\Citrix\WEM")) {
+		Write-Host ""
+		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Citrix\WEM'!"
+		BREAK }
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try	{
+		$WEMServer = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").BrokerSvcName
+		Start-Process "$InstDir\Citrix\WEM\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=0 InfrastructureServer=$WEMServer' –NoNewWindow -Wait
+		} catch {
+		DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+		}
+	DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green " ...ready!" 
+}
+	ELSE {
+	# Installation WEM Agent Cloud
+	Write-Host -ForegroundColor Yellow "Installing $Product for WEM Cloud service"
+	IF (!(Test-Path "$InstDir\Citrix\Cloud")) {
+		Write-Host ""
+		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Citrix\Cloud'!"
+		BREAK }
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try	{
+		$CC = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").CloudConnectorList -join","
+		Start-Process "$InstDir\Citrix\Cloud\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=1 CloudConnectorList=$CC' –NoNewWindow -Wait
+		} catch {
+		DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+		}
+	DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green " ...ready!" 
+Write-Host ""
+}
+
+Write-Output ""
+
+

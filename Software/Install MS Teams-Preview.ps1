@@ -89,20 +89,20 @@ else {
 #========================================================================================================================================
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$Teams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).DisplayVersion
-IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
-IF ($Teams -ne $Version) {
+[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+[version]$Teams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).DisplayVersion
+# IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
+IF ($Teams -lt $Version) {
 
-# Uninstalling MS Teams
-IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where DisplayName -like "*Teams Machine*") {
+#Uninstalling MS Teams
 Write-Host -ForegroundColor Yellow "Uninstalling $Product"
+IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where DisplayName -like "*Teams Machine*") {
 DS_WriteLog "I" "Uninstalling $Product" $LogFile
 try {
     $UninstallTeams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).UninstallString
 	$UninstallTeams = $UninstallTeams -Replace("MsiExec.exe /I","")
-	Start-Process -FilePath msiexec.exe -ArgumentList "/X $UninstallTeams /qn"
-	Start-Sleep 20
+	Start-Process -FilePath msiexec.exe -ArgumentList "/X $UninstallTeams /qn" -wait
+	Start-Sleep 25
     } catch {
 DS_WriteLog "E" "Ein Fehler ist aufgetreten beim Deinstallieren von $Product (error: $($Error[0]))" $LogFile       
 }
@@ -111,19 +111,18 @@ Write-Host -ForegroundColor Green " ...ready!"
 Write-Output ""
 }
 
-# MS Teams Installation
+#MS Teams Installation
 Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
-    "$PSScriptRoot\$Product\Teams_windows_x64.msi" | Install-MSIFile
+	"$PSScriptRoot\$Product\Teams_windows_x64.msi" | Install-MSIFile
 	} catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }
 DS_WriteLog "-" "" $LogFile
 
-# Configure Teams Settings with json template, template must exist
 # Configure Teams Settings with json template
-IF (!(Test-Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams"))
+IF (!(Test-Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams" ))
 	{
 	New-Item -ItemType Directory -Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams" | out-null
 	Write-Host -ForegroundColor Cyan "Default Teams settings configured for Default User profile, please check settings!"
