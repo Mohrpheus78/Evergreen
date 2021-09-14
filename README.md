@@ -9,12 +9,15 @@ The idea is to select a client or server that periodically checks for updates an
 The "Evergreen Software Installer.ps1" script must be launched on your clients. If you have a golden master like in Citrix MCS/PVS environments it's sufficient to launch the script only on this machine. This can be done manually or automatic, like you prefer. 
 Again, you decide which package gets installed by selecting the software, the selection is also stored in a XML file. 
 
-IMPORTANT: Make sure you copy ALL files and subfolders, there are some files needed for the scripts to run!
+**IMPORTANT:** Make sure you copy ALL files and subfolders, there are some files needed for the scripts to run!
 
 ## Citrix Updates for CVAD (VDA, PVS, WEM)
 If you want to update your Citrix components like PVS target device, WEM Agent or VDA you have to ceate the following subfolders under the 'Citrix' folder
 
-- Cloud - Place the current WEM cloud agent here (like 'Citrix Workspace Environment Management Agent.exe') and place the VDA standalone installer here (VDAServerSetup.exe)
+- *Cloud* - Place the current WEM cloud agent here (like 'Citrix Workspace Environment Management Agent.exe') and place the VDA standalone installer here (VDAServerSetup.exe)
+- Current with two subfolders
+                            - CAD
+                            - PVS
 
 
         
