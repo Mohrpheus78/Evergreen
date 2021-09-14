@@ -12,16 +12,13 @@ Again, you decide which package gets installed by selecting the software, the se
 **IMPORTANT:** Make sure you copy ALL files and subfolders, there are some files needed for the scripts to run!
 
 ## Citrix Updates for CVAD (VDA, PVS, WEM)
-If you want to update your Citrix components like PVS target device, WEM Agent or VDA you have to ceate the following subfolders under the 'Citrix' folder
+If you want to update your Citrix components like PVS target device, WEM Agent or VDA you have to copy the recent Citrix files into the subfolders under the 'Citrix' folder!
 
-- *Cloud* - Place the current WEM cloud agent here (like 'Citrix Workspace Environment Management Agent.exe') and place the VDA standalone installer here (VDAServerSetup.exe)
-- Current with two subfolders:
-        - CAD
-        - PVS
-
-
-        
-
+- *Cloud* - Place the current WEM **cloud** agent here (like 'Citrix Workspace Environment Management Agent.exe') and place the current VDA standalone installer here (VDAServerSetup.exe)
+- *Current* - Extract the files from the current release ISO here (the install scripts look for the right folder structure)
+- *LTSR* - Extract the files from the current release ISO here (the install scripts look for the right folder structure)
+- *WEM* - Place the current WEM agent here (like 'Citrix Workspace Environment Management Agent.exe')
+     
 ## Version check
 The updater always checks for the latest version of the Evergreen module, so you don't have to do this. Sometimes the software version found with Evergreen differs from the installed version in the registry, that's stupid, but we can't influence that. Don't blame the Evergreen module!
 
