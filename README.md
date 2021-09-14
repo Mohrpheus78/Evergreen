@@ -1,5 +1,5 @@
 # Evergreen
-Download, install and update the newest version of several software packages based on the powerful Evergreen module from Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein.
+Download, install and update the newest version of several software packages based on the powerful Evergreen module from Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein and the Nevergreen module from Dan Gough https://github.com/DanGough/Nevergreen
 https://github.com/aaronparker/Evergreen
 
 I'm no powershell expert, so I'm sure there is much room for improvements! 
@@ -8,6 +8,8 @@ I'm no powershell expert, so I'm sure there is much room for improvements!
 The idea is to select a client or server that periodically checks for updates and if updates are available, downloads them. This can be done every day or once a week by launching the script "Evergreen Software Updater.ps1" via scheduled task and the -noGUI parameter. You decide which software do download by launching the script once amd make your selection. The selected items are stored in a XML file. 
 The "Evergreen Software Installer.ps1" script must be launched on your clients. If you have a golden master like in Citrix MCS/PVS environments it's sufficient to launch the script only on this machine. This can be done manually or automatic, like you prefer. 
 Again, you decide which package gets installed by selecting the software, the selection is also stored in a XML file. 
+
+IMPORTANT: Make sure you copy ALL files and subfolders, there are some files needed for the scripts to run!
 
 ## Version check
 The updater always checks for the latest version of the Evergreen module, so you don't have to do this. Sometimes the software version found with Evergreen differs from the installed version in the registry, that's stupid, but we can't influence that. Don't blame the Evergreen module!
