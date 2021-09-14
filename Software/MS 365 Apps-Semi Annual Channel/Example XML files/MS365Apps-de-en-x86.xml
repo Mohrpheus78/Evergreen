@@ -1,6 +1,6 @@
 <Configuration ID="63cc41d6-9cfc-44e1-b056-3fa09625e15e">
   <Info Description="" />
-  <Add OfficeClientEdition="32" Channel="SemiAnnual" SourcePath="\\testlab-nas\install\CAI\Software\MS 365 Apps-Semi Annual Channel" AllowCdnFallback="TRUE">
+  <Add OfficeClientEdition="32" Channel="SemiAnnual" SourcePath="\\FS\Software\MS 365 Apps-Semi Annual Channel" AllowCdnFallback="TRUE">
     <Product ID="O365ProPlusRetail">
       <Language ID="de-de" />
       <Language ID="en-us" />

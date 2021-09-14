@@ -11,6 +11,7 @@ Again, you decide which package gets installed by selecting the software, the se
 
 **IMPORTANT:** Make sure you copy ALL files and subfolders, there are some files needed for the scripts to run!
 
+
 ## Citrix Updates for CVAD (VDA, PVS, WEM)
 If you want to update your Citrix components like PVS target device, WEM Agent or VDA you have to copy the recent Citrix files into the subfolders under the 'Citrix' folder!
 
@@ -18,6 +19,9 @@ If you want to update your Citrix components like PVS target device, WEM Agent o
 - *Current* - Extract the files from the current release ISO here (the install scripts look for the right folder structure)
 - *LTSR* - Extract the files from the current release ISO here (the install scripts look for the right folder structure)
 - *WEM* - Place the current WEM agent here (like 'Citrix Workspace Environment Management Agent.exe')
+
+## MS 365 Apps##
+To download and install 'MS 365 Apps' on (from) your network location you have to create a 'Configuration.xml' file with the Office 365 customization tool (https://config.office.com/). You can also use my example XML files in the subfolder of the 'MS 365 Apps-Semi Annual Channel' folder. 
      
 ## Version check
 The updater always checks for the latest version of the Evergreen module, so you don't have to do this. Sometimes the software version found with Evergreen differs from the installed version in the registry, that's stupid, but we can't influence that. Don't blame the Evergreen module!

@@ -1,6 +1,6 @@
 <Configuration ID="28ac387a-8662-4681-9696-aec70e1b2a34">
   <Info Description="" />
-  <Add OfficeClientEdition="32" Channel="PerpetualVL2019" SourcePath="\\testlab-nas\install\CAI\Software\MS 365 Apps-Semi Annual Channel" AllowCdnFallback="TRUE">
+  <Add OfficeClientEdition="32" Channel="PerpetualVL2019" SourcePath="\\FSI\Software\MS 365 Apps-Semi Annual Channel" AllowCdnFallback="TRUE">
     <Product ID="ProPlus2019Volume" PIDKEY="NMMKJ-6RK4F-KMJVX-8D9MJ-6MWKP">
       <Language ID="de-de" />
       <Language ID="en-us" />
