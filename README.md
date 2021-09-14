@@ -15,9 +15,9 @@ Again, you decide which package gets installed by selecting the software, the se
 If you want to update your Citrix components like PVS target device, WEM Agent or VDA you have to ceate the following subfolders under the 'Citrix' folder
 
 - *Cloud* - Place the current WEM cloud agent here (like 'Citrix Workspace Environment Management Agent.exe') and place the VDA standalone installer here (VDAServerSetup.exe)
-- Current with two subfolders
-                            - CAD
-                            - PVS
+- Current with two subfolders:
+        - CAD
+        - PVS
 
 
         
