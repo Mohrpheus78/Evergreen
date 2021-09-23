@@ -17,7 +17,7 @@
 	    
     .NOTES
 	Execute as WEM external task, logonscript or task at logon
-	You can add seeting 
+	You can add settings if you want 
 #>
 
 # Define settings
