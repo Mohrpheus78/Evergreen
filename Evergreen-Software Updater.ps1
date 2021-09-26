@@ -759,7 +759,7 @@ gui_mode
 # Disable progress bar while downloading
 $ProgressPreference = 'SilentlyContinue'
 
-<#
+
 # Install/Update Evergreen and Nevergreen modules
 Write-Host -ForegroundColor Cyan "Installing/updating Evergreen and Nevergreen modules... please wait"
 Write-Output ""
@@ -791,7 +791,7 @@ IF (!(Get-Module -ListAvailable -Name Nevergreen))
 	Write-Host -ForegroundColor Cyan "Nevergreen module not found, check module installation!"
 	BREAK
 	}
-#>
+
 
 # Logfile UpdateLog
 Start-Transcript $UpdateLog | Out-Null
