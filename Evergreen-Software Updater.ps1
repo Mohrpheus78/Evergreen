@@ -314,6 +314,16 @@ function gui_mode{
 	$MSOffice2019Box.Checked = $SoftwareSelection.MSOffice2019
 	#>
 	
+	# MS Sysinternals Checkbox
+    $MSSysinternalsBox = New-Object system.Windows.Forms.CheckBox
+    $MSSysinternalsBox.text = "Microsoft Sysinternals Suite"
+    $MSSysinternalsBox.width = 95
+    $MSSysinternalsBox.height = 20
+    $MSSysinternalsBox.autosize = $true
+    $MSSysinternalsBox.location = New-Object System.Drawing.Point(250,70)
+    $form.Controls.Add($MSSysinternalsBox)
+	$MSSysinternalsBox.Checked = $SoftwareSelection.MSSysinternals
+	
     # MS Edge Checkbox
     $MSEdgeBox = New-Object system.Windows.Forms.CheckBox
     $MSEdgeBox.text = "Microsoft Edge (Stable Channel)"
@@ -344,6 +354,7 @@ function gui_mode{
     $form.Controls.Add($MSTeamsBox)
 	$MSTeamsBox.Checked = $SoftwareSelection.MSTeams
 	
+	<#
 	# MS Teams Preview Checkbox
     $MSTeamsPrevBox = New-Object system.Windows.Forms.CheckBox
     $MSTeamsPrevBox.text = "Microsoft Teams Preview (Machine-Based Install)"
@@ -353,6 +364,7 @@ function gui_mode{
     $MSTeamsPrevBox.location = New-Object System.Drawing.Point(250,170)
     $form.Controls.Add($MSTeamsPrevBox)
 	$MSTeamsPrevBox.Checked = $SoftwareSelection.MSTeamsPrev
+	#>
 
     # MS Powershell Checkbox
     $MSPowershellBox = New-Object system.Windows.Forms.CheckBox
@@ -360,7 +372,7 @@ function gui_mode{
     $MSPowershellBox.width = 95
     $MSPowershellBox.height = 20
     $MSPowershellBox.autosize = $true
-    $MSPowershellBox.location = New-Object System.Drawing.Point(250,195)
+    $MSPowershellBox.location = New-Object System.Drawing.Point(250,170)
     $form.Controls.Add($MSPowershellBox)
 	$MSPowershellBox.Checked = $SoftwareSelection.MSPowershell
 	
@@ -370,7 +382,7 @@ function gui_mode{
     $MSDotNetBox.width = 95
     $MSDotNetBox.height = 20
     $MSDotNetBox.autosize = $true
-    $MSDotNetBox.location = New-Object System.Drawing.Point(250,220)
+    $MSDotNetBox.location = New-Object System.Drawing.Point(250,195)
     $form.Controls.Add($MSDotNetBox)
 	$MSDotNetBox.Checked = $SoftwareSelection.MSDotNetFramework
 	
@@ -380,7 +392,7 @@ function gui_mode{
     $MSSQLManagementStudioENBox.width = 95
     $MSSQLManagementStudioENBox.height = 20
     $MSSQLManagementStudioENBox.autosize = $true
-    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(250,245)
+    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(250,220)
     $form.Controls.Add($MSSQLManagementStudioENBox)
 	$MSSQLManagementStudioENBox.Checked = $SoftwareSelection.MSSsmsEN
 	
@@ -390,27 +402,17 @@ function gui_mode{
     $MSSQLManagementStudioDEBox.width = 95
     $MSSQLManagementStudioDEBox.height = 20
     $MSSQLManagementStudioDEBox.autosize = $true
-    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,270)
+    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,245)
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
 	
-	# MS Sysinternals Checkbox
-    $MSSysinternalsBox = New-Object system.Windows.Forms.CheckBox
-    $MSSysinternalsBox.text = "Microsoft Sysinternals Suite"
-    $MSSysinternalsBox.width = 95
-    $MSSysinternalsBox.height = 20
-    $MSSysinternalsBox.autosize = $true
-    $MSSysinternalsBox.location = New-Object System.Drawing.Point(250,70)
-    $form.Controls.Add($MSSysinternalsBox)
-	$MSSysinternalsBox.Checked = $SoftwareSelection.MSSysinternals
-
 	# Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
     $ZoomVDIBox.text = "Zoom VDI Host Installer"
     $ZoomVDIBox.width = 95
     $ZoomVDIBox.height = 20
     $ZoomVDIBox.autosize = $true
-    $ZoomVDIBox.location = New-Object System.Drawing.Point(250,295)
+    $ZoomVDIBox.location = New-Object System.Drawing.Point(250,270)
     $form.Controls.Add($ZoomVDIBox)
 	$ZoomVDIBox.Checked =  $SoftwareSelection.ZoomVDI
 	
@@ -420,7 +422,7 @@ function gui_mode{
     $ZoomCitrixBox.width = 95
     $ZoomCitrixBox.height = 20
     $ZoomCitrixBox.autosize = $true
-    $ZoomCitrixBox.location = New-Object System.Drawing.Point(250,320)
+    $ZoomCitrixBox.location = New-Object System.Drawing.Point(250,295)
     $form.Controls.Add($ZoomCitrixBox)
 	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
 	
@@ -430,9 +432,19 @@ function gui_mode{
     $ZoomVMWareBox.width = 95
     $ZoomVMWareBox.height = 20
     $ZoomVMWareBox.autosize = $true
-    $ZoomVMWareBox.location = New-Object System.Drawing.Point(250,345)
+    $ZoomVMWareBox.location = New-Object System.Drawing.Point(250,320)
     $form.Controls.Add($ZoomVMWareBox)
 	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
+	
+	# Greenshot Checkbox
+    $GreenshotBox = New-Object system.Windows.Forms.CheckBox
+    $GreenshotBox.text = "Greenshot"
+    $GreenshotBox.width = 95
+    $GreenshotBox.height = 20
+    $GreenshotBox.autosize = $true
+    $GreenshotBox.location = New-Object System.Drawing.Point(250,345)
+    $form.Controls.Add($GreenshotBox)
+	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
 	
 	<#
 	# Cisco WebEx VDI Plugin Checkbox
@@ -546,17 +558,7 @@ function gui_mode{
     $form.Controls.Add($OpenJDKBox)
 	$OpenJDKBox.Checked =  $SoftwareSelection.OpenJDK
 	
-	# Greenshot Checkbox
-    $GreenshotBox = New-Object system.Windows.Forms.CheckBox
-    $GreenshotBox.text = "Greenshot"
-    $GreenshotBox.width = 95
-    $GreenshotBox.height = 20
-    $GreenshotBox.autosize = $true
-    $GreenshotBox.location = New-Object System.Drawing.Point(693,195)
-    $form.Controls.Add($GreenshotBox)
-	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
-		
-		
+	
 	# Select Button
     $SelectButton = New-Object system.Windows.Forms.Button
     $SelectButton.text = "Select all"
@@ -1042,6 +1044,39 @@ Write-Output ""
 }
 }
 
+# Download Microsoft EdgeWebView2 Runtime
+IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
+$Product = "MS Edge WebView2 Runtime"
+$PackageName = "MicrosoftEdgeWebView2RuntimeInstallerX64"
+$MEWV2RT = Get-EvergreenApp -Name MicrosoftEdgeWebView2Runtime | Where-Object {$_.Architecture -eq "x64"}
+$Version = $MEWV2RT.Version
+$URL = $MEWV2RT.uri
+$InstallerType = "exe"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+if (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\Citrix\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
 
 # Download WorkspaceApp LTSR
 IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
@@ -1190,17 +1225,9 @@ Write-Output ""
 IF ($SoftwareSelection.MSTeams -eq $true) {
 $Product = "MS Teams"
 $PackageName = "Teams_windows_x64"
-$Teams = Get-EvergreenApp -Name MicrosoftTeams | Where-Object {$_.Architecture -eq "x64" -and $_.Ring -eq "General"}
+$Teams = Get-NevergreenApp -Name MicrosoftTeams | Where-Object {$_.Architecture -eq 'x64' -and $_.Type -eq 'MSI' -and $_.Ring -eq 'Production'}
 $Version = $Teams.Version
 $URL = $Teams.uri
-<#
-$URLVersion = "https://whatpulse.org/app/microsoft-teams#versions"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "<td>\d.\d.\d{2}.\d+</td>"
-$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$Version = $webVersion.Trim("</td>").Trim("</td>")
-$URL = "https://statics.teams.cdn.office.net/production-windows-x64/$Version/Teams_windows_x64.msi"
-#>
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -1228,7 +1255,7 @@ Write-Output ""
 }
 }
 
-
+<#
 # Download MS Teams-Preview
 IF ($SoftwareSelection.MSTeamsPrev -eq $true) {
 $Product = "MS Teams - Preview Release"
@@ -1261,7 +1288,7 @@ Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
 }
-
+#>
 
 # Download MS OneDrive
 IF ($SoftwareSelection.MSOneDrive -eq $true) {
