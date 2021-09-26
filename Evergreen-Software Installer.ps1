@@ -377,6 +377,7 @@ function gui_mode{
     $form.Controls.Add($MSTeamsBox)
 	$MSTeamsBox.Checked =  $SoftwareSelection.MSTeams
 	
+	<#
 	# MSTeams Preview Checkbox
     $MSTeamsPrevBox = New-Object system.Windows.Forms.CheckBox
     $MSTeamsPrevBox.text = "Microsoft Teams Preview (Machine-Based Install)"
@@ -386,6 +387,7 @@ function gui_mode{
     $MSTeamsPrevBox.location = New-Object System.Drawing.Point(390,120)
     $form.Controls.Add($MSTeamsPrevBox)
 	$MSTeamsPrevBox.Checked =  $SoftwareSelection.MSTeamsPrev
+	#>
 	
 	# MS365Apps Preview Checkbox
     $MS365AppsBox = New-Object system.Windows.Forms.CheckBox
@@ -393,9 +395,19 @@ function gui_mode{
     $MS365AppsBox.width = 95
     $MS365AppsBox.height = 20
     $MS365AppsBox.autosize = $true
-    $MS365AppsBox.location = New-Object System.Drawing.Point(390,145)
+    $MS365AppsBox.location = New-Object System.Drawing.Point(390,120)
     $form.Controls.Add($MS365AppsBox)
 	$MS365AppsBox.Checked =  $SoftwareSelection.MS365Apps
+	
+	# KeePass Checkbox
+    $KeePassBox = New-Object system.Windows.Forms.CheckBox
+    $KeePassBox.text = "KeePass"
+    $KeePassBox.width = 95
+    $KeePassBox.height = 20
+    $KeePassBox.autosize = $true
+    $KeePassBox.location = New-Object System.Drawing.Point(390,145)
+    $form.Controls.Add($KeePassBox)
+	$KeePassBox.Checked =  $SoftwareSelection.KeePass
 
 	# Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
@@ -469,6 +481,28 @@ function gui_mode{
     $form.Controls.Add($deviceTRUSTBox)
 	$deviceTRUSTBox.Checked =  $SoftwareSelection.deviceTRUST
 	
+	# Putty Checkbox
+    $PuttyBox = New-Object system.Windows.Forms.CheckBox
+    $PuttyBox.text = "Putty"
+    $PuttyBox.width = 95
+    $PuttyBox.height = 20
+    $PuttyBox.autosize = $true
+    $PuttyBox.location = New-Object System.Drawing.Point(390,320)
+	# $PuttyBox.location = New-Object System.Drawing.Point(770,45)
+    $form.Controls.Add($PuttyBox)
+    $PuttyBox.Checked =  $SoftwareSelection.Putty
+
+    # WinSCP Checkbox
+    $WinSCPBox = New-Object system.Windows.Forms.CheckBox
+    $WinSCPBox.text = "WinSCP"
+    $WinSCPBox.width = 95
+    $WinSCPBox.height = 20
+    $WinSCPBox.autosize = $true
+    $WinSCPBox.location = New-Object System.Drawing.Point(390,345)
+    $form.Controls.Add($WinSCPBox)
+    $WinSCPBox.Checked =  $SoftwareSelection.WinSCP
+	
+	<#
 	# CiscoWebExDesktop Checkbox
     $CiscoWebExDesktopBox = New-Object system.Windows.Forms.CheckBox
     $CiscoWebExDesktopBox.text = "Cisco WebEx"
@@ -478,18 +512,9 @@ function gui_mode{
     $CiscoWebExDesktopBox.location = New-Object System.Drawing.Point(390,320)
     $form.Controls.Add($CiscoWebExDesktopBox)
 	$CiscoWebExDesktopBox.Checked =  $SoftwareSelection.CiscoWebExDesktop
+	#>
 	
-	# KeePass Checkbox
-    $KeePassBox = New-Object system.Windows.Forms.CheckBox
-    $KeePassBox.text = "KeePass"
-    $KeePassBox.width = 95
-    $KeePassBox.height = 20
-    $KeePassBox.autosize = $true
-    $KeePassBox.location = New-Object System.Drawing.Point(390,345)
-    $form.Controls.Add($KeePassBox)
-	$KeePassBox.Checked =  $SoftwareSelection.KeePass
-
-    # mRemoteNG Checkbox
+	# mRemoteNG Checkbox
     $mRemoteNGBox = New-Object system.Windows.Forms.CheckBox
     $mRemoteNGBox.text = "mRemoteNG"
     $mRemoteNGBox.width = 95
@@ -549,27 +574,6 @@ function gui_mode{
     $form.Controls.Add($GreenshotBox)
 	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
 
-    # Putty Checkbox
-    $PuttyBox = New-Object system.Windows.Forms.CheckBox
-    $PuttyBox.text = "Putty"
-    $PuttyBox.width = 95
-    $PuttyBox.height = 20
-    $PuttyBox.autosize = $true
-    $PuttyBox.location = New-Object System.Drawing.Point(390,520)
-	# $PuttyBox.location = New-Object System.Drawing.Point(770,45)
-    $form.Controls.Add($PuttyBox)
-    $PuttyBox.Checked =  $SoftwareSelection.Putty
-
-    # WinSCP Checkbox
-    $WinSCPBox = New-Object system.Windows.Forms.CheckBox
-    $WinSCPBox.text = "WinSCP"
-    $WinSCPBox.width = 95
-    $WinSCPBox.height = 20
-    $WinSCPBox.autosize = $true
-    $WinSCPBox.location = New-Object System.Drawing.Point(390,545)
-    $form.Controls.Add($WinSCPBox)
-    $WinSCPBox.Checked =  $SoftwareSelection.WinSCP
-	
 	
 	# Select Button
     $SelectButton = New-Object system.Windows.Forms.Button
