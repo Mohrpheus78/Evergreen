@@ -48,6 +48,24 @@ DS_WriteLog "I" "START SCRIPT - $PackageName" $LogFile
 DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
+# Check, if a new version of MS Edge WebView2 Runtime is available
+IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Edge WebView*"})) {
+[version]$Version = Get-Content -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt"
+[version]$MEWV2RT = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Edge WebView*"}).DisplayVersion
+IF ($MEWV2RT -lt $Version) {
+Write-Host -ForegroundColor Yellow "Installing MS Edge WebView2 Runtime"
+DS_WriteLog "I" "Installing MS Edge WebView2 Runtime" $LogFile
+try	{
+	Start-Process -FilePath "$PSScriptRoot\MS Edge WebView2 Runtime\MicrosoftEdgeWebView2RuntimeInstallerX64.exe" -ArgumentList "/silent /install" –NoNewWindow -wait
+	} catch {
+	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+}
+DS_WriteLog "-" "" $LogFile
+Write-Host -ForegroundColor Green " ...ready!" 
+Write-Output ""
+}
+}
+
 # Check, if a new version is available
 $Version = Get-Content -Path "$PSScriptRoot\Citrix\WorkspaceApp\Windows\Current\Version.txt"
 $WSA = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Workspace*" -and $_.UninstallString -like "*Trolley*"}).DisplayVersion
@@ -56,6 +74,7 @@ IF ($WSA -ne $Version) {
 # Citrix WSA Installation
 $Options = @(
 "/silent"
+"/EnableCEIP=false"
 "/FORCE_LAA=1"
 "/AutoUpdateCheck=disabled"
 "/EnableCEIP=false"
