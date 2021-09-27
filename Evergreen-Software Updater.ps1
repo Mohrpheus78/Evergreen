@@ -73,6 +73,7 @@ $SoftwareToUpdate = "$SoftwareFolder\Software-to-update.xml"
 # General update logfile
 $Date = $Date = Get-Date -UFormat "%d.%m.%Y"
 $UpdateLog = "$SoftwareFolder\_Update Logs\Software Updates $Date.log"
+$ModulesUpdateLog = "$SoftwareFolder\_Update Logs\Modules Updates $Date.log"
 
 # Import values (selected software) from XML file
 if (Test-Path -Path $SoftwareToUpdate) {$SoftwareSelection = Import-Clixml $SoftwareToUpdate}
@@ -761,6 +762,8 @@ $ProgressPreference = 'SilentlyContinue'
 
 
 # Install/Update Evergreen and Nevergreen modules
+# Start logfile Modules Update Log
+Start-Transcript $ModulesUpdateLog | Out-Null
 Write-Host -ForegroundColor Cyan "Installing/updating Evergreen and Nevergreen modules... please wait"
 Write-Output ""
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -791,6 +794,11 @@ IF (!(Get-Module -ListAvailable -Name Nevergreen))
 	Write-Host -ForegroundColor Cyan "Nevergreen module not found, check module installation!"
 	BREAK
 	}
+
+# Stop logfile Modules Update Log
+Stop-Transcript | Out-Null
+$Content = Get-Content -Path $ModulesUpdateLog | Select-Object -Skip 18
+Set-Content -Value $Content -Path $ModulesUpdateLog
 
 
 # Logfile UpdateLog
