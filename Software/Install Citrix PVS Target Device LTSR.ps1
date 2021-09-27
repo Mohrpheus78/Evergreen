@@ -62,14 +62,15 @@ Write-Host ""
 Write-Host ""
 
 # Installation PVS Target Device LTSR
-Write-Host -ForegroundColor Yellow "Installing $Product"
-IF (!(Test-Path "$InstDir\Citrix\LTSR\PVS")) {
-		Write-Host ""
-		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Citrix\LTSR\PVS'!"
-		BREAK }
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
-	Start-Process "$InstDir\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
+Write-Host -ForegroundColor Yellow "Installing $Product"
+IF (!(Test-Path "$InstDir\Software\Citrix\LTSR\PVS")) {
+		Write-Host ""
+		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\LTSR\PVS'!"
+		pause
+		BREAK }
+	Start-Process "$InstDir\Software\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
 	} catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }

@@ -48,9 +48,9 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$Adobe = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Adobe Acrobat Reader*"}).DisplayVersion
-IF ($Adobe -ne $Version) {
+[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+[version]$Adobe = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Adobe Acrobat Reader*"}).DisplayVersion
+IF ($Adobe -lt $Version) {
 
 # Adobe Reader DC Update
 Write-Host -ForegroundColor Yellow "Installing $Product"

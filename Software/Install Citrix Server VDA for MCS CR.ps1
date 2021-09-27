@@ -25,7 +25,7 @@ $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "Citrix VDA for MCS CR/Cloud"
+$Product = "Citrix VDA for MCS CR-Cloud"
 $InstDir = Split-Path $PSScriptRoot -Parent
 
 #========================================================================================================================================
@@ -63,14 +63,16 @@ Write-Host ""
 
 
 # Installation Server VDA
-Write-Host -ForegroundColor Yellow "Installing $Product"
-IF (!(Test-Path "$InstDir\Citrix\Current")) {
-		Write-Host ""
-		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Citrix\Current'!"
-		BREAK }
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
-	Start-Process "$InstDir\Citrix\Current\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"",""Workspace Environment Management"" /includeadditional ""Citrix MCS IODriver"" /COMPONENTS VDA /CONTROLLERS ""$DDC1.$ENV:USERDNSDOMAIN $DDC2.$ENV:USERDNSDOMAIN"" /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /ENABLE_REAL_TIME_TRANSPORT /mastermcsimage" –NoNewWindow -Wait
+Write-Host -ForegroundColor Yellow "Installing $Product"
+IF (!(Test-Path "$InstDir\Software\Citrix\Current")) {
+		Write-Host ""
+		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\Current'!"
+		pause
+		BREAK
+		}
+	Start-Process "$InstDir\Citrix\Software\Current\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"",""Workspace Environment Management"" /includeadditional ""Citrix MCS IODriver"" /COMPONENTS VDA /CONTROLLERS ""$DDC1.$ENV:USERDNSDOMAIN $DDC2.$ENV:USERDNSDOMAIN"" /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /ENABLE_REAL_TIME_TRANSPORT /mastermcsimage" –NoNewWindow -Wait
 	} catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }

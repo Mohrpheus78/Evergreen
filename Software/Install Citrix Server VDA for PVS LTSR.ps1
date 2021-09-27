@@ -62,14 +62,15 @@ Write-Host ""
 Write-Host ""
 
 # Installation Server VDA
-Write-Host -ForegroundColor Yellow "Installing $Product"
-IF (!(Test-Path "$InstDir\Citrix\LTSR\CVAD")) {
-		Write-Host ""
-		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Citrix\LTSR\CVAD'!"
-		BREAK }
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
-	Start-Process "$InstDir\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""AppDisks VDA Plug-in"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"" /COMPONENTS VDA /disableexperiencemetrics /enable_remote_assistance /enable_hdx_ports /enable_hdx_udp_ports /enable_real_time_transport /masterpvsimage" –NoNewWindow -Wait
+Write-Host -ForegroundColor Yellow "Installing $Product"
+IF (!(Test-Path "$InstDir\Software\Citrix\LTSR\CVAD")) {
+		Write-Host ""
+		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\LTSR\CVAD'!"
+		pause
+		BREAK }
+	Start-Process "$InstDir\Software\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""AppDisks VDA Plug-in"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"" /COMPONENTS VDA /disableexperiencemetrics /enable_remote_assistance /enable_hdx_ports /enable_hdx_udp_ports /enable_real_time_transport /masterpvsimage" –NoNewWindow -Wait
 	} catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }

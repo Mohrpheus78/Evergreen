@@ -25,7 +25,7 @@ $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "PVS Target Device CR/Cloud"
+$Product = "PVS Target Device CR-Cloud"
 $InstDir = Split-Path $PSScriptRoot -Parent
 
 #========================================================================================================================================
@@ -63,13 +63,14 @@ Write-Host ""
 
 # Installation PVS Target Device CR/Cloud
 Write-Host -ForegroundColor Yellow "Installing $Product"
-IF (!(Test-Path "$InstDir\Citrix\Current\PVS")) {
-		Write-Host ""
-		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Citrix\Current\PVS'!"
-		BREAK }
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
-	Start-Process "$InstDir\Citrix\Current\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
+IF (!(Test-Path "$InstDir\Software\Citrix\Current\PVS")) {
+		Write-Host ""
+		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\Current\PVS'!"
+		pause
+		BREAK }
+	Start-Process "$InstDir\Software\Citrix\Current\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
 	} catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }

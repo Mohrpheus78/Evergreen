@@ -67,15 +67,16 @@ Write-Host ""
     $Frage = Read-Host "( y / n )"
 	IF ($Frage -eq 'n') {
 	# Installation WEM Agent onPrem
-	Write-Host -ForegroundColor Yellow "Installing $Product On-Prem"
-	IF (!(Test-Path "$InstDir\Citrix\WEM")) {
-		Write-Host ""
-		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Citrix\WEM'!"
-		BREAK }
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try	{
+	Write-Host -ForegroundColor Yellow "Installing $Product On-Prem"
+	IF (!(Test-Path "$InstDir\Software\Citrix\WEM")) {
+		Write-Host ""
+		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\WEM'!"
+		pause
+		BREAK }
 		$WEMServer = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").BrokerSvcName
-		Start-Process "$InstDir\Citrix\WEM\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=0 InfrastructureServer=$WEMServer' –NoNewWindow -Wait
+		Start-Process "$InstDir\Software\Citrix\WEM\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=0 InfrastructureServer=$WEMServer' –NoNewWindow -Wait
 		} catch {
 		DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 		}
@@ -84,15 +85,16 @@ Write-Host ""
 }
 	ELSE {
 	# Installation WEM Agent Cloud
-	Write-Host -ForegroundColor Yellow "Installing $Product for WEM Cloud service"
-	IF (!(Test-Path "$InstDir\Citrix\Cloud")) {
-		Write-Host ""
-		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Citrix\Cloud'!"
-		BREAK }
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try	{
+	Write-Host -ForegroundColor Yellow "Installing $Product for WEM Cloud service"
+	IF (!(Test-Path "$InstDir\Software\Citrix\Cloud")) {
+		Write-Host ""
+		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\Cloud'!"
+		pause
+		BREAK }
 		$CC = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").CloudConnectorList -join","
-		Start-Process "$InstDir\Citrix\Cloud\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=1 CloudConnectorList=$CC' –NoNewWindow -Wait
+		Start-Process "$InstDir\Software\Citrix\Cloud\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=1 CloudConnectorList=$CC' –NoNewWindow -Wait
 		} catch {
 		DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 		}
