@@ -319,7 +319,7 @@ function gui_mode{
 	
 	# Citrix WEM Agent PVS Checkbox
     $WEM_Agent_PVSBox = New-Object system.Windows.Forms.CheckBox
-    $WEM_Agent_PVSBox.text = "Citrix WEM Agent for PVS (Cloud)"
+    $WEM_Agent_PVSBox.text = "Citrix WEM Agent for PVS"
     $WEM_Agent_PVSBox.width = 95
     $WEM_Agent_PVSBox.height = 20
     $WEM_Agent_PVSBox.autosize = $true
@@ -329,7 +329,7 @@ function gui_mode{
 	
 	# Citrix WEM Agent MCS Checkbox
     $WEM_Agent_MCSBox = New-Object system.Windows.Forms.CheckBox
-    $WEM_Agent_MCSBox.text = "Citrix WEM Agent for MCS (Cloud)"
+    $WEM_Agent_MCSBox.text = "Citrix WEM Agent for MCS"
     $WEM_Agent_MCSBox.width = 95
     $WEM_Agent_MCSBox.height = 20
     $WEM_Agent_MCSBox.autosize = $true
