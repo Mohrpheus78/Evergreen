@@ -94,7 +94,7 @@ IF ($RemoteDesktopManager -lt $Version) {
 Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
-    "$PSScriptRoot\$Product\Setup.RemoteDesktopManagerFree.msi" | Install-MSIFile
+    "$PSScriptRoot\$Product\RemoteDesktopManagerFree.msi" | Install-MSIFile
     } catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }

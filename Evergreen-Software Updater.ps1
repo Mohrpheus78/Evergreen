@@ -1769,7 +1769,7 @@ Write-Output ""
 # Download RemoteDesktopManager
 IF ($SoftwareSelection.RemoteDesktopManager -eq $true) {
 $Product = "RemoteDesktopManager"
-$PackageName = "Setup.RemoteDesktopManagerFree"
+$PackageName = "RemoteDesktopManagerFree"
 $URLVersion = "https://remotedesktopmanager.com/de/release-notes/free"
 $webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
 $regexAppVersion = "\d\d\d\d.\d.\d\d.\d+"
@@ -1807,14 +1807,6 @@ Write-Output ""
 IF ($SoftwareSelection.deviceTRUST -eq $true) {
 $Product = "deviceTRUST"
 $PackageName = "deviceTRUST"
-<#
-$URLVersion = "https://docs.devicetrust.com/docs/download/"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "<td>\d\d.\d.\d\d\d+</td>"
-$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$Version = $webVersion.Trim("</td>").Trim("</td>")
-$URL = "https://storage.devicetrust.com/download/deviceTRUST-$Version.zip"
-#>
 $deviceTRUST = Get-EvergreenApp -Name deviceTRUST  | Where-Object {$_.Platform -eq "Windows" -and $_.Type -eq "Bundle"} | Select-Object -First 1
 $Version = $deviceTRUST.Version
 $URL = $deviceTRUST.uri
