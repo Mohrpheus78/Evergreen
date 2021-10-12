@@ -1336,7 +1336,7 @@ Write-Output ""
 IF ($SoftwareSelection.MS365Apps -eq $true) {
 $Product = "MS 365 Apps-Semi Annual Channel"
 $PackageName = "setup"
-$MS365Apps = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "Broad"}
+$MS365Apps = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "SemiAnnual"}
 $Version = $MS365Apps.Version
 $URL = $MS365Apps.uri
 $InstallerType = "exe"
