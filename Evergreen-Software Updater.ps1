@@ -2107,7 +2107,6 @@ New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, Version.txt, Download* -Recurse
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
