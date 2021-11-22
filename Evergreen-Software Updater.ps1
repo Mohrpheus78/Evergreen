@@ -852,7 +852,7 @@ Write-Output ""
 IF ($SoftwareSelection.GoogleChrome -eq $true) {
 $Product = "Google Chrome"
 $PackageName = "GoogleChromeStandaloneEnterprise64"
-$Chrome = Get-EvergreenApp -Name GoogleChrome | Where-Object {$_.Architecture -eq "x64"}
+$Chrome = Get-EvergreenApp -Name GoogleChrome | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "Stable"}
 $Version = $Chrome.Version
 $URL = $Chrome.uri
 $InstallerType = "msi"

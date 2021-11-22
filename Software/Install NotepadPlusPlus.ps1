@@ -50,7 +50,7 @@ DS_WriteLog "-" "" $LogFile
 # Check, if a new version is available
 $Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 $Notepad = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Notepad++*"}).DisplayVersion
-$Notepad = $Notepad.TrimEnd('.0')
+# $Notepad = $Notepad.TrimEnd('.0')
 IF ($Notepad -ne $Version) {
 
 # Installation Notepad++
