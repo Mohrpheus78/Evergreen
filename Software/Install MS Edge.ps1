@@ -104,9 +104,10 @@ DS_WriteLog "-" "" $LogFile
 
 # Disable scheduled tasks
 Start-Sleep -s 5
-Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateTaskMachineCore | Out-Null
-Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateTaskMachineUA | Out-Null
-Disable-ScheduledTask -TaskName MicrosoftEdgeUpdateBrowserReplacementTask | Out-Null
+$EdgeTasks= (Get-ScheduledTask | Where-Object {$_.TaskName -like "MicrosoftEdge*"}).TaskName
+foreach ($Task in $EdgeTasks) {
+    Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue
+	}
 Write-Host -ForegroundColor Green " ...ready!" 
 Write-Output ""
 
