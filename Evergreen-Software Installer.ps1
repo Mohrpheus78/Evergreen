@@ -411,7 +411,9 @@ function gui_mode{
 
 	# Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomVDIBox.text = "Zoom VDI Host Installer"
+    $ZoomVDIBox.text = "Zoom VDI Host Installer (N/A)"
+	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
+    $ZoomVDIBox.Font = $CustomFont
     $ZoomVDIBox.width = 95
     $ZoomVDIBox.height = 20
     $ZoomVDIBox.autosize = $true
@@ -421,7 +423,9 @@ function gui_mode{
 	
 	# Zoom Citrix client Checkbox
     $ZoomCitrixBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomCitrixBox.text = "Zoom Citrix Client"
+    $ZoomCitrixBox.text = "Zoom Citrix Client (N/A)"
+	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
+    $ZoomCitrixBox.Font = $CustomFont
     $ZoomCitrixBox.width = 95
     $ZoomCitrixBox.height = 20
     $ZoomCitrixBox.autosize = $true
