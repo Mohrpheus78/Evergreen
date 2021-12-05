@@ -1445,7 +1445,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSDotNetFramework -eq $true) {
 $Product = "MS DotNet Framework"
 $PackageName = "DotNetFramework-runtime"
-$MSDotNetFramework = Get-EvergreenApp -Name Microsoft.NET | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "Current"}
+$MSDotNetFramework = Get-EvergreenApp -Name Microsoft.NET | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "LTS" -and $_.Installer -eq "runtime"}
 $Version = $MSDotNetFramework.Version
 $URL = $MSDotNetFramework.uri
 $InstallerType = "exe"
