@@ -56,7 +56,7 @@ IF ($OneDrive -ne $Version) {
 Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
-	$null = Start-Process "$PSScriptRoot\$Product\OneDriveSetup.exe" –ArgumentList '/allusers' –NoNewWindow -PassThru
+	$null = Start-Process "$PSScriptRoot\$Product\OneDriveSetup.exe" –ArgumentList '/silent /allusers' –NoNewWindow -PassThru
 	while (Get-Process -Name "OneDriveSetup" -ErrorAction SilentlyContinue) { Start-Sleep -Seconds 10 }
     # onedrive starts automatically after setup. kill!
     Stop-Process -Name "OneDrive" -Force

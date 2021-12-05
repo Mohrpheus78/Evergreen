@@ -58,6 +58,7 @@ Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
 	Start-Process "$PSScriptRoot\$Product\NotePadPlusPlus_x64.exe" –ArgumentList '/S /NoUpdater' –NoNewWindow -Wait
+	Remove-Item -Path "C:\Program Files\Notepad++\updater" -Recurse
 	} catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }

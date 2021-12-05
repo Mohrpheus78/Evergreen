@@ -355,19 +355,7 @@ function gui_mode{
     $form.Controls.Add($MSTeamsBox)
 	$MSTeamsBox.Checked = $SoftwareSelection.MSTeams
 	
-	<#
-	# MS Teams Preview Checkbox
-    $MSTeamsPrevBox = New-Object system.Windows.Forms.CheckBox
-    $MSTeamsPrevBox.text = "Microsoft Teams Preview (Machine-Based Install)"
-    $MSTeamsPrevBox.width = 95
-    $MSTeamsPrevBox.height = 20
-    $MSTeamsPrevBox.autosize = $true
-    $MSTeamsPrevBox.location = New-Object System.Drawing.Point(250,170)
-    $form.Controls.Add($MSTeamsPrevBox)
-	$MSTeamsPrevBox.Checked = $SoftwareSelection.MSTeamsPrev
-	#>
-
-    # MS Powershell Checkbox
+	# MS Powershell Checkbox
     $MSPowershellBox = New-Object system.Windows.Forms.CheckBox
     $MSPowershellBox.text = "Microsoft Powershell"
     $MSPowershellBox.width = 95
@@ -596,7 +584,6 @@ function gui_mode{
 		$MSEdgeBox.checked = $True
 		$MSOneDriveBox.checked = $True
 		$MSTeamsBox.checked = $True
-		$MSTeamsPrevBox.checked = $True
 		$MSPowershellBox.checked = $True
 		$MSDotNetBox.checked = $True
 		$MSSQLManagementStudioDEBox.checked = $True
@@ -651,7 +638,6 @@ function gui_mode{
 		$MSEdgeBox.checked = $False
 		$MSOneDriveBox.checked = $False
 		$MSTeamsBox.checked = $False
-		$MSTeamsPrevBox.checked = $False
 		$MSPowershellBox.checked = $False
 		$MSDotNetBox.checked = $False
 		$MSSQLManagementStudioDEBox.checked = $False
@@ -703,7 +689,6 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSEdge" -Value $MSEdgeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOneDrive" -Value $MSOneDriveBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSTeams" -Value $MSTeamsBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSTeamsPrev" -Value $MSTeamsPrevBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSPowershell" -Value $MSPowershellBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSDotNetFramework" -Value $MSDotNetBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsEN" -Value $MSSQLManagementStudioENBox.checked -Force
@@ -1269,40 +1254,6 @@ Write-Output ""
 }
 }
 
-<#
-# Download MS Teams-Preview
-IF ($SoftwareSelection.MSTeamsPrev -eq $true) {
-$Product = "MS Teams - Preview Release"
-$PackageName = "Teams_windows_x64"
-$Teams = Get-EvergreenApp -Name MicrosoftTeams | Where-Object {$_.Architecture -eq "x64" -and $_.Ring -eq "Preview"}
-$Version = $Teams.Version
-$URL = $Teams.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
-}
-#>
 
 # Download MS OneDrive
 IF ($SoftwareSelection.MSOneDrive -eq $true) {
