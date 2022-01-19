@@ -1,7 +1,6 @@
 ﻿# ***************************************************************************
 # D. Mohrmann, S&L Firmengruppe, Twitter: @mohrpheus78
 # Download Software packages with Evergreen powershell module
-# Bitte die Produkte auswählen, die runtergeladen werden sollen (Ab Zeile 70)
 # ***************************************************************************
 
 <#
@@ -13,9 +12,6 @@ The script uses the excellent Powershell Evergreen module from Aaron Parker, Bro
 To update a software package just switch from 0 to 1 in the section "Select software to download".
 A new folder for every single package will be created, together with a Version file, a download date file and a log file. IF a new version is available the scriot checks
 the version number and will update the package.
-
-.EXAMPLE
-'$NotePadPlusPlus = 1' Downloads Notepad++
 
 .NOTES
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
@@ -56,10 +52,10 @@ else
 
 Clear-Host
 
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " SuL Software-Updater (Powered by Evergreen-Module)   "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                     "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Updater (Powered by Evergreen-Module) "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe               "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Output ""
 
 Write-Host -ForegroundColor Cyan "Setting Variables"
@@ -355,7 +351,7 @@ function gui_mode{
     $form.Controls.Add($MSTeamsBox)
 	$MSTeamsBox.Checked = $SoftwareSelection.MSTeams
 	
-	# MS Powershell Checkbox
+	 # MS Powershell Checkbox
     $MSPowershellBox = New-Object system.Windows.Forms.CheckBox
     $MSPowershellBox.text = "Microsoft Powershell"
     $MSPowershellBox.width = 95
@@ -395,7 +391,7 @@ function gui_mode{
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
 	
-	# Zoom Host Checkbox
+	## Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
     $ZoomVDIBox.text = "Zoom VDI Host Installer (N/A)"
 	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
@@ -553,6 +549,16 @@ function gui_mode{
     $form.Controls.Add($OpenJDKBox)
 	$OpenJDKBox.Checked =  $SoftwareSelection.OpenJDK
 	
+	# pdf24Creator Checkbox
+    $pdf24CreatorBox = New-Object system.Windows.Forms.CheckBox
+    $pdf24CreatorBox.text = "pdf24Creator"
+    $pdf24CreatorBox.width = 95
+    $pdf24CreatorBox.height = 20
+    $pdf24CreatorBox.autosize = $true
+    $pdf24CreatorBox.location = New-Object System.Drawing.Point(693,195)
+    $form.Controls.Add($pdf24CreatorBox)
+	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
+	
 	
 	# Select Button
     $SelectButton = New-Object system.Windows.Forms.Button
@@ -605,6 +611,7 @@ function gui_mode{
 		$OracleJava8Box.checked = $True
 		$OracleJava8_32Box.checked = $True
 		$ImageGlassBox.checked = $True
+		$pdf24CreatorBox.checked = $True	
 		})
     $form.Controls.Add($SelectButton)
 	
@@ -659,6 +666,7 @@ function gui_mode{
 		$OracleJava8Box.checked = $False
 		$OracleJava8_32Box.checked = $False
 		$ImageGlassBox.checked = $False
+		$pdf24CreatorBox.checked = $False
 		})
     $form.Controls.Add($UnselectButton)
 
@@ -715,6 +723,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinSCP" -Value $WinSCPBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Putty" -Value $PuttyBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ImageGlass" -Value $ImageGlassBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "pdf24Creator" -Value $pdf24CreatorBox.checked -Force
 	
 	# Export objects to	XML
 	$SoftwareSelection | Export-Clixml $SoftwareToUpdate
@@ -785,14 +794,14 @@ IF (!(Get-Module -ListAvailable -Name Nevergreen))
 	Write-Host -ForegroundColor Cyan "Nevergreen module not found, check module installation!"
 	BREAK
 	}
-
+	
 # Stop logfile Modules Update Log
 Stop-Transcript | Out-Null
 $Content = Get-Content -Path $ModulesUpdateLog | Select-Object -Skip 18
 Set-Content -Value $Content -Path $ModulesUpdateLog
 
 
-# Logfile UpdateLog
+# Start logfile Update Log
 Start-Transcript $UpdateLog | Out-Null
 
 # Import selection
@@ -1760,10 +1769,59 @@ Write-Output ""
 }
 
 
+# Download pdf24Creator
+IF ($SoftwareSelection.pdf24Creator -eq $true) {
+$Product = "pdf24Creator"
+$PackageName = "pdf24Creator"
+$URLVersion = "https://creator.pdf24.org/listVersions.php"
+$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
+$regexAppVersion = "pdf24-creator-.*"
+$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+$Version = $webVersion.Split("-")[2]
+$Version = $Version.Split("exe")[0]
+$Version = $Version.Split("\.")
+$VersionTable = $webVersion.Trim("</td>").Trim("</td>")
+$Version = $Version[0] + "." + $Version[1] + "." + $Version[2]
+$URL = "https://creator.pdf24.org/download/pdf24-creator-" + "$Version" + ".msi"
+$InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
 # Download deviceTRUST
 IF ($SoftwareSelection.deviceTRUST -eq $true) {
 $Product = "deviceTRUST"
 $PackageName = "deviceTRUST"
+<#
+$URLVersion = "https://docs.devicetrust.com/docs/download/"
+$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
+$regexAppVersion = "<td>\d\d.\d.\d\d\d+</td>"
+$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+$Version = $webVersion.Trim("</td>").Trim("</td>")
+$URL = "https://storage.devicetrust.com/download/deviceTRUST-$Version.zip"
+#>
 $deviceTRUST = Get-EvergreenApp -Name deviceTRUST  | Where-Object {$_.Platform -eq "Windows" -and $_.Type -eq "Bundle"} | Select-Object -First 1
 $Version = $deviceTRUST.Version
 $URL = $deviceTRUST.uri
@@ -2079,15 +2137,6 @@ Write-Output ""
 IF ($SoftwareSelection.Putty -eq $true) {
 $Product = "Putty"
 $PackageName = "Putty"
-<#
-$URLVersion = "https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "\(\d\.\d\d\)"
-$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$Version = $webVersion.Trim("(").Trim(")")
-$InstallerType = "exe"
-$URL = "https://the.earth.li/~sgtatham/putty/latest/w64/putty.exe"
-#>
 $putty = Get-NevergreenApp -Name SimonTathamPuTTY | Where-Object {$_.Architecture -eq "x64"}
 $Version = $putty.Version
 $URL = $putty.uri
@@ -2128,14 +2177,6 @@ $PackageName = "ZoomInstallerVDI"
 $ZoomVDI = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom VDI Client"}
 $Version = $ZoomVDI.Version
 $URL = $ZoomVDI.Uri
-<#
-$ZoomVDI = Get-EvergreenApp -Name Zoom | Where-Object {$_.Platform -eq "VDI"}
-$URLVersion = "https://support.zoom.us/hc/en-us/articles/360041602711"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "(\d\.\d\.\d)"
-$Version = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Descending | Select-Object -First 1
-$URL = $ZoomVDI.uri
-#>
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -2170,14 +2211,6 @@ $PackageName = "ZoomCitrixHDXMediaPlugin"
 $ZoomCitrix = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom Citrix HDX Media Plugin"}
 $Version = $ZoomCitrix.Version
 $URL = $ZoomCitrix.Uri
-<#
-$ZoomCitrix = Get-EvergreenApp -Name Zoom | Where-Object {$_.Platform -eq "Citrix"}
-$URLVersion = "https://support.zoom.us/hc/en-us/articles/360041602711"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "(\d\.\d\.\d)"
-$Version = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Descending | Select-Object -First 1
-$URL = $ZoomCitrix.uri
-#>
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -2212,14 +2245,6 @@ $PackageName = "ZoomVMWareMediaPlugin"
 $ZoomVMWare = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom VMWare Media Plugin"}
 $Version = $ZoomVMWare.Version
 $URL = $ZoomVMWare.Uri
-<#
-$ZoomVMWare = Get-EvergreenApp -Name Zoom | Where-Object {$_.Platform -eq "VMWare"}
-$URLVersion = "https://support.zoom.us/hc/en-us/articles/360041602711"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "(\d\.\d\.\d)"
-$Version = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Descending | Select-Object -First 1
-$URL = $ZoomVMWare.uri
-#>
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -2251,9 +2276,10 @@ Write-Output ""
 IF ($SoftwareSelection.CiscoWebExVDI -eq $true) {
 $Product = "Cisco WebEx VDI Plugin"
 $PackageName = "WebExVDIPlugin"
-$CiscoWebExVDI = Get-EvergreenApp -Name CiscoWebEx | Where-Object {$_.Type -eq "VDI"}
-$Version = $CiscoWebExVDI.Version
-$URL = $CiscoWebExVDI.uri
+$URLVersion = "https://www.webex.com/downloads/teams-vdi.html"
+$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
+$regexAppVersion = "\d\d.\d.\d.\d\d\d\d\d+"
+$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -2390,4 +2416,3 @@ $Content = Get-Content -Path $UpdateLog | Select-Object -Skip 18
 Set-Content -Value $Content -Path $UpdateLog
 
 if ($noGUI -eq $False) {pause}
-
