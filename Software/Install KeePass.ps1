@@ -59,6 +59,7 @@ Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
     Start-Process "$PSScriptRoot\$Product\KeePass.exe" -ArgumentList '/COMPONENTS="KeePass core files" /VERYSILENT /NORESTART' -Wait
+	Copy-Item -Path "$PSScriptRoot\$Product\KeePass.config.enforced.xml" -Destination "$env:ProgramFiles\KeePass Password Safe 2" -Force
     } catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }

@@ -1980,7 +1980,7 @@ IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
 IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, Version.txt, Download* -Recurse
 Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
