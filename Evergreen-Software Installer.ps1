@@ -27,7 +27,12 @@ Param (
             HelpMessage='Start without Gui',
             ValuefromPipelineByPropertyName = $true
         )]
-        [switch]$noGUI
+        [switch]$noGUI,
+		
+		[Parameter(
+			Mandatory = $false
+		)]  
+		$SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername.xml"
     
 )
 
@@ -55,7 +60,7 @@ else
 Clear-Host
 
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " SuL Software-Installer (Powered by Evergreen-Module) "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Installer (Powered by Evergreen-Module) "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                     "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
 Write-Output ""
@@ -411,9 +416,7 @@ function gui_mode{
 
 	# Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomVDIBox.text = "Zoom VDI Host Installer (N/A)"
-	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
-    $ZoomVDIBox.Font = $CustomFont
+    $ZoomVDIBox.text = "Zoom VDI Host Installer"
     $ZoomVDIBox.width = 95
     $ZoomVDIBox.height = 20
     $ZoomVDIBox.autosize = $true
@@ -423,9 +426,7 @@ function gui_mode{
 	
 	# Zoom Citrix client Checkbox
     $ZoomCitrixBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomCitrixBox.text = "Zoom Citrix Client (N/A)"
-	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
-    $ZoomCitrixBox.Font = $CustomFont
+    $ZoomCitrixBox.text = "Zoom Citrix Client"
     $ZoomCitrixBox.width = 95
     $ZoomCitrixBox.height = 20
     $ZoomCitrixBox.autosize = $true
@@ -577,6 +578,16 @@ function gui_mode{
     $GreenshotBox.location = New-Object System.Drawing.Point(390,495)
     $form.Controls.Add($GreenshotBox)
 	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
+	
+	# pdf24Creator Checkbox
+    $pdf24CreatorBox = New-Object system.Windows.Forms.CheckBox
+    $pdf24CreatorBox.text = "PDF24 Creator"
+    $pdf24CreatorBox.width = 95
+    $pdf24CreatorBox.height = 20
+    $pdf24CreatorBox.autosize = $true
+    $pdf24CreatorBox.location = New-Object System.Drawing.Point(390,520)
+    $form.Controls.Add($pdf24CreatorBox)
+	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 
 	
 	# Select Button
@@ -612,6 +623,7 @@ function gui_mode{
 		$FileZillaBox.checked = $True
 		$ImageGlassBox.checked = $True
 		$GreenshotBox.checked = $True
+		$pdf24CreatorBox.checked = $True
 		$deviceTRUSTBox.checked = $True
 		$RemoteDesktopManagerBox.checked = $True
 		$ZoomVDIBox.checked = $True
@@ -665,6 +677,7 @@ function gui_mode{
 		$FileZillaBox.checked = $False
 		$ImageGlassBox.checked = $False
 		$GreenshotBox.checked = $False
+		$pdf24CreatorBox.checked = $False
 		$deviceTRUSTBox.checked = $False
 		$RemoteDesktopManagerBox.checked = $False
 		$ZoomVDIBox.checked = $False
@@ -720,6 +733,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FileZilla" -Value $FileZillaBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ImageGlass" -Value $ImageGlassBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Greenshot" -Value $GreenshotBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "pdf24Creator" -Value $pdf24CreatorBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "deviceTRUST" -Value $deviceTRUSTBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "RemoteDesktopManager" -Value $RemoteDesktopManagerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVDI" -Value $ZoomVDIBox.checked -Force
@@ -930,6 +944,12 @@ IF ($SoftwareSelection.ImageGlass -eq $true)
 IF ($SoftwareSelection.Greenshot -eq $true)
 	{
 		& "$SoftwareFolder\Install Greenshot.ps1"
+	}
+	
+# Install pdf24Creator
+IF ($SoftwareSelection.pdf24Creator -eq $true)
+	{
+		& "$SoftwareFolder\Install pdf24Creator.ps1"
 	}
 	
 # Install deviceTRUST
