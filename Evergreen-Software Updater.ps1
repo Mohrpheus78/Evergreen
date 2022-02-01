@@ -2347,7 +2347,7 @@ Write-Output ""
 IF ($SoftwareSelection.ImageGlass -eq $true) {
 $Product = "ImageGlass"
 $PackageName = "ImageGlass"
-$ImageGlass = Get-EvergreenApp -Name ImageGlass | Where-Object {$_.Architecture -eq "x64"}
+$ImageGlass = Get-EvergreenApp -Name ImageGlass | Where-Object {$_.Architecture -eq "x64"} | Select-Object -First 1
 $Version = $ImageGlass.Version
 $URL = $ImageGlass.uri
 $InstallerType = "msi"
