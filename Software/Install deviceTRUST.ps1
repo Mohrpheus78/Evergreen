@@ -95,7 +95,7 @@ IF ($deviceTRUST -lt $Version) {
 write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
-	$msi = (Get-ChildItem -Path "$PSScriptRoot\$Product" | where Name -like "*dthost-x64*").Name
+	$msi = (Get-ChildItem -Path "$PSScriptRoot\$Product" | where Name -like "*dtagent-x64*").Name
 	"$PSScriptRoot\$Product\$msi" | Install-MSIFile
 	} catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
