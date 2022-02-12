@@ -89,7 +89,7 @@ else {
 
 # Check, if a new version is available
 $Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$Edge = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Edge"}).DisplayVersion
+$Edge = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Edge"} | Select-Object -First 1).DisplayVersion
 IF ($Edge -ne $Version) {
 
 # MS Edge
@@ -106,9 +106,8 @@ DS_WriteLog "-" "" $LogFile
 Start-Sleep -s 5
 $EdgeTasks= (Get-ScheduledTask | Where-Object {$_.TaskName -like "MicrosoftEdge*"}).TaskName
 foreach ($Task in $EdgeTasks) {
-    Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue
-	}
-Write-Host -ForegroundColor Green " ...ready!" 
+    Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue | Out-Null
+	} 
 Write-Output ""
 
 # Disable Active Setup
