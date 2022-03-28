@@ -92,11 +92,11 @@ try	{
 	Wait-Process -InputObject $inst
 	} 
 	New-Item -Path "HKCU:\SOFTWARE\Citrix\Splashscreen" -EA SilentlyContinue | Out-Null
-	New-ItemProperty -Path "HKCU:\Software\Citrix\Splashscreen" -Name SplashscrrenShown -Value 1 -PropertyType DWORD | Out-Null
+	New-ItemProperty -Path "HKCU:\Software\Citrix\Splashscreen" -Name SplashscrrenShown -Value 1 -PropertyType DWORD -EA SilentlyContinue | Out-Null
 	New-Item -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Citrix" -EA SilentlyContinue | Out-Null
 	New-Item -Path "HKLM:\SOFTWARE\Policies\Citrix" -EA SilentlyContinue | Out-Null
-	New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Citrix" -Name EnableX1FTU -Value 0 -PropertyType DWORD | Out-Null
-	New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Citrix" -Name EnableFTU -Value 0 -PropertyType DWORD | Out-Null
+	New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Citrix" -Name EnableX1FTU -Value 0 -PropertyType DWORD -EA SilentlyContinue | Out-Null
+	New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Citrix" -Name EnableFTU -Value 0 -PropertyType DWORD -EA SilentlyContinue | Out-Null
 	} catch {
 	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }
