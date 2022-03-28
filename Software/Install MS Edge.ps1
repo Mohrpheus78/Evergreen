@@ -123,7 +123,9 @@ $EdgeRegvalue = "msedge.exe"
 # Get current values in UviProcessExcludes
 $CurrentValues = Get-ItemProperty -Path $RegPath | Select-Object -ExpandProperty $RegName
 # Add the msedge.exe value to existing values in UviProcessExcludes
-Set-ItemProperty -Path $RegPath -Name $RegName -Value "$CurrentValues$EdgeRegvalue;"
+IF ($CurrentValues -notlike "*msedge.exe*") {
+	Set-ItemProperty -Path $RegPath -Name $RegName -Value "$CurrentValues$EdgeRegvalue;"
+	}
 }
 ) | Out-Null
 }
