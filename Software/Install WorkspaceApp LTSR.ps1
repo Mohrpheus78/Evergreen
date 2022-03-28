@@ -56,6 +56,7 @@ IF ($WSA -ne $Version) {
 # Citrix WSA Installation
 $Options = @(
 "/silent"
+"/EnableCEIP=false"
 "/FORCE_LAA=1"
 "/AutoUpdateCheck=disabled"
 "/EnableCEIP=false"
@@ -72,9 +73,12 @@ try	{
 	{
 	Wait-Process -InputObject $inst
 	} 
-	reg add "HKLM\SOFTWARE\Wow6432Node\Policies\Citrix" /v EnableX1FTU /t REG_DWORD /d 0 /f | Out-Null
-	reg add "HKCU\Software\Citrix\Splashscreen" /v SplashscrrenShown /d 1 /f | Out-Null
-	reg add "HKLM\SOFTWARE\Policies\Citrix" /f /v EnableFTU /t REG_DWORD /d 0 | Out-Null
+	New-Item -Path "HKCU:\SOFTWARE\Citrix\Splashscreen" -EA SilentlyContinue | Out-Null
+	New-ItemProperty -Path "HKCU:\Software\Citrix\Splashscreen" -Name SplashscrrenShown -Value 1 -PropertyType DWORD | Out-Null
+	New-Item -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Citrix" -EA SilentlyContinue | Out-Null
+	New-Item -Path "HKLM:\SOFTWARE\Policies\Citrix" -EA SilentlyContinue | Out-Null
+	New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Citrix" -Name EnableX1FTU -Value 0 -PropertyType DWORD | Out-Null
+	New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Citrix" -Name EnableFTU -Value 0 -PropertyType DWORD | Out-Null
 	} catch {
 	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }
