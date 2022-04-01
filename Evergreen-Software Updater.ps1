@@ -813,6 +813,48 @@ Write-Output ""
 Write-Host -ForegroundColor Cyan "Starting downloads..."
 Write-Output ""
 
+
+# Download pdf24Creator
+IF ($SoftwareSelection.pdf24Creator -eq $true) {
+$Product = "pdf24Creator"
+$PackageName = "pdf24Creator"
+$URLVersion = "https://creator.pdf24.org/listVersions.php"
+$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
+$regexAppVersion = "pdf24-creator-.*"
+$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+$Version = $webVersion.Split("-")[2]
+$Version = $Version.Split("exe")[0]
+$Version = $Version.Split("\.")
+$VersionTable = $webVersion.Trim("</td>").Trim("</td>")
+$Version = $Version[0] + "." + $Version[1] + "." + $Version[2]
+$URL = "https://creator.pdf24.org/download/pdf24-creator-" + "$Version" + ".msi"
+$InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
 # Download Notepad ++
 IF ($SoftwareSelection.NotePadPlusPlus -eq $true) {
 $Product = "NotePadPlusPlus"
@@ -1769,59 +1811,10 @@ Write-Output ""
 }
 
 
-# Download pdf24Creator
-IF ($SoftwareSelection.pdf24Creator -eq $true) {
-$Product = "pdf24Creator"
-$PackageName = "pdf24Creator"
-$URLVersion = "https://creator.pdf24.org/listVersions.php"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "pdf24-creator-.*"
-$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$Version = $webVersion.Split("-")[2]
-$Version = $Version.Split("exe")[0]
-$Version = $Version.Split("\.")
-$VersionTable = $webVersion.Trim("</td>").Trim("</td>")
-$Version = $Version[0] + "." + $Version[1] + "." + $Version[2]
-$URL = "https://creator.pdf24.org/download/pdf24-creator-" + "$Version" + ".msi"
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
-}
-
-
 # Download deviceTRUST
 IF ($SoftwareSelection.deviceTRUST -eq $true) {
 $Product = "deviceTRUST"
 $PackageName = "deviceTRUST"
-<#
-$URLVersion = "https://docs.devicetrust.com/docs/download/"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "<td>\d\d.\d.\d\d\d+</td>"
-$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$Version = $webVersion.Trim("</td>").Trim("</td>")
-$URL = "https://storage.devicetrust.com/download/deviceTRUST-$Version.zip"
-#>
 $deviceTRUST = Get-EvergreenApp -Name deviceTRUST  | Where-Object {$_.Platform -eq "Windows" -and $_.Type -eq "Bundle"} | Select-Object -First 1
 $Version = $deviceTRUST.Version
 $URL = $deviceTRUST.uri
