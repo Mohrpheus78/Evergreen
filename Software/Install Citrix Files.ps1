@@ -91,10 +91,9 @@ else {
 
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\Citrix\$Product\Version.txt"
-$CitrixFiles = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Files*"}).DisplayVersion
-IF ($CitrixFiles) {$CitrixFiles = $CitrixFiles.TrimEnd('.0')}
-IF ($CitrixFiles -ne $Version) {
+[version]$Version = Get-Content -Path "$PSScriptRoot\Citrix\$Product\Version.txt"
+[version]$CitrixFiles = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Files*"}).DisplayVersion
+IF ($CitrixFiles -lt $Version) {
 	
 # Citrix Files Installation
 Write-Host -ForegroundColor Yellow "Installing $Product"
@@ -108,10 +107,6 @@ copy-item $LogFile "$PSScriptRoot\_Install Logs"
 Write-Host -ForegroundColor Green "...ready"
 Write-Output ""
 }
-
-# Prevents Citrix Files from starting at logon
-Start-Sleep 5
-Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "CitrixFiles" -Force
 
 # Stop, if no new version is available
 Else {
