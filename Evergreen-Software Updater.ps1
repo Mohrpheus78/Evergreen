@@ -1023,15 +1023,15 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 $Product = "WorkspaceApp"
 $PackageName = "CitrixWorkspaceApp"
 $WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "Current"}
-$Version = $WSA.Version
+[version]$Version = $WSA.Version
 $URL = $WSA.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -EA SilentlyContinue
+[version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
+IF (!($CurrentVersion -ge $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
 if (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
 $LogPS = "$SoftwareFolder\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
@@ -1046,7 +1046,7 @@ Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
 }
-IF ($CurrentVersion -eq $Version) {
+IF ($CurrentVersion -ge $Version) {
 Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
@@ -1091,15 +1091,15 @@ IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 $Product = "WorkspaceApp"
 $PackageName = "CitrixWorkspaceApp"
 $WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "LTSR"}
-$Version = $WSA.Version
+[version]$Version = $WSA.Version
 $URL = $WSA.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\Version.txt" -EA SilentlyContinue
+[version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product LTSR"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
+IF (!($CurrentVersion -ge $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
 IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -ItemType Directory | Out-Null}
 $LogPS = "$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + "$Product $Version.log"
@@ -1114,7 +1114,7 @@ Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
 }
-IF ($CurrentVersion -eq $Version) {
+IF ($CurrentVersion -ge $Version) {
 Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
