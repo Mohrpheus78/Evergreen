@@ -855,6 +855,44 @@ Write-Output ""
 }
 
 
+# Download RemoteDesktopManager
+IF ($SoftwareSelection.RemoteDesktopManager -eq $true) {
+$Product = "RemoteDesktopManager"
+$PackageName = "RemoteDesktopManagerFree"
+$URLVersionRDM = "https://remotedesktopmanager.com/de/release-notes/free"
+$webRequestRDM = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionRDM) -SessionVariable websession
+$regexAppVersionRDM = "\d\d\d\d.\d.\d\d.\d+"
+$webVersionRDM = $webRequestRDM.RawContent | Select-String -Pattern $regexAppVersionRDM -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+$VersionRDM = $webVersionRDM.Trim("</td>").Trim("</td>")
+$URL = "https://cdn.devolutions.net/download/Setup.RemoteDesktopManagerFree.$VersionRDM.msi"
+$InstallerType = "msi"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $VersionRDM"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $VersionRDM)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionRDM.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionRDM"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionRDM"
+Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $VersionRDM) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+    
+
+
 # Download Notepad ++
 IF ($SoftwareSelection.NotePadPlusPlus -eq $true) {
 $Product = "NotePadPlusPlus"
