@@ -50,8 +50,8 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Install\Version.txt"
-$FSLogix = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft FSLogix Apps"}).DisplayVersion
+[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Install\Version.txt"
+[version]$FSLogix = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft FSLogix Apps"}).DisplayVersion
 IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft FSLogix Apps"}) {
 $UninstallFSL = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft FSLogix Apps"}).UninstallString.replace("/uninstall","")
 }
@@ -59,67 +59,56 @@ IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion
 $UninstallFSLRE = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft FSLogix Apps RuleEditor"}).UninstallString.replace("/uninstall","")
 }
 
-IF ($FSLogix -ne $Version) {
+IF ($FSLogix -lt $Version) {
 
 # FSLogix Uninstall
-IF(Test-Path -Path "$PSScriptRoot\$Product\Install\FSLogixAppsSetup.exe") {
-	IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft FSLogix Apps"}) {
-	Write-Host -ForegroundColor Yellow "Uninstalling $Product"
-	DS_WriteLog "I" "Uninstalling $Product" $LogFile
-	try	{
-		Start-process $UninstallFSL -ArgumentList '/uninstall /quiet /norestart' –NoNewWindow -Wait
-		Start-process $UninstallFSLRE -ArgumentList '/uninstall /quiet /norestart' –NoNewWindow -Wait
-		} catch {
-	DS_WriteLog "E" "Error Uninstalling $Product (error: $($Error[0]))" $LogFile       
-	}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green "...ready"
-	Write-Host -ForegroundColor Red "Server needs to reboot, start script again after reboot"
-	Write-Output "Hit any key to reboot server"
-	Read-Host
-	Restart-Computer
-	}
-
-
+IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft FSLogix Apps"}) {
+Write-Host -ForegroundColor Yellow "Uninstalling $Product"
+DS_WriteLog "I" "Uninstalling $Product" $LogFile
+try	{
+Start-process $UninstallFSL -ArgumentList '/uninstall /quiet /norestart' –NoNewWindow -Wait
+Start-process $UninstallFSLRE -ArgumentList '/uninstall /quiet /norestart' –NoNewWindow -Wait
+} catch {
+DS_WriteLog "E" "Error Uninstalling $Product (error: $($Error[0]))" $LogFile       
+}
+DS_WriteLog "-" "" $LogFile
+Write-Host -ForegroundColor Green "...ready"
+Write-Host -ForegroundColor Red "Server needs to reboot, start script again after reboot"
+Write-Output "Hit any key to reboot server"
+Read-Host
+Restart-Computer
+}
 
 # FSLogix Install
-	Write-Host -ForegroundColor Yellow "Installing $Product"
-	DS_WriteLog "I" "Installing $Product" $LogFile
-	try	{
-		Start-Process "$PSScriptRoot\$Product\Install\FSLogixAppsSetup.exe" -ArgumentList '/install /norestart /quiet'  –NoNewWindow -Wait
-		Start-Process "$PSScriptRoot\$Product\Install\FSLogixAppsRuleEditorSetup.exe" -ArgumentList '/install /norestart /quiet'  –NoNewWindow -Wait
+Write-Host -ForegroundColor Yellow "Installing $Product"
+DS_WriteLog "I" "Installing $Product" $LogFile
+try	{
+	Start-Process "$PSScriptRoot\$Product\Install\FSLogixAppsSetup.exe" -ArgumentList '/install /norestart /quiet'  –NoNewWindow -Wait
+	Start-Process "$PSScriptRoot\$Product\Install\FSLogixAppsRuleEditorSetup.exe" -ArgumentList '/install /norestart /quiet'  –NoNewWindow -Wait
 	reg add "HKLM\SOFTWARE\FSLogix\Profiles" /v GroupPolicyState /t REG_DWORD /d 0 /f | Out-Null
-		} catch {
-	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-	}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
-
-# Import Windows Search Task if Windows Server 2019 oder Windows 10
-	IF (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name ProductName | Where-Object {$_.ProductName -match "Windows Server 2019" -or $_.ProductName -like "*Windows 10*"}) {
-	IF (!(Get-ScheduledTask -TaskName "Windows Search Failure")) {
-	Write-Host -ForegroundColor Yellow "Creating scheduled task for Windows Search error"
-	DS_WriteLog "I" "Windows Search Task wird importiert" $LogFile
-	try {
-		Register-ScheduledTask -Xml (get-content "$PSScriptRoot\$Product\Task\Windows Search.xml" | out-string) -TaskName "Windows Search Failure" | Out-Null
-		} catch {
-	DS_WriteLog "E" "Ein Fehler ist aufgetreten beim Importieren des Windows Search Task (error: $($Error[0]))" $LogFile       
-	}	
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
-	}
-	}	
+	} catch {
+DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }
-ELSE {
-	Write-Host -ForegroundColor Yellow "Installing $Product"
-	Write-Host -ForegroundColor Red "Attention, FSLogixAppsSetup.exe not found, check directory!"
-	Write-Output ""
+DS_WriteLog "-" "" $LogFile
+Write-Host -ForegroundColor Green "...ready"
+Write-Output ""
+
+# Windows Search Task importieren bei Windows Server 2019 oder Windows 10
+IF (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name ProductName | Where-Object {$_.ProductName -match "Windows Server 2019" -or $_.ProductName -like "*Windows 10*"}) {
+IF (!(Get-ScheduledTask -TaskName "Windows Search Failure")) {
+Write-Host -ForegroundColor Yellow "Creating scheduled task for Windows Search error"
+DS_WriteLog "I" "Windows Search Task wird importiert" $LogFile
+try {
+Register-ScheduledTask -Xml (get-content "$PSScriptRoot\$Product\Task\Windows Search.xml" | out-string) -TaskName "Windows Search Failure" | Out-Null
+} catch {
+DS_WriteLog "E" "Ein Fehler ist aufgetreten beim Importieren des Windows Search Task (error: $($Error[0]))" $LogFile       
+}
+DS_WriteLog "-" "" $LogFile
+Write-Host -ForegroundColor Green "...ready"
+Write-Output ""
 }
 }
-
-
+}
 
 # Stop, if no new version is available
 Else {

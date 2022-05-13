@@ -111,7 +111,7 @@ foreach ($Task in $EdgeTasks) {
 Write-Output ""
 
 # Disable Active Setup
-$EdgeKey = (Get-Childitem -recurse "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components" | Get-Itemproperty | Where-Object { $_  -match 'Edge' }).PSChildName
+$EdgeKey = (Get-Childitem -recurse "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components" | Get-Itemproperty | Where-Object { $_  -match 'Edge' }).PSChildName | Select-Object -First 1
 Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\$EdgeKey" -EA SilentlyContinue
 
 # Disable Citrix API Hooks (MS Edge) on Citrix VDA

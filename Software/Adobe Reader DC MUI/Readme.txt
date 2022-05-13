@@ -1,0 +1,1 @@
+Download and extract Adobe Reader DC x86 MUI here

@@ -101,7 +101,8 @@ DS_WriteLog "I" "Installing $Product" $LogFile
 try {
 	"$PSScriptRoot\Citrix\$Product\CitrixFiles.msi" | Install-MSIFile
 	} catch {
-DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
+DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile
+Remove-ItemProperty -Path "SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name CitrixFiles -Force -EA SilentlyContinue | Out-Null
 copy-item $LogFile "$PSScriptRoot\_Install Logs" 
 }
 Write-Host -ForegroundColor Green "...ready"

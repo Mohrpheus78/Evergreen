@@ -70,7 +70,7 @@ IF (!(Test-Path "$InstDir\Software\Citrix\LTSR\CVAD")) {
 		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\LTSR\CVAD'!"
 		pause
 		BREAK }
-	Start-Process "$InstDir\Software\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""AppDisks VDA Plug-in"",""Personal vDisk"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"",""Citrix MCS IODriver"" /COMPONENTS VDA /CONTROLLERS ""$DDC1.$ENV:USERDNSDOMAIN $DDC2.$ENV:USERDNSDOMAIN"" /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /ENABLE_REAL_TIME_TRANSPORT /install_mcsio_driver /mastermcsimage" –NoNewWindow -Wait
+		Start-Process "$InstDir\Software\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"",""Workspace Environment Management"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"" /includeadditional ""Citrix MCS IODriver"" /COMPONENTS VDA /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /ENABLE_REAL_TIME_TRANSPORT /enable_ss_ports /mastermcsimage" –NoNewWindow -Wait
 	} catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }

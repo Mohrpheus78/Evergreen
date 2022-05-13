@@ -25,7 +25,7 @@ $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "Citrix VDA for PVS CR/Cloud"
+$Product = "Citrix VDA for PVS CR-Cloud"
 $InstDir = Split-Path $PSScriptRoot -Parent
 
 #========================================================================================================================================
@@ -67,13 +67,11 @@ DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
 Write-Host -ForegroundColor Yellow "Installing $Product"
 IF (!(Test-Path "$InstDir\Software\Citrix\Current\CVAD")) {
-	Write-Host ""
-	Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\Current\CVAD'!"
-	pause
-	BREAK }
-	Start-Process "$InstDir\Software\Citrix\Current\CVAD\Support\VcRedist\VC_redist.x64.exe" -ArgumentList "/quiet /norestart" -wait
-	Start-Process "$InstDir\Software\Citrix\Current\CVAD\Support\VcRedist\VC_redist.x86.exe" -ArgumentList "/quiet /norestart" -wait
-	Start-Process "$InstDir\Software\Citrix\Current\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"",""Workspace Environment Management"",""Citrix MCS IODriver"" /COMPONENTS VDA /disableexperiencemetrics /enable_remote_assistance /enable_hdx_ports /enable_hdx_udp_ports /enable_real_time_transport /masterpvsimage" –NoNewWindow -Wait
+		Write-Host ""
+		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\Current\CVAD'!"
+		pause
+		BREAK }
+		Start-Process "$InstDir\Software\Citrix\Current\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"",""Workspace Environment Management"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"" /COMPONENTS VDA /disableexperiencemetrics /enable_remote_assistance /enable_hdx_ports /enable_hdx_udp_ports /enable_real_time_transport /enable_ss_ports /masterpvsimage" –NoNewWindow -Wait
 	} catch {
 DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }

@@ -111,7 +111,7 @@ function gui_mode{
 
     # Set the size of your form
     $Form = New-Object system.Windows.Forms.Form
-    $Form.ClientSize = New-Object System.Drawing.Point(960,520)
+    $Form.ClientSize = New-Object System.Drawing.Point(960,560)
     $Form.text = "SuL Software-Updater"
     $Form.TopMost = $false
     $Form.AutoSize = $true
@@ -158,6 +158,16 @@ function gui_mode{
     $AdobeReaderDCBoxUpdate.location = New-Object System.Drawing.Point(11,95)
     $form.Controls.Add($AdobeReaderDCBoxUpdate)
 	$AdobeReaderDCBoxUpdate.Checked = $SoftwareSelection.AdobeReaderDC_MUI
+	
+	# AdobeReaderDCx64 Checkbox
+    $AdobeReaderDCx64BoxUpdate = New-Object system.Windows.Forms.CheckBox
+    $AdobeReaderDCx64BoxUpdate.text = "Adobe Reader DC x64"
+    $AdobeReaderDCx64BoxUpdate.width = 95
+    $AdobeReaderDCx64BoxUpdate.height = 20
+    $AdobeReaderDCx64BoxUpdate.autosize = $true
+    $AdobeReaderDCx64BoxUpdate.location = New-Object System.Drawing.Point(11,120)
+    $form.Controls.Add($AdobeReaderDCx64BoxUpdate)
+	$AdobeReaderDCx64BoxUpdate.Checked = $SoftwareSelection.AdobeReaderDCx64_MUI
 
     # BISF Checkbox
     $BISFBox = New-Object system.Windows.Forms.CheckBox
@@ -165,7 +175,7 @@ function gui_mode{
     $BISFBox.width = 95
     $BISFBox.height = 20
     $BISFBox.autosize = $true
-    $BISFBox.location = New-Object System.Drawing.Point(11,120)
+    $BISFBox.location = New-Object System.Drawing.Point(11,145)
     $form.Controls.Add($BISFBox)
 	$BISFBox.Checked = $SoftwareSelection.BISF
 	
@@ -175,7 +185,7 @@ function gui_mode{
     $FSLogixBox.width = 95
     $FSLogixBox.height = 20
     $FSLogixBox.autosize = $true
-    $FSLogixBox.location = New-Object System.Drawing.Point(11,145)
+    $FSLogixBox.location = New-Object System.Drawing.Point(11,170)
     $form.Controls.Add($FSLogixBox)
 	$FSLogixBox.Checked = $SoftwareSelection.FSLogix
 
@@ -185,7 +195,7 @@ function gui_mode{
     $GoogleChromeBox.width = 95
     $GoogleChromeBox.height = 20
     $GoogleChromeBox.autosize = $true
-    $GoogleChromeBox.location = New-Object System.Drawing.Point(11,170)
+    $GoogleChromeBox.location = New-Object System.Drawing.Point(11,195)
     $form.Controls.Add($GoogleChromeBox)
 	$GoogleChromeBox.Checked = $SoftwareSelection.GoogleChrome
 
@@ -195,7 +205,7 @@ function gui_mode{
     $WorkspaceApp_CRBox.width = 95
     $WorkspaceApp_CRBox.height = 20
     $WorkspaceApp_CRBox.autosize = $true
-    $WorkspaceApp_CRBox.location = New-Object System.Drawing.Point(11,195)
+    $WorkspaceApp_CRBox.location = New-Object System.Drawing.Point(11,220)
     $form.Controls.Add($WorkspaceApp_CRBox)
 	$WorkspaceApp_CRBox.Checked = $SoftwareSelection.WorkspaceApp_CR
 
@@ -205,7 +215,7 @@ function gui_mode{
     $WorkspaceApp_LTSRBox.width = 95
     $WorkspaceApp_LTSRBox.height = 20
     $WorkspaceApp_LTSRBox.autosize = $true
-    $WorkspaceApp_LTSRBox.location = New-Object System.Drawing.Point(11,220)
+    $WorkspaceApp_LTSRBox.location = New-Object System.Drawing.Point(11,245)
     $form.Controls.Add($WorkspaceApp_LTSRBox)
 	$WorkspaceApp_LTSRBox.Checked = $SoftwareSelection.WorkspaceApp_LTSR
 	
@@ -215,7 +225,7 @@ function gui_mode{
     $Citrix_HypervisorToolsBox.width = 95
     $Citrix_HypervisorToolsBox.height = 20
     $Citrix_HypervisorToolsBox.autosize = $true
-    $Citrix_HypervisorToolsBox.location = New-Object System.Drawing.Point(11,245)
+    $Citrix_HypervisorToolsBox.location = New-Object System.Drawing.Point(11,270)
     $form.Controls.Add($Citrix_HypervisorToolsBox)
 	$Citrix_HypervisorToolsBox.Checked = $SoftwareSelection.CitrixHypervisorTools
 	
@@ -225,7 +235,7 @@ function gui_mode{
     $CitrixFilesBox.width = 95
     $CitrixFilesBox.height = 20
     $CitrixFilesBox.autosize = $true
-    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,270)
+    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,295)
     $form.Controls.Add($CitrixFilesBox)
 	$CitrixFilesBox.Checked = $SoftwareSelection.CitrixFiles
 	
@@ -235,7 +245,7 @@ function gui_mode{
     $VMWareToolsBox.width = 95
     $VMWareToolsBox.height = 20
     $VMWareToolsBox.autosize = $true
-    $VMWareToolsBox.location = New-Object System.Drawing.Point(11,295)
+    $VMWareToolsBox.location = New-Object System.Drawing.Point(11,320)
     $form.Controls.Add($VMWareToolsBox)
 	$VMWareToolsBox.Checked = $SoftwareSelection.VMWareTools
 
@@ -245,7 +255,7 @@ function gui_mode{
     $RemoteDesktopManagerBox.width = 95
     $RemoteDesktopManagerBox.height = 20
     $RemoteDesktopManagerBox.autosize = $true
-    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(11,320)
+    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(11,345)
     $form.Controls.Add($RemoteDesktopManagerBox)
 	$RemoteDesktopManagerBox.Checked = $SoftwareSelection.RemoteDesktopManager
 
@@ -255,7 +265,7 @@ function gui_mode{
     $deviceTRUSTBox.width = 95
     $deviceTRUSTBox.height = 20
     $deviceTRUSTBox.autosize = $true
-    $deviceTRUSTBox.location = New-Object System.Drawing.Point(11,345)
+    $deviceTRUSTBox.location = New-Object System.Drawing.Point(11,370)
     $form.Controls.Add($deviceTRUSTBox)
 	$deviceTRUSTBox.Checked = $SoftwareSelection.deviceTRUST
     
@@ -265,7 +275,7 @@ function gui_mode{
     $mRemoteNGBox.width = 95
     $mRemoteNGBox.height = 20
     $mRemoteNGBox.autosize = $true
-    $mRemoteNGBox.location = New-Object System.Drawing.Point(11,370)
+    $mRemoteNGBox.location = New-Object System.Drawing.Point(11,395)
     $form.Controls.Add($mRemoteNGBox)
 	$mRemoteNGBox.Checked = $SoftwareSelection.mRemoteNG
 	
@@ -275,7 +285,7 @@ function gui_mode{
     $WinSCPBox.width = 95
     $WinSCPBox.height = 20
     $WinSCPBox.autosize = $true
-    $WinSCPBox.location = New-Object System.Drawing.Point(11,395)
+    $WinSCPBox.location = New-Object System.Drawing.Point(11,420)
     $form.Controls.Add($WinSCPBox)
 	$WinSCPBox.Checked = $SoftwareSelection.WinSCP
 	
@@ -285,7 +295,7 @@ function gui_mode{
     $PuttyBox.width = 95
     $PuttyBox.height = 20
     $PuttyBox.autosize = $true
-    $PuttyBox.location = New-Object System.Drawing.Point(11,420)
+    $PuttyBox.location = New-Object System.Drawing.Point(11,445)
     $form.Controls.Add($PuttyBox)
 	$PuttyBox.Checked = $SoftwareSelection.Putty
 
@@ -555,7 +565,7 @@ function gui_mode{
     $pdf24CreatorBox.width = 95
     $pdf24CreatorBox.height = 20
     $pdf24CreatorBox.autosize = $true
-    $pdf24CreatorBox.location = New-Object System.Drawing.Point(693,195)
+    $pdf24CreatorBox.location = New-Object System.Drawing.Point(250,445)
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 	
@@ -565,11 +575,12 @@ function gui_mode{
     $SelectButton.text = "Select all"
     $SelectButton.width = 110
     $SelectButton.height = 30
-    $SelectButton.location = New-Object System.Drawing.Point(11,470)
+    $SelectButton.location = New-Object System.Drawing.Point(11,510)
     $SelectButton.Add_Click({
         $NotePadPlusPlusBox.Checked = $True
 		$SevenZipBox.checked = $True
 		$AdobeReaderDCBoxUpdate.checked = $True
+		$AdobeReaderDCx64BoxUpdate.checked = $True
 		$BISFBox.checked = $True
 		$FSLogixBox.checked = $True
 		$GoogleChromeBox.checked = $True
@@ -620,11 +631,12 @@ function gui_mode{
     $UnselectButton.text = "Unselect all"
     $UnselectButton.width = 110
     $UnselectButton.height = 30
-    $UnselectButton.location = New-Object System.Drawing.Point(131,470)
+    $UnselectButton.location = New-Object System.Drawing.Point(131,510)
     $UnselectButton.Add_Click({
         $NotePadPlusPlusBox.Checked = $False
 		$SevenZipBox.checked = $False
 		$AdobeReaderDCBoxUpdate.checked = $False
+		$AdobeReaderDCx64BoxUpdate.checked = $False
 		$BISFBox.checked = $False
 		$FSLogixBox.checked = $False
 		$GoogleChromeBox.checked = $False
@@ -675,13 +687,14 @@ function gui_mode{
     $OKButton.text = "OK"
     $OKButton.width = 60
     $OKButton.height = 30
-    $OKButton.location = New-Object System.Drawing.Point(271,470)
+    $OKButton.location = New-Object System.Drawing.Point(271,510)
 	#$OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
     $OKButton.Add_Click({		
 		$SoftwareSelection = New-Object PSObject
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "NotepadPlusPlus" -Value $NotePadPlusPlusBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "SevenZip" -Value $SevenZipBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "AdobeReaderDC_MUI" -Value $AdobeReaderDCBoxUpdate.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "AdobeReaderDCx64_MUI" -Value $AdobeReaderDCx64BoxUpdate.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "BISF" -Value $BISFBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FSLogix" -Value $FSLogixBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "GoogleChrome" -Value $GoogleChromeBox.checked -Force
@@ -736,7 +749,7 @@ function gui_mode{
     $CancelButton.text = "Cancel"
     $CancelButton.width = 80
     $CancelButton.height = 30
-    $CancelButton.location = New-Object System.Drawing.Point(341,470)
+    $CancelButton.location = New-Object System.Drawing.Point(341,510)
 	$CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
     $CancelButton.Add_Click({
         #$Script:download = $true
@@ -1238,8 +1251,7 @@ Write-Output ""
 IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
 $Product = "Adobe Reader DC MUI"
 $PackageName = "Adobe_DC_MUI_Update"
-# $Adobe = Get-EvergreenApp -Name AdobeAcrobat | Where-Object {$_.Track -eq "DC" -and $_.Product -eq "Reader" -and $_.Language -eq "Multi"}
-$Adobe = Get-NevergreenApp -Name AdobeAcrobatReader | Where-Object {$_.Language -eq "Multi"}
+$Adobe = Get-EvergreenApp -Name AdobeAcrobatReaderDC | Where-Object {$_.Architecture -eq "x86" -and $_.Language -eq "MUI"}
 $Version = $Adobe.Version
 $URL = $Adobe.uri
 $InstallerType = "msp"
@@ -1263,6 +1275,45 @@ Stop-Transcript | Out-Null
 Write-Output ""
 }
 IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
+# Download Adobe Reader DC MUI Update
+IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
+$Product = "Adobe Reader DC x64 MUI"
+$PackageName = "Adobe_DC_MUI_x64_Update"
+$InstallerType = "msp"
+$Source = "$PackageName" + "." + "$InstallerType"
+$URLVersionAdobe = "https://patchmypc.com/freeupdater/definitions/definitions.xml"
+$webRequestAdobe = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionAdobe) -SessionVariable websession
+$regexAppVersionAdobe = "<AcrobatReaderDCVer>.*"
+$webVersionAdobe = $webRequestAdobe.RawContent | Select-String -Pattern $regexAppVersionAdobe -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+$VersionAdobe = $webVersionAdobe.Trim("<AcrobatReaderDCVer>").Trim("</AcrobatReaderDCVer>")
+$VersionAdobeTrim = $VersionAdobe -replace ("\.","")
+$VersionAdobeDownload = ("AcroRdrDCx64Upd" + "$VersionAdobeTrim" + "_MUI" + ".msp")
+$URL = "https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/$VersionAdobeTrim/$VersionAdobeDownload"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $VersionAdobe"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $VersionAdobe)) {
+Write-Host -ForegroundColor DarkRed "Update available for $Product"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionAdobe.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionAdobe"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionAdobe"
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) 
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $VersionAdobe) {
 Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
@@ -1312,7 +1363,7 @@ Write-Output ""
 IF ($SoftwareSelection.MSTeams -eq $true) {
 $Product = "MS Teams"
 $PackageName = "Teams_windows_x64"
-$Teams = Get-NevergreenApp -Name MicrosoftTeams | Where-Object {$_.Architecture -eq 'x64' -and $_.Type -eq 'MSI' -and $_.Ring -eq 'Production'}
+$Teams = Get-EvergreenApp -Name MicrosoftTeams | Where-Object {$_.Architecture -eq 'x64' -and $_.Type -eq 'MSI' -and $_.Ring -eq 'General'}
 $Version = $Teams.Version
 $URL = $Teams.uri
 $InstallerType = "msi"
@@ -1800,43 +1851,6 @@ New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
-}
-
-
-# Download RemoteDesktopManager
-IF ($SoftwareSelection.RemoteDesktopManager -eq $true) {
-$Product = "RemoteDesktopManager"
-$PackageName = "RemoteDesktopManagerFree"
-$URLVersion = "https://remotedesktopmanager.com/de/release-notes/free"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "\d\d\d\d.\d.\d\d.\d+"
-$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$Version = $webVersion.Trim("</td>").Trim("</td>")
-$URL = "https://cdn.devolutions.net/download/Setup.RemoteDesktopManagerFree.$Version.msi"
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -2446,3 +2460,4 @@ $Content = Get-Content -Path $UpdateLog | Select-Object -Skip 18
 Set-Content -Value $Content -Path $UpdateLog
 
 if ($noGUI -eq $False) {pause}
+
