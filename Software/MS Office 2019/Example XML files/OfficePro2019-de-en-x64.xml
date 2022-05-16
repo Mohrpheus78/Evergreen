@@ -1,24 +1,27 @@
-<Configuration ID="28ac387a-8662-4681-9696-aec70e1b2a34">
+<Configuration ID="15e489d3-e97b-490e-ad11-3777d4785698">
   <Info Description="" />
-  <Add OfficeClientEdition="32" Channel="PerpetualVL2019" SourcePath="\\FSI\Software\MS 365 Apps-Semi Annual Channel" AllowCdnFallback="TRUE">
+  <Add OfficeClientEdition="64" Channel="PerpetualVL2019" SourcePath="\\testlab-nas\install\CAI\Software\MS Office 2019" AllowCdnFallback="TRUE">
     <Product ID="ProPlus2019Volume" PIDKEY="NMMKJ-6RK4F-KMJVX-8D9MJ-6MWKP">
       <Language ID="de-de" />
       <Language ID="en-us" />
       <ExcludeApp ID="Groove" />
       <ExcludeApp ID="Lync" />
       <ExcludeApp ID="OneDrive" />
-      <ExcludeApp ID="Publisher" />
     </Product>
     <Product ID="LanguagePack">
       <Language ID="de-de" />
       <Language ID="en-us" />
     </Product>
+    <Product ID="ProofingTools">
+      <Language ID="en-us" />
+      <Language ID="de-de" />
+    </Product>
   </Add>
   <Property Name="SharedComputerLicensing" Value="0" />
-  <Property Name="SCLCacheOverride" Value="0" />
-  <Property Name="AUTOACTIVATE" Value="0" />
   <Property Name="FORCEAPPSHUTDOWN" Value="FALSE" />
   <Property Name="DeviceBasedLicensing" Value="0" />
-  <Updates Enabled="FALSE" UpdatePath="\\testlab-nas\install\CAI\Software\MS 365 Apps-Semi Annual Channel" />
+  <Property Name="SCLCacheOverride" Value="0" />
+  <Property Name="AUTOACTIVATE" Value="1" />
+  <Updates Enabled="FALSE" UpdatePath="\\testlab-nas\install\CAI\Software\MS Office 2019" />
   <Display Level="Full" AcceptEULA="TRUE" />
 </Configuration>

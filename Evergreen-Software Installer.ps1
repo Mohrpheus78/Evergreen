@@ -59,10 +59,10 @@ else
 
 Clear-Host
 
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " SuL Software-Installer (Powered by Evergreen-Module) "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                     "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Installer (Powered by Evergreen-Module) "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                 "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
 Write-Output ""
 
 Write-Host -ForegroundColor Cyan "Setting Variables"
@@ -122,7 +122,7 @@ function gui_mode{
 	# Set the size of your form
     $Form = New-Object system.Windows.Forms.Form
     #$Form.ClientSize = New-Object System.Drawing.Point(820,650)
-	$Form.ClientSize = New-Object System.Drawing.Point(710,660)
+	$Form.ClientSize = New-Object System.Drawing.Point(700,640)
     $Form.text = "SuL Software-Installer"
     $Form.TopMost = $false
     $Form.AutoSize = $true
@@ -181,26 +181,6 @@ function gui_mode{
     $AdobeReaderDCBoxUpdate.location = New-Object System.Drawing.Point(11,120)
     $form.Controls.Add($AdobeReaderDCBoxUpdate)
 	$AdobeReaderDCBoxUpdate.Checked =  $SoftwareSelection.AdobeReaderDCUpdate
-	
-	# AdobeReaderDCx64 Checkbox
-    $AdobeReaderDCx64Box = New-Object system.Windows.Forms.CheckBox
-    $AdobeReaderDCx64Box.text = "Adobe Reader DC x64-MUI (only for Base Install)"
-    $AdobeReaderDCx64Box.width = 95
-    $AdobeReaderDCx64Box.height = 20
-    $AdobeReaderDCx64Box.autosize = $true
-    $AdobeReaderDCx64Box.location = New-Object System.Drawing.Point(11,145)
-    $form.Controls.Add($AdobeReaderDCx64Box)
-	$AdobeReaderDCx64Box.Checked =  $SoftwareSelection.AdobeReaderDCx64
-	
-	# AdobeReaderDCx64Update Checkbox
-    $AdobeReaderDCx64BoxUpdate = New-Object system.Windows.Forms.CheckBox
-    $AdobeReaderDCx64BoxUpdate.text = "Adobe Reader DC x64-MUI Update (Updates only)"
-    $AdobeReaderDCx64BoxUpdate.width = 95
-    $AdobeReaderDCx64BoxUpdate.height = 20
-    $AdobeReaderDCx64BoxUpdate.autosize = $true
-    $AdobeReaderDCx64BoxUpdate.location = New-Object System.Drawing.Point(11,170)
-    $form.Controls.Add($AdobeReaderDCx64BoxUpdate)
-	$AdobeReaderDCx64BoxUpdate.Checked =  $SoftwareSelection.AdobeReaderDCx64Update
 
     # BISF Checkbox
     $BISFBox = New-Object system.Windows.Forms.CheckBox
@@ -208,7 +188,7 @@ function gui_mode{
     $BISFBox.width = 95
     $BISFBox.height = 20
     $BISFBox.autosize = $true
-    $BISFBox.location = New-Object System.Drawing.Point(11,195)
+    $BISFBox.location = New-Object System.Drawing.Point(11,145)
     $form.Controls.Add($BISFBox)
 	$BISFBox.Checked =  $SoftwareSelection.BISF
 	
@@ -218,7 +198,7 @@ function gui_mode{
     $FSLogixBox.width = 95
     $FSLogixBox.height = 20
     $FSLogixBox.autosize = $true
-    $FSLogixBox.location = New-Object System.Drawing.Point(11,220)
+    $FSLogixBox.location = New-Object System.Drawing.Point(11,170)
     $form.Controls.Add($FSLogixBox)
 	$FSLogixBox.Checked =  $SoftwareSelection.FSLogix
 
@@ -228,7 +208,7 @@ function gui_mode{
     $GoogleChromeBox.width = 95
     $GoogleChromeBox.height = 20
     $GoogleChromeBox.autosize = $true
-    $GoogleChromeBox.location = New-Object System.Drawing.Point(11,245)
+    $GoogleChromeBox.location = New-Object System.Drawing.Point(11,195)
     $form.Controls.Add($GoogleChromeBox)
 	$GoogleChromeBox.Checked =  $SoftwareSelection.GoogleChrome
 
@@ -238,7 +218,7 @@ function gui_mode{
     $WorkspaceApp_CRBox.width = 95
     $WorkspaceApp_CRBox.height = 20
     $WorkspaceApp_CRBox.autosize = $true
-    $WorkspaceApp_CRBox.location = New-Object System.Drawing.Point(11,270)
+    $WorkspaceApp_CRBox.location = New-Object System.Drawing.Point(11,220)
     $form.Controls.Add($WorkspaceApp_CRBox)
 	$WorkspaceApp_CRBox.Checked =  $SoftwareSelection.WorkspaceApp_CR
 
@@ -248,7 +228,7 @@ function gui_mode{
     $WorkspaceApp_LTSRBox.width = 95
     $WorkspaceApp_LTSRBox.height = 20
     $WorkspaceApp_LTSRBox.autosize = $true
-    $WorkspaceApp_LTSRBox.location = New-Object System.Drawing.Point(11,295)
+    $WorkspaceApp_LTSRBox.location = New-Object System.Drawing.Point(11,245)
     $form.Controls.Add($WorkspaceApp_LTSRBox)
 	$WorkspaceApp_LTSRBox.Checked =  $SoftwareSelection.WorkspaceApp_LTSR
 	
@@ -258,7 +238,7 @@ function gui_mode{
     $WorkspaceApp_CR_WebBox.width = 95
     $WorkspaceApp_CR_WebBox.height = 20
     $WorkspaceApp_CR_WebBox.autosize = $true
-    $WorkspaceApp_CR_WebBox.location = New-Object System.Drawing.Point(11,320)
+    $WorkspaceApp_CR_WebBox.location = New-Object System.Drawing.Point(11,270)
     $form.Controls.Add($WorkspaceApp_CR_WebBox)
 	$WorkspaceApp_CR_WebBox.Checked =  $SoftwareSelection.WorkspaceApp_CR_Web
 
@@ -268,7 +248,7 @@ function gui_mode{
     $WorkspaceApp_LTSR_WebBox.width = 95
     $WorkspaceApp_LTSR_WebBox.height = 20
     $WorkspaceApp_LTSR_WebBox.autosize = $true
-    $WorkspaceApp_LTSR_WebBox.location = New-Object System.Drawing.Point(11,345)
+    $WorkspaceApp_LTSR_WebBox.location = New-Object System.Drawing.Point(11,295)
     $form.Controls.Add($WorkspaceApp_LTSR_WebBox)
 	$WorkspaceApp_LTSR_WebBox.Checked =  $SoftwareSelection.WorkspaceApp_LTSR_Web
 	
@@ -278,7 +258,7 @@ function gui_mode{
     $Citrix_HypervisorToolsBox.width = 95
     $Citrix_HypervisorToolsBox.height = 20
     $Citrix_HypervisorToolsBox.autosize = $true
-    $Citrix_HypervisorToolsBox.location = New-Object System.Drawing.Point(11,370)
+    $Citrix_HypervisorToolsBox.location = New-Object System.Drawing.Point(11,320)
     $form.Controls.Add($Citrix_HypervisorToolsBox)
 	$Citrix_HypervisorToolsBox.Checked = $SoftwareSelection.CitrixHypervisorTools
 	
@@ -288,7 +268,7 @@ function gui_mode{
     $PVSTargetDevice_LTSRBox.width = 95
     $PVSTargetDevice_LTSRBox.height = 20
     $PVSTargetDevice_LTSRBox.autosize = $true
-    $PVSTargetDevice_LTSRBox.location = New-Object System.Drawing.Point(11,395)
+    $PVSTargetDevice_LTSRBox.location = New-Object System.Drawing.Point(11,345)
     $form.Controls.Add($PVSTargetDevice_LTSRBox)
 	$PVSTargetDevice_LTSRBox.Checked =  $SoftwareSelection.CitrixPVSTargetDevice_LTSR
 	
@@ -298,7 +278,7 @@ function gui_mode{
     $PVSTargetDevice_CRBox.width = 95
     $PVSTargetDevice_CRBox.height = 20
     $PVSTargetDevice_CRBox.autosize = $true
-    $PVSTargetDevice_CRBox.location = New-Object System.Drawing.Point(11,420)
+    $PVSTargetDevice_CRBox.location = New-Object System.Drawing.Point(11,370)
     $form.Controls.Add($PVSTargetDevice_CRBox)
 	$PVSTargetDevice_CRBox.Checked =  $SoftwareSelection.CitrixPVSTargetDevice_CR
 	
@@ -308,7 +288,7 @@ function gui_mode{
     $ServerVDA_PVS_LTSRBox.width = 95
     $ServerVDA_PVS_LTSRBox.height = 20
     $ServerVDA_PVS_LTSRBox.autosize = $true
-    $ServerVDA_PVS_LTSRBox.location = New-Object System.Drawing.Point(11,445)
+    $ServerVDA_PVS_LTSRBox.location = New-Object System.Drawing.Point(11,395)
     $form.Controls.Add($ServerVDA_PVS_LTSRBox)
 	$ServerVDA_PVS_LTSRBox.Checked =  $SoftwareSelection.CitrixServerVDA_PVS_LTSR
 	
@@ -318,7 +298,7 @@ function gui_mode{
     $ServerVDA_PVS_CRBox.width = 95
     $ServerVDA_PVS_CRBox.height = 20
     $ServerVDA_PVS_CRBox.autosize = $true
-    $ServerVDA_PVS_CRBox.location = New-Object System.Drawing.Point(11,470)
+    $ServerVDA_PVS_CRBox.location = New-Object System.Drawing.Point(11,420)
     $form.Controls.Add($ServerVDA_PVS_CRBox)
 	$ServerVDA_PVS_CRBox.Checked =  $SoftwareSelection.CitrixServerVDA_PVS_CR
 	
@@ -328,7 +308,7 @@ function gui_mode{
     $ServerVDA_MCS_LTSRBox.width = 95
     $ServerVDA_MCS_LTSRBox.height = 20
     $ServerVDA_MCS_LTSRBox.autosize = $true
-    $ServerVDA_MCS_LTSRBox.location = New-Object System.Drawing.Point(11,495)
+    $ServerVDA_MCS_LTSRBox.location = New-Object System.Drawing.Point(11,445)
     $form.Controls.Add($ServerVDA_MCS_LTSRBox)
 	$ServerVDA_MCS_LTSRBox.Checked =  $SoftwareSelection.CitrixServerVDA_MCS_LTSR
 	
@@ -338,7 +318,7 @@ function gui_mode{
     $ServerVDA_MCS_CRBox.width = 95
     $ServerVDA_MCS_CRBox.height = 20
     $ServerVDA_MCS_CRBox.autosize = $true
-    $ServerVDA_MCS_CRBox.location = New-Object System.Drawing.Point(11,520)
+    $ServerVDA_MCS_CRBox.location = New-Object System.Drawing.Point(11,470)
     $form.Controls.Add($ServerVDA_MCS_CRBox)
 	$ServerVDA_MCS_CRBox.Checked =  $SoftwareSelection.CitrixServerVDA_MCS_CR
 	
@@ -348,7 +328,7 @@ function gui_mode{
     $WEM_Agent_PVSBox.width = 95
     $WEM_Agent_PVSBox.height = 20
     $WEM_Agent_PVSBox.autosize = $true
-    $WEM_Agent_PVSBox.location = New-Object System.Drawing.Point(11,545)
+    $WEM_Agent_PVSBox.location = New-Object System.Drawing.Point(11,495)
     $form.Controls.Add($WEM_Agent_PVSBox)
 	$WEM_Agent_PVSBox.Checked =  $SoftwareSelection.CitrixWEM_Agent_PVS
 	
@@ -358,7 +338,7 @@ function gui_mode{
     $WEM_Agent_MCSBox.width = 95
     $WEM_Agent_MCSBox.height = 20
     $WEM_Agent_MCSBox.autosize = $true
-    $WEM_Agent_MCSBox.location = New-Object System.Drawing.Point(11,595)
+    $WEM_Agent_MCSBox.location = New-Object System.Drawing.Point(11,520)
     $form.Controls.Add($WEM_Agent_MCSBox)
 	$WEM_Agent_MCSBox.Checked =  $SoftwareSelection.CitrixWEM_Agent_MCS
 	
@@ -368,7 +348,7 @@ function gui_mode{
     $CitrixFilesBox.width = 95
     $CitrixFilesBox.height = 20
     $CitrixFilesBox.autosize = $true
-    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,570)
+    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,545)
     $form.Controls.Add($CitrixFilesBox)
 	$CitrixFilesBox.Checked =  $SoftwareSelection.CitrixCitrixFiles
 
@@ -402,6 +382,18 @@ function gui_mode{
     $form.Controls.Add($MSTeamsBox)
 	$MSTeamsBox.Checked =  $SoftwareSelection.MSTeams
 	
+	<#
+	# MSTeams Preview Checkbox
+    $MSTeamsPrevBox = New-Object system.Windows.Forms.CheckBox
+    $MSTeamsPrevBox.text = "Microsoft Teams Preview (Machine-Based Install)"
+    $MSTeamsPrevBox.width = 95
+    $MSTeamsPrevBox.height = 20
+    $MSTeamsPrevBox.autosize = $true
+    $MSTeamsPrevBox.location = New-Object System.Drawing.Point(390,120)
+    $form.Controls.Add($MSTeamsPrevBox)
+	$MSTeamsPrevBox.Checked =  $SoftwareSelection.MSTeamsPrev
+	#>
+	
 	# MS365Apps Preview Checkbox
     $MS365AppsBox = New-Object system.Windows.Forms.CheckBox
     $MS365AppsBox.text = "Microsoft 365 Apps/Office 2019 (64Bit / Semi Annual Channel)"
@@ -424,9 +416,7 @@ function gui_mode{
 
 	# Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomVDIBox.text = "Zoom VDI Host Installer (N/A)"
-	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
-    $ZoomVDIBox.Font = $CustomFont
+    $ZoomVDIBox.text = "Zoom VDI Host Installer"
     $ZoomVDIBox.width = 95
     $ZoomVDIBox.height = 20
     $ZoomVDIBox.autosize = $true
@@ -436,9 +426,7 @@ function gui_mode{
 	
 	# Zoom Citrix client Checkbox
     $ZoomCitrixBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomCitrixBox.text = "Zoom Citrix Client (N/A)"
-	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
-    $ZoomCitrixBox.Font = $CustomFont
+    $ZoomCitrixBox.text = "Zoom Citrix Client"
     $ZoomCitrixBox.width = 95
     $ZoomCitrixBox.height = 20
     $ZoomCitrixBox.autosize = $true
@@ -607,14 +595,12 @@ function gui_mode{
     $SelectButton.text = "Select all"
     $SelectButton.width = 110
     $SelectButton.height = 30
-    $SelectButton.location = New-Object System.Drawing.Point(11,630)
+    $SelectButton.location = New-Object System.Drawing.Point(11,590)
     $SelectButton.Add_Click({
         $NotePadPlusPlusBox.Checked = $True
 		$SevenZipBox.checked = $True
 		$AdobeReaderDCBox.checked = $True
 		$AdobeReaderDCBoxUpdate.checked = $True
-		$AdobeReaderDCx64Box.checked = $True
-		$AdobeReaderDCx64BoxUpdate.checked = $True
 		$BISFBox.checked = $True
 		$FSLogixBox.checked = $True
 		$GoogleChromeBox.checked = $True
@@ -640,10 +626,10 @@ function gui_mode{
 		$pdf24CreatorBox.checked = $True
 		$deviceTRUSTBox.checked = $True
 		$RemoteDesktopManagerBox.checked = $True
-		#$ZoomVDIBox.checked = $True
-		#$ZoomCitrixBox.checked = $True
-		#$ZoomVMWareBox.checked = $True
-		#$CiscoWebExDesktopBox.checked = $True
+		$ZoomVDIBox.checked = $True
+		$ZoomCitrixBox.checked = $True
+		$ZoomVMWareBox.checked = $True
+		$CiscoWebExDesktopBox.checked = $True
 		$PVSTargetDevice_LTSRBox.checked = $True
 		$PVSTargetDevice_CRBox.checked = $True
 		$ServerVDA_PVS_LTSRBox.checked = $True
@@ -663,14 +649,12 @@ function gui_mode{
     $UnselectButton.text = "Unselect all"
     $UnselectButton.width = 110
     $UnselectButton.height = 30
-    $UnselectButton.location = New-Object System.Drawing.Point(131,630)
+    $UnselectButton.location = New-Object System.Drawing.Point(131,590)
     $UnselectButton.Add_Click({
         $NotePadPlusPlusBox.Checked = $False
 		$SevenZipBox.checked = $False
 		$AdobeReaderDCBox.checked = $False
 		$AdobeReaderDCBoxUpdate.checked = $False
-		$AdobeReaderDCx64Box.checked = $False
-		$AdobeReaderDCx64BoxUpdate.checked = $False
 		$BISFBox.checked = $False
 		$FSLogixBox.checked = $False
 		$GoogleChromeBox.checked = $False
@@ -684,6 +668,7 @@ function gui_mode{
 		$MSEdgeBox.checked = $False
 		$MSOneDriveBox.checked = $False
 		$MSTeamsBox.checked = $False
+		$MSTeamsPrevBox.checked = $False
 		$MS365AppsBox.checked = $False
 		$OracleJava8Box.checked = $False
 		$OracleJava8_32Box.checked = $False
@@ -695,10 +680,10 @@ function gui_mode{
 		$pdf24CreatorBox.checked = $False
 		$deviceTRUSTBox.checked = $False
 		$RemoteDesktopManagerBox.checked = $False
-		#$ZoomVDIBox.checked = $False
-		#$ZoomCitrixBox.checked = $False
-		#$ZoomVMWareBox.checked = $False
-		#$CiscoWebExDesktopBox.checked = $False
+		$ZoomVDIBox.checked = $False
+		$ZoomCitrixBox.checked = $False
+		$ZoomVMWareBox.checked = $False
+		$CiscoWebExDesktopBox.checked = $False
 		$PVSTargetDevice_LTSRBox.checked = $False
 		$PVSTargetDevice_CRBox.checked = $False
 		$ServerVDA_PVS_LTSRBox.checked = $False
@@ -706,7 +691,7 @@ function gui_mode{
 		$ServerVDA_MCS_LTSRBox.checked = $False
 		$ServerVDA_MCS_CRBox.checked = $False
 		$WEM_Agent_PVSBox.checked = $False
-		$WEM_Agent_MCSBox.checked = $False
+		$WEM_Agent_MCS_PVSBox.checked = $False
 		$CitrixFilesBox.checked = $False
         $PuttyBox.checked = $False
         $WinSCPBox.checked = $False
@@ -718,7 +703,7 @@ function gui_mode{
     $OKButton.text = "OK"
     $OKButton.width = 60
     $OKButton.height = 30
-    $OKButton.location = New-Object System.Drawing.Point(271,630)
+    $OKButton.location = New-Object System.Drawing.Point(271,590)
     $OKButton.Add_Click({
 		#if (!($SoftwareToInstall)) {$SoftwareSelection = New-Object PSObject}
 		$SoftwareSelection = New-Object PSObject
@@ -726,8 +711,6 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "SevenZip" -Value $SevenZipBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "AdobeReaderDC" -Value $AdobeReaderDCBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "AdobeReaderDCUpdate" -Value $AdobeReaderDCBoxUpdate.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "AdobeReaderDCx64" -Value $AdobeReaderDCx64Box.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "AdobeReaderDCx64Update" -Value $AdobeReaderDCx64BoxUpdate.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "BISF" -Value $BISFBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FSLogix" -Value $FSLogixBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "GoogleChrome" -Value $GoogleChromeBox.checked -Force
@@ -741,6 +724,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSEdge" -Value $MSEdgeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOneDrive" -Value $MSOneDriveBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSTeams" -Value $MSTeamsBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSTeamsPrev" -Value $MSTeamsPrevBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps" -Value $MS365AppsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8" -Value $OracleJava8Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8_32" -Value $OracleJava8_32Box.checked -Force
@@ -752,10 +736,10 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "pdf24Creator" -Value $pdf24CreatorBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "deviceTRUST" -Value $deviceTRUSTBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "RemoteDesktopManager" -Value $RemoteDesktopManagerBox.checked -Force
-		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVDI" -Value $ZoomVDIBox.checked -Force
-		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomCitrix" -Value $ZoomCitrixBox.checked -Force
-		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVMWare" -Value $ZoomVMWareBox.checked -Force
-		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExDesktop" -Value $CiscoWebExDesktopBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVDI" -Value $ZoomVDIBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomCitrix" -Value $ZoomCitrixBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVMWare" -Value $ZoomVMWareBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExDesktop" -Value $CiscoWebExDesktopBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixPVSTargetDevice_LTSR" -Value $PVSTargetDevice_LTSRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixPVSTargetDevice_CR" -Value $PVSTargetDevice_CRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixServerVDA_PVS_LTSR" -Value $ServerVDA_PVS_LTSRBox.checked -Force
@@ -763,7 +747,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixServerVDA_MCS_LTSR" -Value $ServerVDA_MCS_LTSRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixServerVDA_MCS_CR" -Value $ServerVDA_MCS_CRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixWEM_Agent_PVS" -Value $WEM_Agent_PVSBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixWEM_Agent_MCS" -Value $WEM_Agent_MCSBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixWEM_Agent_MCS" -Value $WEM_Agent_MCS_PVSBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixCitrixFiles" -Value $CitrixFilesBox.checked -Force
         Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Putty" -Value $PuttyBox.checked -Force
         Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinSCP" -Value $WinSCPBox.checked -Force
@@ -779,7 +763,7 @@ function gui_mode{
     $CancelButton.text = "Cancel"
     $CancelButton.width = 80
     $CancelButton.height = 30
-    $CancelButton.location = New-Object System.Drawing.Point(341,630)
+    $CancelButton.location = New-Object System.Drawing.Point(341,590)
     $CancelButton.Add_Click({
         Write-Host -ForegroundColor Red "Canceled - Nothing happens"
         $Form.Close()
@@ -828,18 +812,6 @@ IF ($SoftwareSelection.AdobeReaderDC -eq $true)
 IF ($SoftwareSelection.AdobeReaderDCUpdate -eq $true)
 	{
 		& "$SoftwareFolder\Install Adobe Reader DC Update.ps1"
-	}
-	
-# Install Adobe Reader DC x64 MUI
-IF ($SoftwareSelection.AdobeReaderDCx64 -eq $true)
-	{
-		& "$SoftwareFolder\Install Adobe Reader DC 64 Bit.ps1"
-	}
-	
-# Install Adobe Reader DC x64 MUI Update
-IF ($SoftwareSelection.AdobeReaderDCx64Update -eq $true)
-	{
-		& "$SoftwareFolder\Install Adobe Reader DC 64 Bit Update.ps1"
 	}
 
 # Install BIS-F
@@ -991,8 +963,7 @@ IF ($SoftwareSelection.RemoteDesktopManager -eq $true)
 	{
 		& "$SoftwareFolder\Install RemoteDesktopManager.ps1"
 	}
-
-<#
+	
 # Install Zoom VDI Host
 IF ($SoftwareSelection.ZoomVDI -eq $true)
 	{
@@ -1016,8 +987,7 @@ IF ($SoftwareSelection.CiscoWebExDesktop -eq $true)
 	{
 		& "$SoftwareFolder\Install Cisco WebEx Desktop.ps1"
 	}
-#>
-
+	
 # Install Citrix PVS Target Device Client
 IF ($SoftwareSelection.CitrixPVSTargetDevice_LTSR -eq $true)
 	{

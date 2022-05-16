@@ -1,29 +1,27 @@
-<Configuration ID="3992f702-c993-41b8-90af-8ee1d42b581e">
+<Configuration ID="4863063a-fe57-487b-a85a-be20799432d6">
   <Info Description="" />
-  <Add OfficeClientEdition="32" Channel="SemiAnnual" SourcePath="\\testlab-nas\install\CAI\Software\MS 365 Apps-Monthly Enterprise Channel" AllowCdnFallback="TRUE">
-    <Product ID="O365ProPlusRetail">
+  <Add OfficeClientEdition="64" Channel="PerpetualVL2021" SourcePath="\\testlab-nas\install\CAI\Software\MS Office 2021 LTSC" AllowCdnFallback="TRUE">
+    <Product ID="ProPlus2021Volume" PIDKEY="FXYTK-NJJ8C-GB6DW-3DYQT-6F7TH">
       <Language ID="de-de" />
       <Language ID="en-us" />
-      <ExcludeApp ID="Groove" />
       <ExcludeApp ID="Lync" />
       <ExcludeApp ID="OneDrive" />
       <ExcludeApp ID="Teams" />
-      <ExcludeApp ID="Bing" />
     </Product>
     <Product ID="LanguagePack">
       <Language ID="de-de" />
       <Language ID="en-us" />
-      <ExcludeApp ID="Bing" />
     </Product>
     <Product ID="ProofingTools">
       <Language ID="en-us" />
       <Language ID="de-de" />
     </Product>
   </Add>
-  <Property Name="SharedComputerLicensing" Value="1" />
+  <Property Name="SharedComputerLicensing" Value="0" />
   <Property Name="FORCEAPPSHUTDOWN" Value="FALSE" />
   <Property Name="DeviceBasedLicensing" Value="0" />
   <Property Name="SCLCacheOverride" Value="0" />
-  <Updates Enabled="FALSE" UpdatePath="\\testlab-nas\install\CAI\Software\MS 365 Apps-Monthly Enterprise Channel" />
+  <Property Name="AUTOACTIVATE" Value="1" />
+  <Updates Enabled="FALSE" UpdatePath="\\testlab-nas\install\CAI\Software\MS Office 2021 LTSC" />
   <Display Level="Full" AcceptEULA="TRUE" />
 </Configuration>

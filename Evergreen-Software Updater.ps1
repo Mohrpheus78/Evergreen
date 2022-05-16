@@ -111,7 +111,7 @@ function gui_mode{
 
     # Set the size of your form
     $Form = New-Object system.Windows.Forms.Form
-    $Form.ClientSize = New-Object System.Drawing.Point(960,560)
+    $Form.ClientSize = New-Object System.Drawing.Point(970,560)
     $Form.text = "SuL Software-Updater"
     $Form.TopMost = $false
     $Form.AutoSize = $true
@@ -151,7 +151,7 @@ function gui_mode{
 
     # AdobeReaderDC Checkbox
     $AdobeReaderDCBoxUpdate = New-Object system.Windows.Forms.CheckBox
-    $AdobeReaderDCBoxUpdate.text = "Adobe Reader DC"
+    $AdobeReaderDCBoxUpdate.text = "Adobe Reader DC MUI x86"
     $AdobeReaderDCBoxUpdate.width = 95
     $AdobeReaderDCBoxUpdate.height = 20
     $AdobeReaderDCBoxUpdate.autosize = $true
@@ -161,7 +161,7 @@ function gui_mode{
 	
 	# AdobeReaderDCx64 Checkbox
     $AdobeReaderDCx64BoxUpdate = New-Object system.Windows.Forms.CheckBox
-    $AdobeReaderDCx64BoxUpdate.text = "Adobe Reader DC x64"
+    $AdobeReaderDCx64BoxUpdate.text = "Adobe Reader DC MUI x64"
     $AdobeReaderDCx64BoxUpdate.width = 95
     $AdobeReaderDCx64BoxUpdate.height = 20
     $AdobeReaderDCx64BoxUpdate.autosize = $true
@@ -299,27 +299,45 @@ function gui_mode{
     $form.Controls.Add($PuttyBox)
 	$PuttyBox.Checked = $SoftwareSelection.Putty
 
-    # MS365 Apps Checkbox
-    $MS365AppsBox = New-Object system.Windows.Forms.CheckBox
-    $MS365AppsBox.text = "Microsoft 365 Apps/Office 2019 (64Bit / Semi Annual Channel)"
-    $MS365AppsBox.width = 95
-    $MS365AppsBox.height = 20
-    $MS365AppsBox.autosize = $true
-    $MS365AppsBox.location = New-Object System.Drawing.Point(250,45)
-    $form.Controls.Add($MS365AppsBox)
-	$MS365AppsBox.Checked = $SoftwareSelection.MS365Apps
+    # MS365 Apps Semi Annual Channel Checkbox
+    $MS365AppsBox_SAC = New-Object system.Windows.Forms.CheckBox
+    $MS365AppsBox_SAC.text = "Microsoft 365 Apps (x64/Semi Annual Channel)"
+    $MS365AppsBox_SAC.width = 95
+    $MS365AppsBox_SAC.height = 20
+    $MS365AppsBox_SAC.autosize = $true
+    $MS365AppsBox_SAC.location = New-Object System.Drawing.Point(250,45)
+    $form.Controls.Add($MS365AppsBox_SAC)
+	$MS365AppsBox_SAC.Checked = $SoftwareSelection.MS365Apps_SAC
+	
+	# MS365 Apps Monthly Enterprise Channel Checkbox
+    $MS365AppsBox_MEC = New-Object system.Windows.Forms.CheckBox
+    $MS365AppsBox_MEC.text = "Microsoft 365 Apps (x64/Monthly Enterprise Channel)"
+    $MS365AppsBox_MEC.width = 95
+    $MS365AppsBox_MEC.height = 20
+    $MS365AppsBox_MEC.autosize = $true
+    $MS365AppsBox_MEC.location = New-Object System.Drawing.Point(250,70)
+    $form.Controls.Add($MS365AppsBox_MEC)
+	$MS365AppsBox_MEC.Checked = $SoftwareSelection.MS365Apps_MEC
 
-	<#
 	# MS Office2019 Checkbox
     $MSOffice2019Box = New-Object system.Windows.Forms.CheckBox
-    $MSOffice2019Box.text = "Microsoft Office 2019 (64Bit)"
+    $MSOffice2019Box.text = "Microsoft Office 2019 (x64/Perpetual VL)"
     $MSOffice2019Box.width = 95
     $MSOffice2019Box.height = 20
     $MSOffice2019Box.autosize = $true
-    $MSOffice2019Box.location = New-Object System.Drawing.Point(250,70)
+    $MSOffice2019Box.location = New-Object System.Drawing.Point(250,95)
     $form.Controls.Add($MSOffice2019Box)
 	$MSOffice2019Box.Checked = $SoftwareSelection.MSOffice2019
-	#>
+	
+	# MS Office2021 Checkbox
+    $MSOffice2021Box = New-Object system.Windows.Forms.CheckBox
+    $MSOffice2021Box.text = "Microsoft Office 2021 (x64/Perpetual VL)"
+    $MSOffice2021Box.width = 95
+    $MSOffice2021Box.height = 20
+    $MSOffice2021Box.autosize = $true
+    $MSOffice2021Box.location = New-Object System.Drawing.Point(250,120)
+    $form.Controls.Add($MSOffice2021Box)
+	$MSOffice2021Box.Checked = $SoftwareSelection.MSOffice2021
 	
 	# MS Sysinternals Checkbox
     $MSSysinternalsBox = New-Object system.Windows.Forms.CheckBox
@@ -327,7 +345,7 @@ function gui_mode{
     $MSSysinternalsBox.width = 95
     $MSSysinternalsBox.height = 20
     $MSSysinternalsBox.autosize = $true
-    $MSSysinternalsBox.location = New-Object System.Drawing.Point(250,70)
+    $MSSysinternalsBox.location = New-Object System.Drawing.Point(250,145)
     $form.Controls.Add($MSSysinternalsBox)
 	$MSSysinternalsBox.Checked = $SoftwareSelection.MSSysinternals
 	
@@ -337,7 +355,7 @@ function gui_mode{
     $MSEdgeBox.width = 95
     $MSEdgeBox.height = 20
     $MSEdgeBox.autosize = $true
-    $MSEdgeBox.location = New-Object System.Drawing.Point(250,95)
+    $MSEdgeBox.location = New-Object System.Drawing.Point(250,170)
     $form.Controls.Add($MSEdgeBox)
 	$MSEdgeBox.Checked = $SoftwareSelection.MSEdge
 
@@ -347,7 +365,7 @@ function gui_mode{
     $MSOneDriveBox.width = 95
     $MSOneDriveBox.height = 20
     $MSOneDriveBox.autosize = $true
-    $MSOneDriveBox.location = New-Object System.Drawing.Point(250,120)
+    $MSOneDriveBox.location = New-Object System.Drawing.Point(250,195)
     $form.Controls.Add($MSOneDriveBox)
 	$MSOneDriveBox.Checked = $SoftwareSelection.MSOneDrive
 
@@ -357,7 +375,7 @@ function gui_mode{
     $MSTeamsBox.width = 95
     $MSTeamsBox.height = 20
     $MSTeamsBox.autosize = $true
-    $MSTeamsBox.location = New-Object System.Drawing.Point(250,145)
+    $MSTeamsBox.location = New-Object System.Drawing.Point(250,220)
     $form.Controls.Add($MSTeamsBox)
 	$MSTeamsBox.Checked = $SoftwareSelection.MSTeams
 	
@@ -367,7 +385,7 @@ function gui_mode{
     $MSPowershellBox.width = 95
     $MSPowershellBox.height = 20
     $MSPowershellBox.autosize = $true
-    $MSPowershellBox.location = New-Object System.Drawing.Point(250,170)
+    $MSPowershellBox.location = New-Object System.Drawing.Point(250,245)
     $form.Controls.Add($MSPowershellBox)
 	$MSPowershellBox.Checked = $SoftwareSelection.MSPowershell
 	
@@ -377,7 +395,7 @@ function gui_mode{
     $MSDotNetBox.width = 95
     $MSDotNetBox.height = 20
     $MSDotNetBox.autosize = $true
-    $MSDotNetBox.location = New-Object System.Drawing.Point(250,195)
+    $MSDotNetBox.location = New-Object System.Drawing.Point(250,270)
     $form.Controls.Add($MSDotNetBox)
 	$MSDotNetBox.Checked = $SoftwareSelection.MSDotNetFramework
 	
@@ -387,7 +405,7 @@ function gui_mode{
     $MSSQLManagementStudioENBox.width = 95
     $MSSQLManagementStudioENBox.height = 20
     $MSSQLManagementStudioENBox.autosize = $true
-    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(250,220)
+    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(250,295)
     $form.Controls.Add($MSSQLManagementStudioENBox)
 	$MSSQLManagementStudioENBox.Checked = $SoftwareSelection.MSSsmsEN
 	
@@ -397,45 +415,19 @@ function gui_mode{
     $MSSQLManagementStudioDEBox.width = 95
     $MSSQLManagementStudioDEBox.height = 20
     $MSSQLManagementStudioDEBox.autosize = $true
-    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,245)
+    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,320)
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
 	
-	## Zoom Host Checkbox
-    $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomVDIBox.text = "Zoom VDI Host Installer (N/A)"
-	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
-    $ZoomVDIBox.Font = $CustomFont
-    $ZoomVDIBox.width = 95
-    $ZoomVDIBox.height = 20
-    $ZoomVDIBox.autosize = $true
-    $ZoomVDIBox.location = New-Object System.Drawing.Point(250,270)
-    $form.Controls.Add($ZoomVDIBox)
-	$ZoomVDIBox.Checked =  $SoftwareSelection.ZoomVDI
-	
-	# Zoom Citrix client Checkbox
-    $ZoomCitrixBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomCitrixBox.text = "Zoom Citrix Client (N/A)"
-	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
-    $ZoomCitrixBox.Font = $CustomFont
-    $ZoomCitrixBox.width = 95
-    $ZoomCitrixBox.height = 20
-    $ZoomCitrixBox.autosize = $true
-    $ZoomCitrixBox.location = New-Object System.Drawing.Point(250,295)
-    $form.Controls.Add($ZoomCitrixBox)
-	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
-	
-	# Zoom VMWare client Checkbox
-    $ZoomVMWareBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomVMWareBox.text = "Zoom VMWare Client (N/A)"
-	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
-    $ZoomVMWareBox.Font = $CustomFont
-    $ZoomVMWareBox.width = 95
-    $ZoomVMWareBox.height = 20
-    $ZoomVMWareBox.autosize = $true
-    $ZoomVMWareBox.location = New-Object System.Drawing.Point(250,320)
-    $form.Controls.Add($ZoomVMWareBox)
-	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
+	# ImageGlass Checkbox
+    $ImageGlassBox = New-Object system.Windows.Forms.CheckBox
+    $ImageGlassBox.text = "ImageGlass"
+    $ImageGlassBox.width = 95
+    $ImageGlassBox.height = 20
+    $ImageGlassBox.autosize = $true
+    $ImageGlassBox.location = New-Object System.Drawing.Point(250,345)
+    $form.Controls.Add($ImageGlassBox)
+	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
 	
 	# Greenshot Checkbox
     $GreenshotBox = New-Object system.Windows.Forms.CheckBox
@@ -443,9 +435,39 @@ function gui_mode{
     $GreenshotBox.width = 95
     $GreenshotBox.height = 20
     $GreenshotBox.autosize = $true
-    $GreenshotBox.location = New-Object System.Drawing.Point(250,345)
+    $GreenshotBox.location = New-Object System.Drawing.Point(250,370)
     $form.Controls.Add($GreenshotBox)
 	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
+	
+	# OracleJava8 x64 Checkbox
+    $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
+    $OracleJava8Box.text = "Oracle Java 8/x64"
+    $OracleJava8Box.width = 95
+    $OracleJava8Box.height = 20
+    $OracleJava8Box.autosize = $true
+    $OracleJava8Box.location = New-Object System.Drawing.Point(250,395)
+    $form.Controls.Add($OracleJava8Box)
+	$OracleJava8Box.Checked =  $SoftwareSelection.OracleJava8
+	
+	# OracleJava8 x86 Checkbox
+    $OracleJava8_32Box = New-Object system.Windows.Forms.CheckBox
+    $OracleJava8_32Box.text = "Oracle Java 8/x86"
+    $OracleJava8_32Box.width = 95
+    $OracleJava8_32Box.height = 20
+    $OracleJava8_32Box.autosize = $true
+    $OracleJava8_32Box.location = New-Object System.Drawing.Point(250,420)
+    $form.Controls.Add($OracleJava8_32Box)
+	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
+	
+	# OpenJDK Checkbox
+    $OpenJDKBox = New-Object system.Windows.Forms.CheckBox
+    $OpenJDKBox.text = "Open JDK"
+    $OpenJDKBox.width = 95
+    $OpenJDKBox.height = 20
+    $OpenJDKBox.autosize = $true
+    $OpenJDKBox.location = New-Object System.Drawing.Point(250,445)
+    $form.Controls.Add($OpenJDKBox)
+	$OpenJDKBox.Checked =  $SoftwareSelection.OpenJDK
 	
 	<#
 	# Cisco WebEx VDI Plugin Checkbox
@@ -475,7 +497,7 @@ function gui_mode{
     $TreeSizeFreeBox.width = 95
     $TreeSizeFreeBox.height = 20
     $TreeSizeFreeBox.autosize = $true
-    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(693,45)
+    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(685,45)
     $form.Controls.Add($TreeSizeFreeBox)
 	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
 	
@@ -485,7 +507,7 @@ function gui_mode{
     $VLCPlayerBox.width = 95
     $VLCPlayerBox.height = 20
     $VLCPlayerBox.autosize = $true
-    $VLCPlayerBox.location = New-Object System.Drawing.Point(693,70)
+    $VLCPlayerBox.location = New-Object System.Drawing.Point(685,70)
     $form.Controls.Add($VLCPlayerBox)
 	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
 	
@@ -495,7 +517,7 @@ function gui_mode{
     $FileZillaBox.width = 95
     $FileZillaBox.height = 20
     $FileZillaBox.autosize = $true
-    $FileZillaBox.location = New-Object System.Drawing.Point(693,95)
+    $FileZillaBox.location = New-Object System.Drawing.Point(685,95)
     $form.Controls.Add($FileZillaBox)
 	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
 	
@@ -505,7 +527,7 @@ function gui_mode{
     $KeePassBox.width = 95
     $KeePassBox.height = 20
     $KeePassBox.autosize = $true
-    $KeePassBox.location = New-Object System.Drawing.Point(693,120)
+    $KeePassBox.location = New-Object System.Drawing.Point(685,120)
     $form.Controls.Add($KeePassBox)
 	$KeePassBox.Checked = $SoftwareSelection.KeePass
 	
@@ -515,49 +537,9 @@ function gui_mode{
     $IGELUniversalManagementSuiteBox.width = 95
     $IGELUniversalManagementSuiteBox.height = 20
     $IGELUniversalManagementSuiteBox.autosize = $true
-    $IGELUniversalManagementSuiteBox.location = New-Object System.Drawing.Point(693,145)
+    $IGELUniversalManagementSuiteBox.location = New-Object System.Drawing.Point(685,145)
     $form.Controls.Add($IGELUniversalManagementSuiteBox)
 	$IGELUniversalManagementSuiteBox.Checked = $SoftwareSelection.IGELUniversalManagementSuite
-	
-	# ImageGlass Checkbox
-    $ImageGlassBox = New-Object system.Windows.Forms.CheckBox
-    $ImageGlassBox.text = "ImageGlass"
-    $ImageGlassBox.width = 95
-    $ImageGlassBox.height = 20
-    $ImageGlassBox.autosize = $true
-    $ImageGlassBox.location = New-Object System.Drawing.Point(693,170)
-    $form.Controls.Add($ImageGlassBox)
-	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
-	
-	# OracleJava8 Checkbox
-    $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
-    $OracleJava8Box.text = "Oracle Java 8"
-    $OracleJava8Box.width = 95
-    $OracleJava8Box.height = 20
-    $OracleJava8Box.autosize = $true
-    $OracleJava8Box.location = New-Object System.Drawing.Point(250,370)
-    $form.Controls.Add($OracleJava8Box)
-	$OracleJava8Box.Checked =  $SoftwareSelection.OracleJava8
-	
-	# OracleJava8-32Bit Checkbox
-    $OracleJava8_32Box = New-Object system.Windows.Forms.CheckBox
-    $OracleJava8_32Box.text = "Oracle Java 8 - 32 Bit"
-    $OracleJava8_32Box.width = 95
-    $OracleJava8_32Box.height = 20
-    $OracleJava8_32Box.autosize = $true
-    $OracleJava8_32Box.location = New-Object System.Drawing.Point(250,395)
-    $form.Controls.Add($OracleJava8_32Box)
-	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
-	
-	# OpenJDK Checkbox
-    $OpenJDKBox = New-Object system.Windows.Forms.CheckBox
-    $OpenJDKBox.text = "Open JDK"
-    $OpenJDKBox.width = 95
-    $OpenJDKBox.height = 20
-    $OpenJDKBox.autosize = $true
-    $OpenJDKBox.location = New-Object System.Drawing.Point(250,420)
-    $form.Controls.Add($OpenJDKBox)
-	$OpenJDKBox.Checked =  $SoftwareSelection.OpenJDK
 	
 	# pdf24Creator Checkbox
     $pdf24CreatorBox = New-Object system.Windows.Forms.CheckBox
@@ -565,11 +547,47 @@ function gui_mode{
     $pdf24CreatorBox.width = 95
     $pdf24CreatorBox.height = 20
     $pdf24CreatorBox.autosize = $true
-    $pdf24CreatorBox.location = New-Object System.Drawing.Point(250,445)
+    $pdf24CreatorBox.location = New-Object System.Drawing.Point(685,170)
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 	
+	## Zoom Host Checkbox
+    $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
+    $ZoomVDIBox.text = "Zoom VDI Host Installer (N/A)"
+	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
+    $ZoomVDIBox.Font = $CustomFont
+    $ZoomVDIBox.width = 95
+    $ZoomVDIBox.height = 20
+    $ZoomVDIBox.autosize = $true
+    $ZoomVDIBox.location = New-Object System.Drawing.Point(685,195)
+    $form.Controls.Add($ZoomVDIBox)
+	$ZoomVDIBox.Checked =  $SoftwareSelection.ZoomVDI
 	
+	# Zoom Citrix client Checkbox
+    $ZoomCitrixBox = New-Object system.Windows.Forms.CheckBox
+    $ZoomCitrixBox.text = "Zoom Citrix Client (N/A)"
+	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
+    $ZoomCitrixBox.Font = $CustomFont
+    $ZoomCitrixBox.width = 95
+    $ZoomCitrixBox.height = 20
+    $ZoomCitrixBox.autosize = $true
+    $ZoomCitrixBox.location = New-Object System.Drawing.Point(685,220)
+    $form.Controls.Add($ZoomCitrixBox)
+	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
+	
+	# Zoom VMWare client Checkbox
+    $ZoomVMWareBox = New-Object system.Windows.Forms.CheckBox
+    $ZoomVMWareBox.text = "Zoom VMWare Client (N/A)"
+	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
+    $ZoomVMWareBox.Font = $CustomFont
+    $ZoomVMWareBox.width = 95
+    $ZoomVMWareBox.height = 20
+    $ZoomVMWareBox.autosize = $true
+    $ZoomVMWareBox.location = New-Object System.Drawing.Point(685,245)
+    $form.Controls.Add($ZoomVMWareBox)
+	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
+	
+		
 	# Select Button
     $SelectButton = New-Object system.Windows.Forms.Button
     $SelectButton.text = "Select all"
@@ -596,8 +614,10 @@ function gui_mode{
 		$mRemoteNGBox.checked = $True
 		$WinSCPBox.checked = $True
 		$PuttyBox.checked = $True
-		$MS365AppsBox.checked = $True
-		#$MSOffice2019Box.checked = $True
+		$MS365AppsBox_SAC.checked = $True
+		$MS365AppsBox_MEC.checked = $True
+		$MSOffice2019Box.checked = $True
+		$MSOffice2021Box.checked = $True
 		$MSEdgeBox.checked = $True
 		$MSOneDriveBox.checked = $True
 		$MSTeamsBox.checked = $True
@@ -652,8 +672,10 @@ function gui_mode{
 		$mRemoteNGBox.checked = $False
 		$WinSCPBox.checked = $False
 		$PuttyBox.checked = $False
-		$MS365AppsBox.checked = $False
-		#$MSOffice2019Box.checked = $False
+		$MS365AppsBox_SAC.checked = $False
+		$MS365AppsBox_MEC.checked = $False
+		$MSOffice2019Box.checked = $False
+		$MSOffice2021Box.checked = $False
 		$MSEdgeBox.checked = $False
 		$MSOneDriveBox.checked = $False
 		$MSTeamsBox.checked = $False
@@ -702,8 +724,10 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_LTSR" -Value $WorkspaceApp_LTSRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixHypervisorTools" -Value $Citrix_HypervisorToolsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixFiles" -Value $CitrixFilesBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps" -Value $MS365AppsBox.checked -Force
-		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2019" -Value $MSOffice2019Box.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_SAC" -Value $MS365AppsBox_SAC.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_MEC" -Value $MS365AppsBox_MEC.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2019" -Value $MSOffice2019Box.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2021" -Value $MSOffice2021Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePass" -Value $KeePassBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "IGELUniversalManagementSuite" -Value $IGELUniversalManagementSuiteBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "mRemoteNG" -Value $mRemoteNGBox.checked -Force
@@ -1281,39 +1305,34 @@ Write-Output ""
 }
 
 
-# Download Adobe Reader DC MUI Update
-IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
+# Download Adobe Reader DC MUI x64 Update
+IF ($SoftwareSelection.AdobeReaderDCx64_MUI -eq $true) {
 $Product = "Adobe Reader DC x64 MUI"
 $PackageName = "Adobe_DC_MUI_x64_Update"
+$Adobe = Get-EvergreenApp -Name AdobeAcrobatReaderDC | Where-Object {$_.Architecture -eq "x64" -and $_.Language -eq "MUI"}
+$Version = $Adobe.Version
+$URL = $Adobe.uri
 $InstallerType = "msp"
 $Source = "$PackageName" + "." + "$InstallerType"
-$URLVersionAdobe = "https://patchmypc.com/freeupdater/definitions/definitions.xml"
-$webRequestAdobe = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionAdobe) -SessionVariable websession
-$regexAppVersionAdobe = "<AcrobatReaderDCVer>.*"
-$webVersionAdobe = $webRequestAdobe.RawContent | Select-String -Pattern $regexAppVersionAdobe -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$VersionAdobe = $webVersionAdobe.Trim("<AcrobatReaderDCVer>").Trim("</AcrobatReaderDCVer>")
-$VersionAdobeTrim = $VersionAdobe -replace ("\.","")
-$VersionAdobeDownload = ("AcroRdrDCx64Upd" + "$VersionAdobeTrim" + "_MUI" + ".msp")
-$URL = "https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/$VersionAdobeTrim/$VersionAdobeDownload"
 $CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $VersionAdobe"
+Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $VersionAdobe)) {
+IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available for $Product"
 IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionAdobe.log"
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
 Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
 Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionAdobe"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionAdobe"
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) 
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
 }
-IF ($CurrentVersion -eq $VersionAdobe) {
+IF ($CurrentVersion -eq $Version) {
 Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
@@ -1428,13 +1447,13 @@ Write-Output ""
 }
 
 
-# Download MS Office365Apps
-IF ($SoftwareSelection.MS365Apps -eq $true) {
+# Download MS 365Apps Semi Annual Channel
+IF ($SoftwareSelection.MS365Apps_SAC -eq $true) {
 $Product = "MS 365 Apps-Semi Annual Channel"
 $PackageName = "setup"
-$MS365Apps = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "SemiAnnual"}
-$Version = $MS365Apps.Version
-$URL = $MS365Apps.uri
+$MS365Apps_SAC = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "SemiAnnual"}
+$Version = $MS365Apps_SAC.Version
+$URL = $MS365Apps_SAC.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
 $CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -1453,10 +1472,10 @@ Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Plea
 Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 $ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
-		Write-Host -ForegroundColor DarkRed "Achtung! Keine Configuration.xml Datei gefunden, Office kann nicht runtergeladen werden! Bitte eine XML Datei erstellen!" }
+		Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
 	else {
 		  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
-		  $MS365AppsUpdate = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+		  $MS365Apps_SACUpdate = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
 		  }
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
@@ -1468,12 +1487,53 @@ Write-Output ""
 }
 }
 
-<#
-# Download MS Office 2019
+
+# Download MS 365Apps Monthly Enterprise Channel
+IF ($SoftwareSelection.MS365Apps_MEC -eq $true) {
+$Product = "MS 365 Apps-Monthly Enterprise Channel"
+$PackageName = "setup"
+$MS365Apps_MEC = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "MonthlyEnterprise"}
+$Version = $MS365Apps_MEC.Version
+$URL = $MS365Apps_MEC.uri
+$InstallerType = "exe"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
+	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+		Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
+	else {
+		  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
+		  $MS365Apps_MECUpdate = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+		  }
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
+
+# Download MS Office 2019 VL
 IF ($SoftwareSelection.MSOffice2019 -eq $true) {
 $Product = "MS Office 2019"
 $PackageName = "setup"
-$MSOffice2019 = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "Broad"}
+$MSOffice2019 = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "PerpetualVL2019"}
 $Version = $MSOffice2019.Version
 $URL = $MSOffice2019.uri
 $InstallerType = "exe"
@@ -1486,12 +1546,19 @@ IF (!($CurrentVersion -eq $Version)) {
 Write-Host -ForegroundColor DarkRed "Update available"
 IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
 Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
+	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+		Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
+	else {
+		  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
+		  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+		  }
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1501,7 +1568,48 @@ Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
 }
-#>
+
+
+# Download MS Office 2021 VL
+IF ($SoftwareSelection.MSOffice2021 -eq $true) {
+$Product = "MS Office 2021 LTSC"
+$PackageName = "setup"
+$MSOffice2021 = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "PerpetualVL2021"}
+$Version = $MSOffice2021.Version
+$URL = $MSOffice2021.uri
+$InstallerType = "exe"
+$Source = "$PackageName" + "." + "$InstallerType"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $Version"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $Version)) {
+Write-Host -ForegroundColor DarkRed "Update available"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
+	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+		Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
+	else {
+		  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
+		  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+		  }
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+
 
 # Download MS Powershell
 IF ($SoftwareSelection.MSPowershell -eq $true) {

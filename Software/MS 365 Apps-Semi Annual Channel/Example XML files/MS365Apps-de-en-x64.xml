@@ -1,13 +1,12 @@
-<Configuration ID="e28aa7c6-8792-4d3d-992f-f00ff7327913">
+<Configuration ID="3992f702-c993-41b8-90af-8ee1d42b581e">
   <Info Description="" />
-  <Add OfficeClientEdition="64" Channel="SemiAnnual" SourcePath="\\FS\Software\MS 365 Apps-Semi Annual Channel" AllowCdnFallback="TRUE">
+  <Add OfficeClientEdition="64" Channel="SemiAnnual" SourcePath="\\testlab-nas\install\CAI\Software\MS 365 Apps-Monthly Enterprise Channel" AllowCdnFallback="TRUE">
     <Product ID="O365ProPlusRetail">
       <Language ID="de-de" />
       <Language ID="en-us" />
       <ExcludeApp ID="Groove" />
       <ExcludeApp ID="Lync" />
       <ExcludeApp ID="OneDrive" />
-      <ExcludeApp ID="Publisher" />
       <ExcludeApp ID="Teams" />
       <ExcludeApp ID="Bing" />
     </Product>
@@ -16,12 +15,15 @@
       <Language ID="en-us" />
       <ExcludeApp ID="Bing" />
     </Product>
+    <Product ID="ProofingTools">
+      <Language ID="en-us" />
+      <Language ID="de-de" />
+    </Product>
   </Add>
   <Property Name="SharedComputerLicensing" Value="1" />
-  <Property Name="SCLCacheOverride" Value="0" />
-  <Property Name="AUTOACTIVATE" Value="0" />
   <Property Name="FORCEAPPSHUTDOWN" Value="FALSE" />
   <Property Name="DeviceBasedLicensing" Value="0" />
-  <Updates Enabled="FALSE" UpdatePath="\\testlab-nas\install\CAI\Software\MS 365 Apps-Semi Annual Channel" />
+  <Property Name="SCLCacheOverride" Value="0" />
+  <Updates Enabled="FALSE" UpdatePath="\\testlab-nas\install\CAI\Software\MS 365 Apps-Monthly Enterprise Channel" />
   <Display Level="Full" AcceptEULA="TRUE" />
 </Configuration>
