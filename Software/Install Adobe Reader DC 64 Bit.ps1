@@ -68,7 +68,7 @@ Write-Output ""
 Write-Host -ForegroundColor Yellow "Installing Adobe Reader DC x64 Update"
 DS_WriteLog "I" "Installing Adobe Reader DC x64 Update" $LogFile
 try {
-	$mspArgs = "/P `"$PSScriptRoot\$Product\Adobe_DC_x64_MUI_Update.msp`" /quiet /qn"
+	$mspArgs = "/P `"$PSScriptRoot\$Product\Adobe_DC_MUI_x64_Update.msp`" /quiet /qn"
 	Start-Process -FilePath msiexec.exe -ArgumentList $mspArgs -Wait	
 	} catch {
 DS_WriteLog "E" "Error while installing Adobe Reader DC x64 Update (error: $($Error[0]))" $LogFile       
