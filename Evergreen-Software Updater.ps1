@@ -103,6 +103,155 @@ Function DS_WriteLog {
 }
 #========================================================================================================================================
 
+
+# FUNCTION Download progress
+#========================================================================================================================================
+
+function Get-FileFromWeb {
+    param (
+        # Parameter help description
+        [Parameter(Mandatory)]
+        [string]$URL,
+  
+        # Parameter help description
+        [Parameter(Mandatory)]
+        [string]$File 
+    )
+    Begin {
+        function Show-Progress {
+            param (
+                # Enter total value
+                [Parameter(Mandatory)]
+                [Single]$TotalValue,
+        
+                # Enter current value
+                [Parameter(Mandatory)]
+                [Single]$CurrentValue,
+        
+                # Enter custom progresstext
+                [Parameter(Mandatory)]
+                [string]$ProgressText,
+        
+                # Enter value suffix
+                [Parameter()]
+                [string]$ValueSuffix,
+        
+                # Enter bar lengh suffix
+                [Parameter()]
+                [int]$BarSize = 40,
+
+                # show complete bar
+                [Parameter()]
+                [switch]$Complete
+            )
+            
+            # calc %
+            $percent = $CurrentValue / $TotalValue
+            $percentComplete = $percent * 100
+            if ($ValueSuffix) {
+                $ValueSuffix = " $ValueSuffix" # add space in front
+            }
+            if ($psISE) {
+                Write-Progress "$ProgressText $CurrentValue$ValueSuffix of $TotalValue$ValueSuffix" -id 0 -percentComplete $percentComplete            
+            }
+            else {
+                # build progressbar with string function
+                $curBarSize = $BarSize * $percent
+                $progbar = ""
+                $progbar = $progbar.PadRight($curBarSize,[char]9608)
+                $progbar = $progbar.PadRight($BarSize,[char]9617)
+        
+                if (!$Complete.IsPresent) {
+                    Write-Host -NoNewLine "`r$ProgressText $progbar [ $($CurrentValue.ToString("#.###").PadLeft($TotalValue.ToString("#.###").Length))$ValueSuffix / $($TotalValue.ToString("#.###"))$ValueSuffix ] $($percentComplete.ToString("##0.00").PadLeft(6)) % complete"
+                }
+                else {
+                    Write-Host -NoNewLine "`r$ProgressText $progbar [ $($TotalValue.ToString("#.###").PadLeft($TotalValue.ToString("#.###").Length))$ValueSuffix / $($TotalValue.ToString("#.###"))$ValueSuffix ] $($percentComplete.ToString("##0.00").PadLeft(6)) % complete"                    
+                }                
+            }   
+        }
+    }
+    Process {
+        try {
+            $storeEAP = $ErrorActionPreference
+            $ErrorActionPreference = 'Stop'
+        
+            # invoke request
+            $request = [System.Net.HttpWebRequest]::Create($URL)
+            $response = $request.GetResponse()
+  
+            if ($response.StatusCode -eq 401 -or $response.StatusCode -eq 403 -or $response.StatusCode -eq 404) {
+                throw "Remote file either doesn't exist, is unauthorized, or is forbidden for '$URL'."
+            }
+  
+            if($File -match '^\.\\') {
+                $File = Join-Path (Get-Location -PSProvider "FileSystem") ($File -Split '^\.')[1]
+            }
+            
+            if($File -and !(Split-Path $File)) {
+                $File = Join-Path (Get-Location -PSProvider "FileSystem") $File
+            }
+
+            if ($File) {
+                $fileDirectory = $([System.IO.Path]::GetDirectoryName($File))
+                if (!(Test-Path($fileDirectory))) {
+                    [System.IO.Directory]::CreateDirectory($fileDirectory) | Out-Null
+                }
+            }
+
+            [long]$fullSize = $response.ContentLength
+            $fullSizeMB = $fullSize / 1024 / 1024
+  
+            # define buffer
+            [byte[]]$buffer = new-object byte[] 1048576
+            [long]$total = [long]$count = 0
+  
+            # create reader / writer
+            $reader = $response.GetResponseStream()
+            $writer = new-object System.IO.FileStream $File, "Create"
+  
+            # start download
+            $finalBarCount = 0 #show final bar only one time
+            do {
+          
+                $count = $reader.Read($buffer, 0, $buffer.Length)
+          
+                $writer.Write($buffer, 0, $count)
+              
+                $total += $count
+                $totalMB = $total / 1024 / 1024
+          
+                if ($fullSize -gt 0) {
+                    Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading $($File.Name)" -ValueSuffix "MB"
+                }
+
+                if ($total -eq $fullSize -and $count -eq 0 -and $finalBarCount -eq 0) {
+                    Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading $($File.Name)" -ValueSuffix "MB" -Complete
+                    $finalBarCount++
+                    #Write-Host "$finalBarCount"
+                }
+
+            } while ($count -gt 0)
+        }
+  
+        catch {
+        
+            $ExeptionMsg = $_.Exception.Message
+            Write-Host "Download breaks with error : $ExeptionMsg"
+        }
+  
+        finally {
+            # cleanup
+            if ($reader) { $reader.Close() }
+            if ($writer) { $writer.Flush(); $writer.Close() }
+        
+            $ErrorActionPreference = $storeEAP
+            [GC]::Collect()
+        }    
+    }
+}
+#========================================================================================================================================
+
+
 # FUNCTION GUI
 # ========================================================================================================================================
 function gui_mode{
@@ -859,15 +1008,15 @@ $URLVersionRDM = "https://remotedesktopmanager.com/de/release-notes/free"
 $webRequestRDM = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionRDM) -SessionVariable websession
 $regexAppVersionRDM = "\d\d\d\d\.\d\.\d\d\.\d+"
 $webVersionRDM = $webRequestRDM.RawContent | Select-String -Pattern $regexAppVersionRDM -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$VersionRDM = $webVersionRDM.Trim("</td>").Trim("</td>")
+[Version]$VersionRDM = $webVersionRDM.Trim("</td>").Trim("</td>")
 $URL = "https://cdn.devolutions.net/download/Setup.RemoteDesktopManagerFree.$VersionRDM.msi"
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $VersionRDM"
 Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $VersionRDM)) {
+IF ($VersionRDM -gt $CurrentVersion) {
 Write-Host -ForegroundColor DarkRed "Update available"
 IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionRDM.log"
@@ -876,12 +1025,13 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionRDM"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionRDM"
-Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
 }
-IF ($CurrentVersion -eq $VersionRDM) {
+IF ($VersionRDM -le $CurrentVersion) {
 Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
@@ -917,7 +1067,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -952,7 +1103,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -986,7 +1138,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1020,7 +1173,8 @@ Start-Transcript $LogPS  | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1054,7 +1208,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging" 
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1088,7 +1243,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging" 
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1105,15 +1261,15 @@ IF ($SoftwareSelection.BISF -eq $true) {
 $Product = "BIS-F"
 $PackageName = "setup-BIS-F"
 $BISF = Get-EvergreenApp -Name BISF
-$Version = $BISF.Version
+[Version]$Version = $BISF.Version
 $URL = $BISF.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
+IF ($Version -gt $CurrentVersion) {
 Write-Host -ForegroundColor DarkRed "Update available"
 IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
@@ -1122,12 +1278,13 @@ Start-Transcript $LogPS
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
 }
-IF ($CurrentVersion -eq $Version) {
+IF ($Version -le $CurrentVersion) {
 Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
@@ -1147,7 +1304,7 @@ $Source = "$PackageName" + "." + "$InstallerType"
 Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -ge $Version)) {
+IF ($Version -gt $CurrentVersion) {
 Write-Host -ForegroundColor DarkRed "Update available"
 if (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
 $LogPS = "$SoftwareFolder\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
@@ -1156,13 +1313,14 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceAppWeb.exe" | Out-Null
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
 }
-IF ($CurrentVersion -ge $Version) {
+IF ($Version -le $CurrentVersion) {
 Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
@@ -1190,7 +1348,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1215,7 +1374,7 @@ $Source = "$PackageName" + "." + "$InstallerType"
 Write-Host -ForegroundColor Yellow "Download $Product LTSR"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -ge $Version)) {
+IF ($Version -gt $CurrentVersion) {
 Write-Host -ForegroundColor DarkRed "Update available"
 IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -ItemType Directory | Out-Null}
 $LogPS = "$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + "$Product $Version.log"
@@ -1224,13 +1383,14 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version LTSR Release"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceAppWeb.exe" | Out-Null
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
 }
-IF ($CurrentVersion -ge $Version) {
+IF ($Version -le $CurrentVersion) {
 Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
@@ -1259,7 +1419,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1293,7 +1454,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) 
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1327,7 +1489,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) 
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1362,6 +1525,7 @@ New-Item -Path "$SoftwareFolder\$Product\Install" -Name "Download date $Date.txt
 Set-Content -Path "$SoftwareFolder\$Product\Install\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\Install\" + ($Source))
+#Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 expand-archive -path "$SoftwareFolder\$Product\Install\FSLogixAppsSetup.zip" -destinationpath "$SoftwareFolder\$Product\Install"
 Remove-Item -Path "$SoftwareFolder\$Product\Install\FSLogixAppsSetup.zip" -Force
 Move-Item -Path "$SoftwareFolder\$Product\Install\x64\Release\*" -Destination "$SoftwareFolder\$Product\Install"
@@ -1400,8 +1564,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1435,7 +1599,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1469,7 +1634,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 $ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
 		Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
@@ -1510,7 +1676,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 $ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
 		Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
@@ -1551,7 +1718,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 $ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
 		Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
@@ -1592,7 +1760,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 $ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
 		Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
@@ -1633,7 +1802,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1667,7 +1837,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1701,7 +1872,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1735,7 +1907,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1768,7 +1941,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1802,7 +1976,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1827,7 +2002,8 @@ Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Write-Host -ForegroundColor Yellow "Starting Download of $Product"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($PackageName))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($PackageName))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1856,7 +2032,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1890,7 +2067,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1924,7 +2102,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\Citrix\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\\Citrix\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\\Citrix\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1958,7 +2137,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -1992,7 +2172,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 expand-archive -path "$SoftwareFolder\$Product\deviceTRUST.zip" -destinationpath "$SoftwareFolder\$Product"
 Remove-Item -Path "$SoftwareFolder\$Product\deviceTRUST.zip" -Force
 expand-archive -path "$SoftwareFolder\$Product\dtpolicydefinitions-$Version.0.zip" -destinationpath "$SoftwareFolder\$Product\ADMX"
@@ -2013,32 +2194,34 @@ Write-Output ""
 
 # Download openJDK
 IF ($SoftwareSelection.OpenJDK -eq $true) {
-$Product = "open JDK"
+$Product = "open JDK 8"
 $PackageName = "OpenJDK"
-$OpenJDK = Get-EvergreenApp -Name OpenJDK | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*msi*"} | Sort-Object -Property Version -Descending | Select-Object -First 1
-$Version = $OpenJDK.Version
+$OpenJDK = Get-EvergreenApp -Name OpenJDK | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*msi*" -and $_.Version -like "1.8*"} | Sort-Object -Property Version -Descending | Select-Object -First 1
+$VersionOpenJDK = $OpenJDK.Version
+[Version]$VersionOpenJDK = $VersionOpenJDK -replace ".{6}$"
 $URL = $OpenJDK.uri
 $InstallerType = "msi"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
+Write-Host "Download Version: $VersionOpenJDK"
 Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
+IF ($VersionOpenJDK -gt $CurrentVersion) {
 Write-Host -ForegroundColor DarkRed "Update available"
 IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionOpenJDK.log"
 Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionOpenJDK"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionOpenJDK"
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
 }
-IF ($CurrentVersion -eq $Version) {
+IF ($VersionOpenJDK -le $CurrentVersion) {
 Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
@@ -2047,33 +2230,35 @@ Write-Output ""
 
 # Download OracleJava8
 IF ($SoftwareSelection.OracleJava8 -eq $true) {
-$Product = "Oracle Java 8"
-$PackageName = "Oracle Java 8"
+$Product = "Oracle Java 8 x64"
+$PackageName = "Oracle Java 8 x64"
 $OracleJava8 = Get-EvergreenApp -Name OracleJava8 | Where-Object {$_.Architecture -eq "x64"}
-$Version = $OracleJava8.Version
-$Version = $Version -replace ".{4}$"
+$VersionOracle8_x64 = $OracleJava8.Version
+$VersionOracle8_x64 = $VersionOracle8_x64 -replace ".{4}$"
+[Version]$VersionOracle8_x64 = $VersionOracle8_x64 -replace "_","."
 $URL = $OracleJava8.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
+Write-Host "Download Version: $VersionOracle8_x64"
 Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
+IF ($VersionOracle8_x64 -gt $CurrentVersion) {
 Write-Host -ForegroundColor DarkRed "Update available"
 IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionOracle8_x64.log"
 Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionOracle8_x64"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionOracle8_x64"
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
 }
-IF ($CurrentVersion -eq $Version) {
+IF ($VersionOracle8_x64 -le $CurrentVersion) {
 Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
@@ -2082,33 +2267,35 @@ Write-Output ""
 
 # Download OracleJava8 32-Bit
 IF ($SoftwareSelection.OracleJava8_32 -eq $true) {
-$Product = "Oracle Java 8 - 32 Bit"
-$PackageName = "Oracle Java 8"
+$Product = "Oracle Java 8 x86"
+$PackageName = "Oracle Java 8 x86"
 $OracleJava8 = Get-EvergreenApp -Name OracleJava8 | Where-Object {$_.Architecture -eq "x86"}
-$Version = $OracleJava8.Version
-$Version = $Version -replace ".{4}$"
+$VersionOracle8_x86 = $OracleJava8.Version
+$VersionOracle8_x86 = $VersionOracle8_x86 -replace ".{4}$"
+[Version]$VersionOracle8_x86 = $VersionOracle8_x86 -replace "_","."
 $URL = $OracleJava8.uri
 $InstallerType = "exe"
 $Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
+Write-Host "Download Version: $VersionOracle8_x86"
 Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
+IF ($VersionOracle8_x86 -gt $CurrentVersion) {
 Write-Host -ForegroundColor DarkRed "Update available"
 IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionOracle8_x86.log"
 Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionOracle8_x86"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionOracle8_x86"
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
 }
-IF ($CurrentVersion -eq $Version) {
+IF ($VersionOracle8_x86 -le $CurrentVersion) {
 Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
@@ -2137,7 +2324,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -2171,7 +2359,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -2205,7 +2394,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -2239,7 +2429,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) -EA SilentlyContinue
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -2273,7 +2464,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -2307,7 +2499,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -2344,7 +2537,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -2378,7 +2572,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -2412,7 +2607,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -2517,7 +2713,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) -EA SilentlyContinue
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
@@ -2551,7 +2748,8 @@ Start-Transcript $LogPS | Out-Null
 New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) -EA SilentlyContinue
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
 Write-Output ""
