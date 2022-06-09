@@ -11,7 +11,10 @@ Again, you decide which package gets installed by selecting the software, the se
 
 **IMPORTANT:** Make sure you copy ALL files and subfolders, there are some files needed for the scripts to run!
 
+## Launch the scripts
+You can use the example shortcuts in the shortcut folder to lauch the scripts. Just copy the shortcuts and change the target.
 
+![Installer](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Shortcut.png)
 ## Citrix Updates for CVAD (VDA, PVS, WEM)
 If you want to update your Citrix components like PVS target device, WEM Agent or VDA you have to copy the recent Citrix files into the subfolders under the 'Citrix' folder!
 
