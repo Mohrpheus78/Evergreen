@@ -20,6 +20,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 There are no install scripts for VMWare Tools and openJDK yet!
 Run as admin!
+Version: 2.0
 #>
 
 Param (
@@ -53,17 +54,56 @@ else
    {
     # Script doesn't run as admin, stop!
     Write-Host -ForegroundColor Red "Error! Script is NOT running with Admin rights!"
+	Write-Host "Press any key to exit"
+	Read-Host
     BREAK
    }
 # ========================================================================================================================================
 
+# Is there a newer Evergreen Script version?
+# ========================================================================================================================================
+$EvergreenVersion = "2.0"
+$WebVersion = ""
+[bool]$NewerVersion = $false
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1"
+If ($WebResponseVersion) {
+    $WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
+}
+If ($WebVersion -gt $EvergreenVersion) {
+    $NewerVersion = $true
+}
+
 Clear-Host
 
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Installer (Powered by Evergreen-Module) "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Installer (Powered by Evergreen-Module)     "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                     "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
 Write-Output ""
+
+Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion
+Is there a newer Evergreen Script version?"
+Write-Output ""
+If ($NewerVersion -eq $false) {
+        # No new version available
+        Write-Host -Foregroundcolor Green "OK, script is newest version!"
+        Write-Output ""
+}
+Else {
+        # There is a new Evergreen Script Version
+        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer, please download all files!"
+        Write-Output ""
+		$wshell = New-Object -ComObject Wscript.Shell
+            $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
+            If ($AnswerPending -eq "6") {
+				Write-Host -Foregroundcolor Red "Please check replace the install scripts!"
+				Read-Host
+                Start-Process "https://github.com/Mohrpheus78/Evergreen"
+				BREAK
+			}
+
+}
 
 Write-Host -ForegroundColor Cyan "Setting Variables"
 Write-Output ""
@@ -123,7 +163,7 @@ function gui_mode{
     $Form = New-Object system.Windows.Forms.Form
     #$Form.ClientSize = New-Object System.Drawing.Point(820,650)
 	$Form.ClientSize = New-Object System.Drawing.Point(710,660)
-    $Form.text = "SuL Software-Installer"
+    $Form.text = "Software-Installer"
     $Form.TopMost = $false
     $Form.AutoSize = $true
 

@@ -47,6 +47,8 @@ else
    {
     # Script doesn't run as admin, stop!
     Write-Host -ForegroundColor Red "Error! Script is NOT running with Admin rights!"
+    Write-Host "Press any key to exit"
+	Read-Host
     BREAK
    }
 # ========================================================================================================================================
@@ -83,12 +85,12 @@ If ($NewerVersion -eq $false) {
 }
 Else {
         # There is a new Evergreen Script Version
-        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Updater und Installer, please download all files!"
+        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Updater, please download the new file!"
         Write-Output ""
 		$wshell = New-Object -ComObject Wscript.Shell
             $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
             If ($AnswerPending -eq "6") {
-				Write-Host -Foregroundcolor Red "Please replace updater and install scripts!"
+				Write-Host -Foregroundcolor Red "Please replace update script!"
 				Read-Host
                 Start-Process "https://github.com/Mohrpheus78/Evergreen"
 				BREAK
@@ -299,7 +301,7 @@ function gui_mode{
     # Set the size of your form
     $Form = New-Object system.Windows.Forms.Form
     $Form.ClientSize = New-Object System.Drawing.Point(970,560)
-    $Form.text = "SuL Software-Updater"
+    $Form.text = "Software-Updater"
     $Form.TopMost = $false
     $Form.AutoSize = $true
 
@@ -1116,7 +1118,7 @@ Write-Output ""
 }
 }
 
-
+pause
 # Download Notepad ++
 IF ($SoftwareSelection.NotePadPlusPlus -eq $true) {
 $Product = "NotePadPlusPlus"

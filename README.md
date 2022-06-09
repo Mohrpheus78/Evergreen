@@ -55,8 +55,8 @@ IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
 ```
 
 ## Examples
-![Installer](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Download.png)
+![Updater](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Updater.png)
 
-![MAC client](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Updater.png)
+![Download](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Download.png)
 
-![MAC client](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Installer.png)
+![Installer](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Installer.png)
