@@ -17,6 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
+Version: 1.1
 #>
 
 
@@ -69,7 +70,7 @@ Clear-Host
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Updater (Powered by Evergreen-Module) "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe               "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Version: $EvergreenVersion					   "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Version: $EvergreenVersion                     "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Output ""
 
