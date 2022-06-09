@@ -20,7 +20,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 There are no install scripts for VMWare Tools and openJDK yet!
 Run as admin!
-Version: 2.1
+Version: 2.0
 #>
 
 Param (
@@ -62,7 +62,7 @@ else
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "2.1"
+$EvergreenVersion = "2.0"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -97,7 +97,9 @@ Else {
 		$wshell = New-Object -ComObject Wscript.Shell
             $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
             If ($AnswerPending -eq "6") {
-				Write-Host -Foregroundcolor Red "Please check replace the install scripts!"
+				Write-Host -Foregroundcolor Red "Please replace the install scripts!"
+				Write-Output ""
+				Write-Host "Press any key to open the download page"
 				Read-Host
                 Start-Process "https://github.com/Mohrpheus78/Evergreen"
 				BREAK
