@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 1.1
+Version: 2.1
 #>
 
 
@@ -53,7 +53,7 @@ else
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "1.1"
+$EvergreenVersion = "2.1"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -61,7 +61,7 @@ $WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubuser
 If ($WebResponseVersion) {
     $WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
 }
-If ($WebVersion -gt $eVersion) {
+If ($WebVersion -gt $EvergreenVersion) {
     $NewerVersion = $true
 }
 
@@ -69,10 +69,32 @@ Clear-Host
 
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Updater (Powered by Evergreen-Module) "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe               "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Version: $EvergreenVersion                     "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed "    © D. Mohrmann - S&L Firmengruppe            "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Output ""
+
+Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion
+Is there a newer Evergreen Script version?"
+Write-Output ""
+If ($NewerVersion -eq $false) {
+        # No new version available
+        Write-Host -Foregroundcolor Green "OK, script is newest version!"
+        Write-Output ""
+}
+Else {
+        # There is a new Evergreen Script Version
+        Write-Host -Foregroundcolor Red "Attention! There is a new version $EvergreenVersion of the Evergreen Updater und Installer, please download all files!"
+        Write-Output ""
+		$wshell = New-Object -ComObject Wscript.Shell
+            $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
+            If ($AnswerPending -eq "6") {
+				Write-Host -Foregroundcolor Red "Please replace updater and install scripts!"
+				Read-Host
+                Start-Process "https://github.com/Mohrpheus78/Evergreen"
+				BREAK
+			}
+
+}
 
 Write-Host -ForegroundColor Cyan "Setting Variables"
 Write-Output ""
@@ -961,7 +983,6 @@ gui_mode
 
 # Disable progress bar while downloading
 $ProgressPreference = 'SilentlyContinue'
-
 
 # Install/Update Evergreen and Nevergreen modules
 # Start logfile Modules Update Log
