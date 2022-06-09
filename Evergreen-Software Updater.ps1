@@ -50,11 +50,26 @@ else
    }
 # ========================================================================================================================================
 
+# Is there a newer Evergreen Script version?
+# ========================================================================================================================================
+$EvergreenVersion = "1.1"
+$WebVersion = ""
+[bool]$NewerVersion = $false
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Deyda/Evergreen-Script/main/Evergreen.ps1"
+If ($WebResponseVersion) {
+    $WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
+}
+If ($WebVersion -gt $eVersion) {
+    $NewerVersion = $true
+}
+
 Clear-Host
 
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Updater (Powered by Evergreen-Module) "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe               "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Version: $EvergreenVersion					   "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Output ""
 
