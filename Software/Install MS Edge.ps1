@@ -129,6 +129,8 @@ IF ($CurrentValues -notlike "*msedge.exe*") {
 }
 ) | Out-Null
 }
+write-Host -ForegroundColor Green "...ready"
+Write-Output ""
 
 # Stop, if no new version is available
 Else {
