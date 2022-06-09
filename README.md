@@ -27,10 +27,11 @@ If you want to update your Citrix components like PVS target device, WEM Agent o
 To download and install 'MS 365 Apps' on (from) your network location you have to create a 'Configuration.xml' file with the Office 365 customization tool (https://config.office.com/). You can also use my example XML files in the subfolder of the 'MS 365 Apps-Semi Annual Channel' folder.
 
 ## Version check
+### Scripts
 The updater always checks for the latest version of the Evergreen module and the script, so you don't have to do this. If there are new scripts available you have to download and replace your current scripts.
 
 ![Version](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Version.png)
-
+### Apps
 Sometimes the software version found with Evergreen differs from the installed version in the registry, that's stupid, but we can't influence that. Don't blame the Evergreen module!
 Let me show you an example:
 
