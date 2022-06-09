@@ -14,7 +14,7 @@ Again, you decide which package gets installed by selecting the software, the se
 ## Launch the scripts
 You can use the example shortcuts in the shortcut folder to lauch the scripts. Just copy the shortcuts and change the target.
 
-![Installer](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Shortcut.png)
+![Shortcut](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Shortcut.png)
 ## Citrix Updates for CVAD (VDA, PVS, WEM)
 If you want to update your Citrix components like PVS target device, WEM Agent or VDA you have to copy the recent Citrix files into the subfolders under the 'Citrix' folder!
 
@@ -28,6 +28,8 @@ To download and install 'MS 365 Apps' on (from) your network location you have t
 
 ## Version check
 The updater always checks for the latest version of the Evergreen module and the script, so you don't have to do this. If there are new scripts available you have to download and replace your current scripts.
+
+![Version](https://github.com/Mohrpheus78/Evergreen/blob/main/Images/Version.png)
 
 Sometimes the software version found with Evergreen differs from the installed version in the registry, that's stupid, but we can't influence that. Don't blame the Evergreen module!
 Let me show you an example:
