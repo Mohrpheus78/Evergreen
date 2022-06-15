@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.0
+Version: 2.01
 #>
 
 
@@ -55,7 +55,7 @@ else
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "2.0"
+$EvergreenVersion = "2.01"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -1120,7 +1120,7 @@ Write-Output ""
 }
 }
 
-pause
+
 # Download Notepad ++
 IF ($SoftwareSelection.NotePadPlusPlus -eq $true) {
 $Product = "NotePadPlusPlus"
@@ -1355,7 +1355,7 @@ New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -Name "Download
 Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
 #Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
 Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceAppWeb.exe" | Out-Null
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
@@ -1425,7 +1425,7 @@ New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -Name "Download da
 Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\Version.txt" -Value "$Version"
 Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version LTSR Release"
 #Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + ($Source))
 Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceAppWeb.exe" | Out-Null
 Write-Host "Stop logging"
 Stop-Transcript | Out-Null
@@ -1477,7 +1477,7 @@ Write-Output ""
 IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
 $Product = "Adobe Reader DC MUI"
 $PackageName = "Adobe_DC_MUI_Update"
-$Adobe = Get-EvergreenApp -Name AdobeAcrobatReaderDC | Where-Object {$_.Architecture -eq "x86" -and $_.Language -eq "MUI"}
+$Adobe = Get-NevergreenApp -Name AdobeAcrobatReader | Where-Object {$_.Architecture -eq "x86" -and $_.Language -eq "Multi"}
 $Version = $Adobe.Version
 $URL = $Adobe.uri
 $InstallerType = "msp"
@@ -1507,12 +1507,12 @@ Write-Output ""
 }
 }
 
-
+<#
 # Download Adobe Reader DC MUI x64 Update
 IF ($SoftwareSelection.AdobeReaderDCx64_MUI -eq $true) {
 $Product = "Adobe Reader DC x64 MUI"
 $PackageName = "Adobe_DC_MUI_x64_Update"
-$Adobe = Get-EvergreenApp -Name AdobeAcrobatReaderDC | Where-Object {$_.Architecture -eq "x64" -and $_.Language -eq "MUI"}
+$Adobe = Get-NevergreenApp -Name AdobeAcrobatReader | Where-Object {$_.Architecture -eq "x64" -and $_.Language -eq "Multi"}
 $Version = $Adobe.Version
 $URL = $Adobe.uri
 $InstallerType = "msp"
@@ -1537,6 +1537,47 @@ Stop-Transcript | Out-Null
 Write-Output ""
 }
 IF ($CurrentVersion -eq $Version) {
+Write-Host -ForegroundColor Yellow "No new version available"
+Write-Output ""
+}
+}
+#>
+
+
+# Download Adobe Reader DC x64 MUI Update
+IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
+$Product = "Adobe Reader DC x64 MUI"
+$PackageName = "Adobe_DC_MUI_x64_Update"
+$InstallerType = "msp"
+$Source = "$PackageName" + "." + "$InstallerType"
+$URLVersionAdobe = "https://patchmypc.com/freeupdater/definitions/definitions.xml"
+$webRequestAdobe = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionAdobe) -SessionVariable websession
+$regexAppVersionAdobe = "<AcrobatReaderDCVer>.*"
+$webVersionAdobe = $webRequestAdobe.RawContent | Select-String -Pattern $regexAppVersionAdobe -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+$VersionAdobe = $webVersionAdobe.Trim("<AcrobatReaderDCVer>").Trim("</AcrobatReaderDCVer>")
+$VersionAdobeTrim = $VersionAdobe -replace ("\.","")
+$VersionAdobeDownload = ("AcroRdrDCx64Upd" + "$VersionAdobeTrim" + "_MUI" + ".msp")
+$URL = "https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/$VersionAdobeTrim/$VersionAdobeDownload"
+$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+Write-Host -ForegroundColor Yellow "Download $Product"
+Write-Host "Download Version: $VersionAdobe"
+Write-Host "Current Version: $CurrentVersion"
+IF (!($CurrentVersion -eq $VersionAdobe)) {
+Write-Host -ForegroundColor DarkRed "Update available for $Product"
+IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionAdobe.log"
+Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
+Start-Transcript $LogPS | Out-Null
+New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionAdobe"
+Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionAdobe"
+#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+Write-Host "Stop logging"
+Stop-Transcript | Out-Null
+Write-Output ""
+}
+IF ($CurrentVersion -eq $VersionAdobe) {
 Write-Host -ForegroundColor Yellow "No new version available"
 Write-Output ""
 }
