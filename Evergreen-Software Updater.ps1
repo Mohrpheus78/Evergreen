@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.01
+Version: 2.00
 #>
 
 
@@ -55,7 +55,7 @@ else
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "2.01"
+$EvergreenVersion = "2.00"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -90,12 +90,14 @@ Else {
 		$wshell = New-Object -ComObject Wscript.Shell
             $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
             If ($AnswerPending -eq "6") {
-				Write-Host -Foregroundcolor Red "Please replace update script!"
-				Write-Output ""
-				Write-Host "Press any key to open the download page"
-				Read-Host
-                Start-Process "https://github.com/Mohrpheus78/Evergreen"
-				BREAK
+				$update = @'
+                Remove-Item -Path "$PSScriptRoot\Evergreen-Software Updater.ps1" -Force 
+                Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Updater.ps1")
+                & "$PSScriptRoot\Evergreen-Software Updater.ps1"
+'@
+                $update > "$PSScriptRoot\Update.ps1"
+                & "$PSScriptRoot\Update.ps1"
+                BREAK
 			}
 
 }

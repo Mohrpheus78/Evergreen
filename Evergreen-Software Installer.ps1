@@ -20,7 +20,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 There are no install scripts for VMWare Tools and openJDK yet!
 Run as admin!
-Version: 2.0
+Version: 2.00
 #>
 
 Param (
@@ -62,7 +62,7 @@ else
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "2.0"
+$EvergreenVersion = "2.00"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -76,10 +76,10 @@ If ($WebVersion -gt $EvergreenVersion) {
 
 Clear-Host
 
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Installer (Powered by Evergreen-Module)     "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                     "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------------- "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Installer (Powered by Evergreen-Module) "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                 "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
 Write-Output ""
 
 Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion
@@ -92,17 +92,19 @@ If ($NewerVersion -eq $false) {
 }
 Else {
         # There is a new Evergreen Script Version
-        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer, please download all files!"
+        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer, please download the new file and check the other installer scripts!"
         Write-Output ""
 		$wshell = New-Object -ComObject Wscript.Shell
             $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
             If ($AnswerPending -eq "6") {
-				Write-Host -Foregroundcolor Red "Please replace the install scripts!"
-				Write-Output ""
-				Write-Host "Press any key to open the download page"
-				Read-Host
-                Start-Process "https://github.com/Mohrpheus78/Evergreen"
-				BREAK
+				$update = @'
+                Remove-Item -Path "$PSScriptRoot\Evergreen-Software Installer.ps1" -Force 
+                Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Installer.ps1")
+                & "$PSScriptRoot\Evergreen-Software Installer.ps1"
+'@
+                $update > "$PSScriptRoot\Update.ps1"
+                & "$PSScriptRoot\Update.ps1"
+                BREAK
 			}
 
 }
