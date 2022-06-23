@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.00
+Version: 2.01
 #>
 
 
@@ -55,7 +55,7 @@ else
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "2.00"
+$EvergreenVersion = "2.01"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -1547,7 +1547,7 @@ Write-Output ""
 
 
 # Download Adobe Reader DC x64 MUI Update
-IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
+IF ($SoftwareSelection.AdobeReaderDCx64_MUI -eq $true) {
 $Product = "Adobe Reader DC x64 MUI"
 $PackageName = "Adobe_DC_MUI_x64_Update"
 $InstallerType = "msp"

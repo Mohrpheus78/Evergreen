@@ -54,8 +54,8 @@ DS_WriteLog "I" "Installing $Product" $LogFile
 try {
 	$msiArgs = "/I `"$PSScriptRoot\$Product\AcroPro.msi`" ALLUSERS=TRUE TRANSFORMS=`"$PSScriptRoot\$Product\CVAD.mst`" /quiet /qn"
 	Start-Process -FilePath msiexec.exe -ArgumentList $msiArgs -Wait
-	cp "$PSScriptRoot\$Product\Hide Tools\Viewer.aapp" "C:\Program Files\Adobe\Acrobat DC\Acrobat\RdrApp\DEU" -Recurse -Force -EA SilentlyContinue
-	cp "$PSScriptRoot\$Product\Hide Tools\Viewer.aapp" "C:\Program Files\Adobe\Acrobat DC\Acrobat\RdrApp\ENU" -Recurse -Force -EA SilentlyContinue
+	cp "$PSScriptRoot\$Product\Hide Tools\Viewer.aapp" "C:\Program Files\Adobe\Acrobat DC\Acrobat\RdrApp\DEU" -Recurse -Force
+	cp "$PSScriptRoot\$Product\Hide Tools\Viewer.aapp" "C:\Program Files\Adobe\Acrobat DC\Acrobat\RdrApp\ENU" -Recurse -Force
 	New-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown" -Name bAcroSuppressUpsell -PropertyType DWORD -Value 1 -EA SilentlyContinue | Out-Null
 	} catch {
 DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
