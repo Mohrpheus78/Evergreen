@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.01
+Version: 2.02
 #>
 
 
@@ -29,6 +29,8 @@ Param (
         [switch]$noGUI
     
 )
+
+$ProgressPreference = 'SilentlyContinue'
 
 # Do you run the script as admin?
 # ========================================================================================================================================
@@ -55,16 +57,43 @@ else
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "2.01"
+$EvergreenVersion = "2.02"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1"
-If ($WebResponseVersion) {
-    $WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
+If ((Test-NetConnection -ComputerName github.com -Port 443).TcpTestSucceeded) {
+	$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1"
+	If ($WebResponseVersion) {
+		$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
+	}
+	If ($WebVersion -gt $EvergreenVersion) {
+		$NewerVersion = $true
+	}
 }
-If ($WebVersion -gt $EvergreenVersion) {
-    $NewerVersion = $true
+
+ELSE {
+	Write-Host -ForegroundColor Red "Check your internet connection to get updated scripts, server can't reach the GitHub URL!"
+	Write-Output ""
+	
+	$title = ""
+	$message = "Do you want to cancel the update? The update script may be outdated!"
+	$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
+	$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
+	$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
+	$choice=$host.ui.PromptForChoice($title, $message, $options, 0)
+
+	switch ($choice) {
+		0 {
+		$answer = 'Yes'       
+		}
+		1 {
+		$answer = 'No'
+		}
+	}
+
+	if ($answer -eq 'Yes') {
+		BREAK
+	}
 }
 
 Clear-Host
@@ -74,6 +103,16 @@ Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Updater (Po
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed "    © D. Mohrmann - S&L Firmengruppe            "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Output ""
+
+
+Write-Host -ForegroundColor Cyan "Setting Variables"
+Write-Output ""
+
+# Variables
+$SoftwareFolder = ("$PSScriptRoot" + "\" + "Software\")
+$ErrorActionPreference = "SilentlyContinue"
+#$WarningPreference = "Continue"
+$SoftwareToUpdate = "$SoftwareFolder\Software-to-update.xml"
 
 Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion
 Is there a newer Evergreen Script version?"
@@ -101,14 +140,6 @@ Else {
 			}
 
 }
-
-Write-Host -ForegroundColor Cyan "Setting Variables"
-Write-Output ""
-
-# Variables
-$SoftwareFolder = ("$PSScriptRoot" + "\" + "Software\")
-$ErrorActionPreference = "SilentlyContinue"
-$SoftwareToUpdate = "$SoftwareFolder\Software-to-update.xml"
 
 # General update logfile
 $Date = $Date = Get-Date -UFormat "%d.%m.%Y"
@@ -1045,468 +1076,600 @@ Write-Output ""
 
 # Download RemoteDesktopManager
 IF ($SoftwareSelection.RemoteDesktopManager -eq $true) {
-$Product = "RemoteDesktopManager"
-$PackageName = "RemoteDesktopManagerFree"
-$URLVersionRDM = "https://remotedesktopmanager.com/de/release-notes/free"
-$webRequestRDM = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionRDM) -SessionVariable websession
-$regexAppVersionRDM = "\d\d\d\d\.\d\.\d\d\.\d+"
-$webVersionRDM = $webRequestRDM.RawContent | Select-String -Pattern $regexAppVersionRDM -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-[Version]$VersionRDM = $webVersionRDM.Trim("</td>").Trim("</td>")
-$URL = "https://cdn.devolutions.net/download/Setup.RemoteDesktopManagerFree.$VersionRDM.msi"
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $VersionRDM"
-Write-Host "Current Version: $CurrentVersion"
-IF ($VersionRDM -gt $CurrentVersion) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionRDM.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionRDM"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionRDM"
-#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($VersionRDM -le $CurrentVersion) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "RemoteDesktopManager"
+	$PackageName = "RemoteDesktopManagerFree"
+	Try {
+	$URLVersionRDM = "https://remotedesktopmanager.com/de/release-notes/free"
+	$webRequestRDM = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionRDM) -SessionVariable websession
+	$regexAppVersionRDM = "\d\d\d\d\.\d\.\d\d\.\d+"
+	$webVersionRDM = $webRequestRDM.RawContent | Select-String -Pattern $regexAppVersionRDM -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+	[Version]$VersionRDM = $webVersionRDM.Trim("</td>").Trim("</td>")
+	$URL = "https://cdn.devolutions.net/download/Setup.RemoteDesktopManagerFree.$VersionRDM.msi"
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $VersionRDM"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($VersionRDM) {
+		IF ($VersionRDM -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionRDM.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionRDM"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionRDM"
+		#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download pdf24Creator
 IF ($SoftwareSelection.pdf24Creator -eq $true) {
-$Product = "pdf24Creator"
-$PackageName = "pdf24Creator"
-$URLVersion = "https://creator.pdf24.org/listVersions.php"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "pdf24-creator-.*"
-$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$Version = $webVersion.Split("-")[2]
-$Version = $Version.Split("exe")[0]
-$Version = $Version.Split("\.")
-$VersionTable = $webVersion.Trim("</td>").Trim("</td>")
-$Version = $Version[0] + "." + $Version[1] + "." + $Version[2]
-$URL = "https://creator.pdf24.org/download/pdf24-creator-" + "$Version" + ".msi"
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "pdf24Creator"
+	$PackageName = "pdf24Creator"
+	Try {
+	$URLVersion = "https://creator.pdf24.org/listVersions.php"
+	$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
+	$regexAppVersion = "pdf24-creator-.*"
+	$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+	$Version = $webVersion.Split("-")[2]
+	$Version = $Version.Split("exe")[0]
+	$Version = $Version.Split("\.")
+	$VersionTable = $webVersion.Trim("</td>").Trim("</td>")
+	$Version = $Version[0] + "." + $Version[1] + "." + $Version[2]
+	$URL = "https://creator.pdf24.org/download/pdf24-creator-" + "$Version" + ".msi"
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download Notepad ++
 IF ($SoftwareSelection.NotePadPlusPlus -eq $true) {
-$Product = "NotePadPlusPlus"
-$PackageName = "NotePadPlusPlus_x64"
-$Notepad = Get-EvergreenApp -Name NotepadPlusPlus | Where-Object {$_.Architecture -eq "x64" -and $_.URI -match ".exe"}
-$Version = $Notepad.Version
-# $Version = $Version.substring(1)
-$URL = $Notepad.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available for $Product"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Get-ChildItem "$SoftwareFolder\$Product\" -Exclude lang | Remove-Item -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
+    $Product = "NotePadPlusPlus"
+	$PackageName = "NotePadPlusPlus_x64"
+	Try {
+		$Notepad = Get-EvergreenApp -Name NotepadPlusPlus | Where-Object {$_.Architecture -eq "x64" -and $_.URI -match ".exe"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+	}
+	$Version = $Notepad.Version
+	# $Version = $Version.substring(1)
+	$URL = $Notepad.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Get-ChildItem "$SoftwareFolder\$Product\" -Exclude lang | Remove-Item -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
-}
+
 
 
 # Download Chrome
 IF ($SoftwareSelection.GoogleChrome -eq $true) {
-$Product = "Google Chrome"
-$PackageName = "GoogleChromeStandaloneEnterprise64"
-$Chrome = Get-EvergreenApp -Name GoogleChrome | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "Stable"}
-$Version = $Chrome.Version
-$URL = $Chrome.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "Google Chrome"
+	$PackageName = "GoogleChromeStandaloneEnterprise64"
+	Try {
+	$Chrome = Get-EvergreenApp -Name GoogleChrome | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "Stable"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $Chrome.Version
+	$URL = $Chrome.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download MS Edge
 IF ($SoftwareSelection.MSEdge -eq $true) {
-$Product = "MS Edge"
-$PackageName = "MicrosoftEdgeEnterpriseX64"
-$Edge = Get-EvergreenApp -Name MicrosoftEdge | Where-Object {$_.Platform -eq "Windows" -and $_.Channel -eq "stable" -and $_.Architecture -eq "x64" -and $_.Release -eq "Enterprise"}
-$Version = $Edge.Version
-$URL = $Edge.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue 
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS  | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS Edge"
+	$PackageName = "MicrosoftEdgeEnterpriseX64"
+	Try {
+	$Edge = Get-EvergreenApp -Name MicrosoftEdge | Where-Object {$_.Platform -eq "Windows" -and $_.Channel -eq "stable" -and $_.Architecture -eq "x64" -and $_.Release -eq "Enterprise"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $Edge.Version
+	$URL = $Edge.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue 
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS  | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download VLC Player
 IF ($SoftwareSelection.VLCPlayer -eq $true) {
-$Product = "VLC Player"
-$PackageName = "VLC-Player"
-$VLC = Get-EvergreenApp -Name VideoLanVlcPlayer | Where-Object {$_.Platform -eq "Windows"  -and $_.Architecture -eq "x64" -and $_.Type -eq "MSI"}
-$Version = $VLC.Version
-$URL = $VLC.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product" 
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available" 
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging" 
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "VLC Player"
+	$PackageName = "VLC-Player"
+	Try {
+	$VLC = Get-EvergreenApp -Name VideoLanVlcPlayer | Where-Object {$_.Platform -eq "Windows"  -and $_.Architecture -eq "x64" -and $_.Type -eq "MSI"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $VLC.Version
+	$URL = $VLC.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product" 
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available" 
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging" 
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download FileZilla Client
 IF ($SoftwareSelection.FileZilla -eq $true) {
-$Product = "FileZilla"
-$PackageName = "FileZilla"
-$FileZilla = Get-EvergreenApp -Name FileZilla
-$Version = $FileZilla.Version
-$URL = $FileZilla.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product" 
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available" 
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging" 
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "FileZilla"
+	$PackageName = "FileZilla"
+	Try {
+	$FileZilla = Get-EvergreenApp -Name FileZilla -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $FileZilla.Version
+	$URL = $FileZilla.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product" 
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available" 
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		#Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging" 
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+			ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download BIS-F
 IF ($SoftwareSelection.BISF -eq $true) {
-$Product = "BIS-F"
-$PackageName = "setup-BIS-F"
-$BISF = Get-EvergreenApp -Name BISF
-[Version]$Version = $BISF.Version
-$URL = $BISF.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF ($Version -gt $CurrentVersion) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.ps1, SubCall -Recurse
-Start-Transcript $LogPS
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($Version -le $CurrentVersion) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "BIS-F"
+	$PackageName = "setup-BIS-F"
+	Try {
+	$BISF = Get-EvergreenApp -Name BISF -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	[Version]$Version = $BISF.Version
+	$URL = $BISF.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF ($Version -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.ps1, SubCall -Recurse
+		Start-Transcript $LogPS
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download WorkspaceApp Current
 IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
-$Product = "WorkspaceApp"
-$PackageName = "CitrixWorkspaceApp"
-$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "Current"}
-[version]$Version = $WSA.Version
-$URL = $WSA.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-[version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF ($Version -gt $CurrentVersion) {
-Write-Host -ForegroundColor DarkRed "Update available"
-if (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
-Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceAppWeb.exe" | Out-Null
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
+	$Product = "WorkspaceApp"
+	$PackageName = "CitrixWorkspaceApp"
+	Try {
+	$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "Current"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	[version]$Version = $WSA.Version
+	$URL = $WSA.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	[version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF ($Version -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		if (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
+		Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceAppWeb.exe" | Out-Null
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
-IF ($Version -le $CurrentVersion) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
-}
+
 
 # Download Microsoft EdgeWebView2 Runtime
 IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
-$Product = "MS Edge WebView2 Runtime"
-$PackageName = "MicrosoftEdgeWebView2RuntimeInstallerX64"
-$MEWV2RT = Get-EvergreenApp -Name MicrosoftEdgeWebView2Runtime | Where-Object {$_.Architecture -eq "x64"}
-$Version = $MEWV2RT.Version
-$URL = $MEWV2RT.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-if (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\Citrix\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS Edge WebView2 Runtime"
+	$PackageName = "MicrosoftEdgeWebView2RuntimeInstallerX64"
+	Try {
+	$MEWV2RT = Get-EvergreenApp -Name MicrosoftEdgeWebView2Runtime | Where-Object {$_.Architecture -eq "x64"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $MEWV2RT.Version
+	$URL = $MEWV2RT.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		if (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\Citrix\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download WorkspaceApp LTSR
 IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
-$Product = "WorkspaceApp"
-$PackageName = "CitrixWorkspaceApp"
-$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "LTSR"}
-[version]$Version = $WSA.Version
-$URL = $WSA.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-[version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product LTSR"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF ($Version -gt $CurrentVersion) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\LTSR\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version LTSR Release"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + ($Source))
-Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceAppWeb.exe" | Out-Null
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($Version -le $CurrentVersion) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "WorkspaceApp"
+	$PackageName = "CitrixWorkspaceApp"
+	Try {
+	$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "LTSR"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	[version]$Version = $WSA.Version
+	$URL = $WSA.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	[version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product LTSR"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF ($Version -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\LTSR\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version LTSR Release"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + ($Source))
+		Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceAppWeb.exe" | Out-Null
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download 7-ZIP
 IF ($SoftwareSelection.SevenZip -eq $true) {
-$Product = "7-Zip"
-$PackageName = "7-Zip_x64"
-$7Zip = Get-EvergreenApp -Name 7zip | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*exe*"}
-$Version = $7Zip.Version
-$URL = $7Zip.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "7-Zip"
+	$PackageName = "7-Zip_x64"
+	Try {
+	$7Zip = Get-EvergreenApp -Name 7zip | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*exe*"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $7Zip.Version
+	$URL = $7Zip.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download Adobe Reader DC MUI Update
 IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
-$Product = "Adobe Reader DC MUI"
-$PackageName = "Adobe_DC_MUI_Update"
-$Adobe = Get-NevergreenApp -Name AdobeAcrobatReader | Where-Object {$_.Architecture -eq "x86" -and $_.Language -eq "Multi"}
-$Version = $Adobe.Version
-$URL = $Adobe.uri
-$InstallerType = "msp"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available for $Product"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "Adobe Reader DC MUI"
+	$PackageName = "Adobe_DC_MUI_Update"
+	Try {
+	$Adobe = Get-NevergreenApp -Name AdobeAcrobatReader | Where-Object {$_.Architecture -eq "x86" -and $_.Language -eq "Multi"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product"
+		}
+	$Version = $Adobe.Version
+	$URL = $Adobe.uri
+	$InstallerType = "msp"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 <#
@@ -1524,7 +1687,7 @@ Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available for $Product"
+Write-Host -ForegroundColor Green "Update available for $Product"
 IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
 Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
@@ -1548,496 +1711,627 @@ Write-Output ""
 
 # Download Adobe Reader DC x64 MUI Update
 IF ($SoftwareSelection.AdobeReaderDCx64_MUI -eq $true) {
-$Product = "Adobe Reader DC x64 MUI"
-$PackageName = "Adobe_DC_MUI_x64_Update"
-$InstallerType = "msp"
-$Source = "$PackageName" + "." + "$InstallerType"
-$URLVersionAdobe = "https://patchmypc.com/freeupdater/definitions/definitions.xml"
-$webRequestAdobe = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionAdobe) -SessionVariable websession
-$regexAppVersionAdobe = "<AcrobatReaderDCVer>.*"
-$webVersionAdobe = $webRequestAdobe.RawContent | Select-String -Pattern $regexAppVersionAdobe -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$VersionAdobe = $webVersionAdobe.Trim("<AcrobatReaderDCVer>").Trim("</AcrobatReaderDCVer>")
-$VersionAdobeTrim = $VersionAdobe -replace ("\.","")
-$VersionAdobeDownload = ("AcroRdrDCx64Upd" + "$VersionAdobeTrim" + "_MUI" + ".msp")
-$URL = "https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/$VersionAdobeTrim/$VersionAdobeDownload"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $VersionAdobe"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $VersionAdobe)) {
-Write-Host -ForegroundColor DarkRed "Update available for $Product"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionAdobe.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionAdobe"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionAdobe"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $VersionAdobe) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "Adobe Reader DC x64 MUI"
+	$PackageName = "Adobe_DC_MUI_x64_Update"
+	$InstallerType = "msp"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	Try {
+	$URLVersionAdobe = "https://patchmypc.com/freeupdater/definitions/definitions.xml"
+	$webRequestAdobe = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionAdobe) -SessionVariable websession
+	$regexAppVersionAdobe = "<AcrobatReaderDCVer>.*"
+	$webVersionAdobe = $webRequestAdobe.RawContent | Select-String -Pattern $regexAppVersionAdobe -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+	$VersionAdobe = $webVersionAdobe.Trim("<AcrobatReaderDCVer>").Trim("</AcrobatReaderDCVer>")
+	$VersionAdobeTrim = $VersionAdobe -replace ("\.","")
+	$VersionAdobeDownload = ("AcroRdrDCx64Upd" + "$VersionAdobeTrim" + "_MUI" + ".msp")
+	} catch {
+		Write-Warning "Failed to find update of $Product"
+		}
+	$URL = "https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/$VersionAdobeTrim/$VersionAdobeDownload"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $VersionAdobe"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($VersionAdobe) {
+		IF (!($CurrentVersion -eq $VersionAdobe)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionAdobe.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionAdobe"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionAdobe"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download FSLogix
 IF ($SoftwareSelection.FSLogix -eq $true) {
-$Product = "FSLogix"
-$PackageName = "FSLogixAppsSetup"
-$FSLogix = Get-EvergreenApp -Name MicrosoftFSLogixApps | Where-Object {$_.Channel -eq "Production"}
-$Version = $FSLogix.Version
-$URL = $FSLogix.uri
-$InstallerType = "zip"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Install\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product\Install")) {New-Item -Path "$SoftwareFolder\$Product\Install" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\Install\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\Install\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product\Install" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Install\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\Install\" + ($Source))
-#Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-expand-archive -path "$SoftwareFolder\$Product\Install\FSLogixAppsSetup.zip" -destinationpath "$SoftwareFolder\$Product\Install"
-Remove-Item -Path "$SoftwareFolder\$Product\Install\FSLogixAppsSetup.zip" -Force
-Move-Item -Path "$SoftwareFolder\$Product\Install\x64\Release\*" -Destination "$SoftwareFolder\$Product\Install"
-Remove-Item -Path "$SoftwareFolder\$Product\Install\Win32" -Force -Recurse
-Remove-Item -Path "$SoftwareFolder\$Product\Install\x64" -Force -Recurse
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "FSLogix"
+	$PackageName = "FSLogixAppsSetup"
+	Try {
+	$FSLogix = Get-EvergreenApp -Name MicrosoftFSLogixApps | Where-Object {$_.Channel -eq "Production"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $FSLogix.Version
+	$URL = $FSLogix.uri
+	$InstallerType = "zip"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Install\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\Install")) {New-Item -Path "$SoftwareFolder\$Product\Install" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\Install\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\Install\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product\Install" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Install\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\Install\" + ($Source))
+		#Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		expand-archive -path "$SoftwareFolder\$Product\Install\FSLogixAppsSetup.zip" -destinationpath "$SoftwareFolder\$Product\Install"
+		Remove-Item -Path "$SoftwareFolder\$Product\Install\FSLogixAppsSetup.zip" -Force
+		Move-Item -Path "$SoftwareFolder\$Product\Install\x64\Release\*" -Destination "$SoftwareFolder\$Product\Install"
+		Remove-Item -Path "$SoftwareFolder\$Product\Install\Win32" -Force -Recurse
+		Remove-Item -Path "$SoftwareFolder\$Product\Install\x64" -Force -Recurse
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download MS Teams
 IF ($SoftwareSelection.MSTeams -eq $true) {
-$Product = "MS Teams"
-$PackageName = "Teams_windows_x64"
-$Teams = Get-EvergreenApp -Name MicrosoftTeams | Where-Object {$_.Architecture -eq 'x64' -and $_.Type -eq 'MSI' -and $_.Ring -eq 'General'}
-$Version = $Teams.Version
-$URL = $Teams.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS Teams"
+	$PackageName = "Teams_windows_x64"
+	Try {
+	$Teams = Get-EvergreenApp -Name MicrosoftTeams | Where-Object {$_.Architecture -eq 'x64' -and $_.Type -eq 'MSI' -and $_.Ring -eq 'General'} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $Teams.Version
+	$URL = $Teams.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download MS OneDrive
 IF ($SoftwareSelection.MSOneDrive -eq $true) {
-$Product = "MS OneDrive"
-$PackageName = "OneDriveSetup"
-$OneDrive = Get-EvergreenApp -Name MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production" -and $_.Type -eq "exe" -and $_.Architecture -eq "AMD64"} | Select-Object -First 1
-$Version = $OneDrive.Version
-$URL = $OneDrive.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS OneDrive"
+	$PackageName = "OneDriveSetup"
+	Try {
+	$OneDrive = Get-EvergreenApp -Name MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production" -and $_.Type -eq "exe" -and $_.Architecture -eq "AMD64"} | Select-Object -First 1 -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $OneDrive.Version
+	$URL = $OneDrive.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download MS 365Apps Semi Annual Channel
 IF ($SoftwareSelection.MS365Apps_SAC -eq $true) {
-$Product = "MS 365 Apps-Semi Annual Channel"
-$PackageName = "setup"
-$MS365Apps_SAC = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "SemiAnnual"}
-$Version = $MS365Apps_SAC.Version
-$URL = $MS365Apps_SAC.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
-	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
-		Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
-	else {
-		  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
-		  $MS365Apps_SACUpdate = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
-		  }
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS 365 Apps-Semi Annual Channel"
+	$PackageName = "setup"
+	Try {
+	$MS365Apps_SAC = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "SemiAnnual"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $MS365Apps_SAC.Version
+	$URL = $MS365Apps_SAC.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
+			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
+			else {
+				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
+				  $MS365Apps_SACUpdate = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+				  }
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download MS 365Apps Monthly Enterprise Channel
 IF ($SoftwareSelection.MS365Apps_MEC -eq $true) {
-$Product = "MS 365 Apps-Monthly Enterprise Channel"
-$PackageName = "setup"
-$MS365Apps_MEC = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "MonthlyEnterprise"}
-$Version = $MS365Apps_MEC.Version
-$URL = $MS365Apps_MEC.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
-	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
-		Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
-	else {
-		  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
-		  $MS365Apps_MECUpdate = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
-		  }
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS 365 Apps-Monthly Enterprise Channel"
+	$PackageName = "setup"
+	Try {
+	$MS365Apps_MEC = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "MonthlyEnterprise"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $MS365Apps_MEC.Version
+	$URL = $MS365Apps_MEC.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
+			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
+			else {
+				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
+				  $MS365Apps_MECUpdate = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+				  }
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download MS Office 2019 VL
 IF ($SoftwareSelection.MSOffice2019 -eq $true) {
-$Product = "MS Office 2019"
-$PackageName = "setup"
-$MSOffice2019 = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "PerpetualVL2019"}
-$Version = $MSOffice2019.Version
-$URL = $MSOffice2019.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
-	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
-		Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
-	else {
-		  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
-		  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
-		  }
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS Office 2019"
+	$PackageName = "setup"
+	Try {
+	$MSOffice2019 = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "PerpetualVL2019"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $MSOffice2019.Version
+	$URL = $MSOffice2019.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
+			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
+			else {
+				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
+				  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+				  }
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download MS Office 2021 VL
 IF ($SoftwareSelection.MSOffice2021 -eq $true) {
-$Product = "MS Office 2021 LTSC"
-$PackageName = "setup"
-$MSOffice2021 = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "PerpetualVL2021"}
-$Version = $MSOffice2021.Version
-$URL = $MSOffice2021.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
-	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
-		Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
-	else {
-		  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
-		  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
-		  }
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS Office 2021 LTSC"
+	$PackageName = "setup"
+	Try {
+	$MSOffice2021 = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "PerpetualVL2021"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $MSOffice2021.Version
+	$URL = $MSOffice2021.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
+			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
+			else {
+				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
+				  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+				  }
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download MS Powershell
 IF ($SoftwareSelection.MSPowershell -eq $true) {
-$Product = "MS Powershell"
-$PackageName = "Powershell"
-$MSPowershell = Get-EvergreenApp -Name MicrosoftPowerShell | Where-Object {$_.Architecture -eq "x64" -and $_.Release -eq "Stable"}
-$Version = $MSPowershell.Version
-$URL = $MSPowershell.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS Powershell"
+	$PackageName = "Powershell"
+	Try {
+	$MSPowershell = Get-EvergreenApp -Name MicrosoftPowerShell | Where-Object {$_.Architecture -eq "x64" -and $_.Release -eq "Stable"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+	}
+	$Version = $MSPowershell.Version
+	$URL = $MSPowershell.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download MS .Net Framework
 IF ($SoftwareSelection.MSDotNetFramework -eq $true) {
-$Product = "MS DotNet Framework"
-$PackageName = "DotNetFramework-runtime"
-$MSDotNetFramework = Get-EvergreenApp -Name Microsoft.NET | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "LTS" -and $_.Installer -eq "runtime"}
-$Version = $MSDotNetFramework.Version
-$URL = $MSDotNetFramework.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS DotNet Framework"
+	$PackageName = "DotNetFramework-runtime"
+	Try {
+	$MSDotNetFramework = Get-EvergreenApp -Name Microsoft.NET | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "LTS" -and $_.Installer -eq "runtime"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $MSDotNetFramework.Version
+	$URL = $MSDotNetFramework.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download MS SQL Management Studio en
 IF ($SoftwareSelection.MSSsmsEN -eq $true) {
-$Product = "MS SQL Management Studio EN"
-$PackageName = "SSMS-Setup-ENU"
-$MSSQLManagementStudioEN = Get-EvergreenApp -Name MicrosoftSsms | Where-Object {$_.Language -eq "English"}
-$Version = $MSSQLManagementStudioEN.Version
-$URL = $MSSQLManagementStudioEN.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS SQL Management Studio EN"
+	$PackageName = "SSMS-Setup-ENU"
+	Try {
+	$MSSQLManagementStudioEN = Get-EvergreenApp -Name MicrosoftSsms | Where-Object {$_.Language -eq "English"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $MSSQLManagementStudioEN.Version
+	$URL = $MSSQLManagementStudioEN.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download MS SQL Management Studio de
 IF ($SoftwareSelection.MSSsmsDE -eq $true) {
-$Product = "MS SQL Management Studio DE"
-$PackageName = "SSMS-Setup-DEU"
-$MSSQLManagementStudioDE = Get-EvergreenApp -Name MicrosoftSsms | Where-Object {$_.Language -eq "German"}
-$Version = $MSSQLManagementStudioDE.Version
-$URL = $MSSQLManagementStudioDE.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS SQL Management Studio DE"
+	$PackageName = "SSMS-Setup-DEU"
+	Try {
+	$MSSQLManagementStudioDE = Get-EvergreenApp -Name MicrosoftSsms | Where-Object {$_.Language -eq "German"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $MSSQLManagementStudioDE.Version
+	$URL = $MSSQLManagementStudioDE.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 # Download MS Sysinternals Suite
 IF ($SoftwareSelection.MSSysinternals -eq $true) {
-$Product = "MS Sysinternals Suite"
-$PackageName = "SysinternalsSuite"
-$MSSysinternals = Get-NevergreenApp -Name MicrosoftSysinternals | Where-Object {$_.Name -eq "Microsoft Sysinternals Suite" -and $_.Architecture -eq "Multi"}
-$Version = $MSSysinternals.Version
-$URL = $MSSysinternals.uri
-$InstallerType = "zip"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "MS Sysinternals Suite"
+	$PackageName = "SysinternalsSuite"
+	Try {
+	$MSSysinternals = Get-NevergreenApp -Name MicrosoftSysinternals | Where-Object {$_.Name -eq "Microsoft Sysinternals Suite" -and $_.Architecture -eq "Multi"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $MSSysinternals.Version
+	$URL = $MSSysinternals.uri
+	$InstallerType = "zip"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
+<#
 # Download MS WVD Desktop Agent
 IF ($SoftwareSelection.MSWVDDesktopAgent -eq $true) {
 $Product = "MS WVD Desktop Agent"
@@ -2052,7 +2346,7 @@ Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
+Write-Host -ForegroundColor Green "Update available"
 IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
 Remove-Item "$SoftwareFolder\$Product\*" -Recurse
@@ -2096,611 +2390,778 @@ Write-Output ""
 
 # Download MS WVD WebSocket Service
 IF ($SoftwareSelection.MSWVDRTCService -eq $true) {
-$Product = "MS WVD RTC Service for Teams"
-$PackageName = "MsRdcWebRTCSvc_HostSetup_x64"
-$MSWVDRTCService = Get-EvergreenApp -Name MicrosoftWvdRtcService
-$Version = $MSWVDRTCService.Version
-$URL = $MSWVDRTCService.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
+	$Product = "MS WVD RTC Service for Teams"
+	$PackageName = "MsRdcWebRTCSvc_HostSetup_x64"
+	Try {
+	$MSWVDRTCService = Get-EvergreenApp -Name MicrosoftWvdRtcService
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+		$Version = $MSWVDRTCService.Version
+		$URL = $MSWVDRTCService.uri
+		$InstallerType = "msi"
+		$Source = "$PackageName" + "." + "$InstallerType"
+		$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+		Write-Host -ForegroundColor Yellow "Download $Product"
+		Write-Host "Download Version: $Version"
+		Write-Host "Current Version: $CurrentVersion"
+		IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+			ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
-}
-
+#>
 
 # Download Citrix Hypervisor Tools
 IF ($SoftwareSelection.CitrixHypervisorTools -eq $true) {
-$Product = "Citrix Hypervisor Tools"
-$PackageName = "managementagentx64"
-$CitrixTools = Get-EvergreenApp -Name CitrixVMTools | Where-Object {$_.Architecture -eq "x64"} | Select-Object -First 1
-$Version = $CitrixTools.Version
-$URL = $CitrixTools.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "Citrix Hypervisor Tools"
+	$PackageName = "managementagentx64"
+	Try {
+	$CitrixTools = Get-EvergreenApp -Name CitrixVMTools | Where-Object {$_.Architecture -eq "x64"} | Select-Object -First 1
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $CitrixTools.Version
+	$URL = $CitrixTools.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download Citrix Files
 IF ($SoftwareSelection.CitrixFiles -eq $true) {
-$Product = "Citrix Files"
-$PackageName = "CitrixFiles"
-$CitrixFiles = Get-NevergreenApp -Name CitrixFiles | Where-Object {$_.Type -eq "msi"}
-$Version = $CitrixFiles.Version
-$URL = $CitrixFiles.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product")) {New-Item -Path "$SoftwareFolder\Citrix\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\Citrix\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\Citrix\$Product\*" -Include *.exe, *.log, *.txt -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\Citrix\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\\Citrix\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "Citrix Files"
+	$PackageName = "CitrixFiles"
+	Try {
+	$CitrixFiles = Get-NevergreenApp -Name CitrixFiles | Where-Object {$_.Type -eq "msi"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $CitrixFiles.Version
+	$URL = $CitrixFiles.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product")) {New-Item -Path "$SoftwareFolder\Citrix\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\Citrix\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\Citrix\$Product\*" -Include *.exe, *.log, *.txt -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\Citrix\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\\Citrix\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download VMWareTools
 IF ($SoftwareSelection.VMWareTools -eq $true) {
-$Product = "VMWare Tools"
-$PackageName = "VMWareTools"
-$VMWareTools = Get-EvergreenApp -Name VMwareTools | Where-Object {$_.Architecture -eq "x64"}
-$Version = $VMWareTools.Version
-$URL = $VMWareTools.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "VMWare Tools"
+	$PackageName = "VMWareTools"
+	Try {
+	$VMWareTools = Get-EvergreenApp -Name VMwareTools | Where-Object {$_.Architecture -eq "x64"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $VMWareTools.Version
+	$URL = $VMWareTools.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download deviceTRUST
 IF ($SoftwareSelection.deviceTRUST -eq $true) {
-$Product = "deviceTRUST"
-$PackageName = "deviceTRUST"
-$deviceTRUST = Get-EvergreenApp -Name deviceTRUST  | Where-Object {$_.Platform -eq "Windows" -and $_.Type -eq "Bundle"} | Select-Object -First 1
-$Version = $deviceTRUST.Version
-$URL = $deviceTRUST.uri
-$InstallerType = "zip"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-expand-archive -path "$SoftwareFolder\$Product\deviceTRUST.zip" -destinationpath "$SoftwareFolder\$Product"
-Remove-Item -Path "$SoftwareFolder\$Product\deviceTRUST.zip" -Force
-expand-archive -path "$SoftwareFolder\$Product\dtpolicydefinitions-$Version.0.zip" -destinationpath "$SoftwareFolder\$Product\ADMX"
-copy-item -Path "$SoftwareFolder\$Product\ADMX\*" -Destination "$PSScriptRoot\ADMX\deviceTRUST" -Force
-Remove-Item -Path "$SoftwareFolder\$Product\ADMX" -Force -Recurse
-Remove-Item -Path "$SoftwareFolder\$Product\dtpolicydefinitions-$Version.0.zip" -Force
-Get-ChildItem -Path "$SoftwareFolder\$Product" | Where-Object Name -like *"x86"* | Remove-Item
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "deviceTRUST"
+	$PackageName = "deviceTRUST"
+	Try {
+	$deviceTRUST = Get-EvergreenApp -Name deviceTRUST  | Where-Object {$_.Platform -eq "Windows" -and $_.Type -eq "Bundle"} | Select-Object -First 1 -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $deviceTRUST.Version
+	$URL = $deviceTRUST.uri
+	$InstallerType = "zip"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		expand-archive -path "$SoftwareFolder\$Product\deviceTRUST.zip" -destinationpath "$SoftwareFolder\$Product"
+		Remove-Item -Path "$SoftwareFolder\$Product\deviceTRUST.zip" -Force
+		expand-archive -path "$SoftwareFolder\$Product\dtpolicydefinitions-$Version.0.zip" -destinationpath "$SoftwareFolder\$Product\ADMX"
+		copy-item -Path "$SoftwareFolder\$Product\ADMX\*" -Destination "$PSScriptRoot\ADMX\deviceTRUST" -Force
+		Remove-Item -Path "$SoftwareFolder\$Product\ADMX" -Force -Recurse
+		Remove-Item -Path "$SoftwareFolder\$Product\dtpolicydefinitions-$Version.0.zip" -Force
+		Get-ChildItem -Path "$SoftwareFolder\$Product" | Where-Object Name -like *"x86"* | Remove-Item
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download openJDK
 IF ($SoftwareSelection.OpenJDK -eq $true) {
-$Product = "open JDK 8"
-$PackageName = "OpenJDK"
-$OpenJDK = Get-EvergreenApp -Name OpenJDK | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*msi*" -and $_.Version -like "1.8*"} | Sort-Object -Property Version -Descending | Select-Object -First 1
-$VersionOpenJDK = $OpenJDK.Version
-[Version]$VersionOpenJDK = $VersionOpenJDK -replace ".{6}$"
-$URL = $OpenJDK.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $VersionOpenJDK"
-Write-Host "Current Version: $CurrentVersion"
-IF ($VersionOpenJDK -gt $CurrentVersion) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionOpenJDK.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionOpenJDK"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionOpenJDK"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($VersionOpenJDK -le $CurrentVersion) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "open JDK 8"
+	$PackageName = "OpenJDK"
+	Try {
+	$OpenJDK = Get-EvergreenApp -Name OpenJDK | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*msi*" -and $_.Version -like "1.8*"} | Sort-Object -Property Version -Descending | Select-Object -First 1 -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$VersionOpenJDK = $OpenJDK.Version
+	[Version]$VersionOpenJDK = $VersionOpenJDK -replace ".{6}$"
+	$URL = $OpenJDK.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $VersionOpenJDK"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($VersionOpenJDK) {
+		IF ($VersionOpenJDK -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionOpenJDK.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionOpenJDK"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionOpenJDK"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
-# Download OracleJava8
+# Download OracleJava8 64-Bit
 IF ($SoftwareSelection.OracleJava8 -eq $true) {
-$Product = "Oracle Java 8 x64"
-$PackageName = "Oracle Java 8 x64"
-$OracleJava8 = Get-EvergreenApp -Name OracleJava8 | Where-Object {$_.Architecture -eq "x64"}
-$VersionOracle8_x64 = $OracleJava8.Version
-$VersionOracle8_x64 = $VersionOracle8_x64 -replace ".{4}$"
-[Version]$VersionOracle8_x64 = $VersionOracle8_x64 -replace "_","."
-$URL = $OracleJava8.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $VersionOracle8_x64"
-Write-Host "Current Version: $CurrentVersion"
-IF ($VersionOracle8_x64 -gt $CurrentVersion) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionOracle8_x64.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionOracle8_x64"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionOracle8_x64"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($VersionOracle8_x64 -le $CurrentVersion) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "Oracle Java 8 x64"
+	$PackageName = "Oracle Java 8 x64"
+	Try {
+	$OracleJava8 = Get-EvergreenApp -Name OracleJava8 | Where-Object {$_.Architecture -eq "x64"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$VersionOracle8_x64 = $OracleJava8.Version
+	$VersionOracle8_x64 = $VersionOracle8_x64 -replace ".{4}$"
+	[Version]$VersionOracle8_x64 = $VersionOracle8_x64 -replace "_","."
+	$URL = $OracleJava8.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $VersionOracle8_x64"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($VersionOracle8_x64) {
+		IF ($VersionOracle8_x64 -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionOracle8_x64.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionOracle8_x64"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionOracle8_x64"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download OracleJava8 32-Bit
 IF ($SoftwareSelection.OracleJava8_32 -eq $true) {
-$Product = "Oracle Java 8 x86"
-$PackageName = "Oracle Java 8 x86"
-$OracleJava8 = Get-EvergreenApp -Name OracleJava8 | Where-Object {$_.Architecture -eq "x86"}
-$VersionOracle8_x86 = $OracleJava8.Version
-$VersionOracle8_x86 = $VersionOracle8_x86 -replace ".{4}$"
-[Version]$VersionOracle8_x86 = $VersionOracle8_x86 -replace "_","."
-$URL = $OracleJava8.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $VersionOracle8_x86"
-Write-Host "Current Version: $CurrentVersion"
-IF ($VersionOracle8_x86 -gt $CurrentVersion) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionOracle8_x86.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionOracle8_x86"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionOracle8_x86"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($VersionOracle8_x86 -le $CurrentVersion) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "Oracle Java 8 x86"
+	$PackageName = "Oracle Java 8 x86"
+	Try {
+	$OracleJava8 = Get-EvergreenApp -Name OracleJava8 | Where-Object {$_.Architecture -eq "x86"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$VersionOracle8_x86 = $OracleJava8.Version
+	$VersionOracle8_x86 = $VersionOracle8_x86 -replace ".{4}$"
+	[Version]$VersionOracle8_x86 = $VersionOracle8_x86 -replace "_","."
+	$URL = $OracleJava8.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $VersionOracle8_x86"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($VersionOracle8_x86) {
+		IF ($VersionOracle8_x86 -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionOracle8_x86.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionOracle8_x86"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionOracle8_x86"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+			Write-Host -ForegroundColor Yellow "No new version available"
+			Write-Output ""
+			}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download KeePass
 IF ($SoftwareSelection.KeePass -eq $true) {
-$Product = "KeePass"
-$PackageName = "KeePass"
-$KeePass = Get-EvergreenApp -Name KeePass | Where-Object {$_.URI -like "*exe*"}
-$Version = $KeePass.Version
-$URL = $KeePass.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, Version.txt, Download* -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "KeePass"
+	$PackageName = "KeePass"
+	Try {
+	$KeePass = Get-EvergreenApp -Name KeePass | Where-Object {$_.URI -like "*exe*"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $KeePass.Version
+	$URL = $KeePass.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, Version.txt, Download* -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download IGEL Universal Management Suite
 IF ($SoftwareSelection.IGELUniversalManagementSuite -eq $true) {
-$Product = "IGEL Universal Management Suite"
-$PackageName = "setup-igel-ums-windows"
-$IGELUniversalManagementSuite = Get-NevergreenApp -Name IGELUniversalManagementSuite
-$Version = $IGELUniversalManagementSuite.Version
-$URL = $IGELUniversalManagementSuite.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "IGEL Universal Management Suite"
+	$PackageName = "setup-igel-ums-windows"
+	Try {
+	$IGELUniversalManagementSuite = Get-NevergreenApp -Name IGELUniversalManagementSuite -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $IGELUniversalManagementSuite.Version
+	$URL = $IGELUniversalManagementSuite.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download mRemoteNG
 IF ($SoftwareSelection.mRemoteNG -eq $true) {
-$Product = "mRemoteNG"
-$PackageName = "mRemoteNG"
-$mRemoteNG = Get-EvergreenApp -Name mRemoteNG | Where-Object {$_.URI -like "*msi*"}
-$Version = $mRemoteNG.Version
-$URL = $mRemoteNG.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "mRemoteNG"
+	$PackageName = "mRemoteNG"
+	Try {
+	$mRemoteNG = Get-EvergreenApp -Name mRemoteNG | Where-Object {$_.URI -like "*msi*"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $mRemoteNG.Version
+	$URL = $mRemoteNG.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download Tree Size Free
 IF ($SoftwareSelection.TreeSizeFree -eq $true) {
-$Product = "TreeSizeFree"
-$PackageName = "TreeSizeFree"
-$TreeSizeFree = Get-EvergreenApp -Name JamTreeSizeFree
-$Version = $TreeSizeFree.Version
-$URL = $TreeSizeFree.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "TreeSizeFree"
+	$PackageName = "TreeSizeFree"
+	Try {
+	$TreeSizeFree = Get-EvergreenApp -Name JamTreeSizeFree -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $TreeSizeFree.Version
+	$URL = $TreeSizeFree.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+			ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download WinSCP
 IF ($SoftwareSelection.WinSCP -eq $true) {
-$Product = "WinSCP"
-$PackageName = "WinSCP"
-$WinSCP = Get-EvergreenApp -Name WinSCP
-$Version = $WinSCP.Version
-$URL = $WinSCP.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "WinSCP"
+	$PackageName = "WinSCP"
+	Try {
+	$WinSCP = Get-EvergreenApp -Name WinSCP -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $WinSCP.Version
+	$URL = $WinSCP.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download Putty
 IF ($SoftwareSelection.Putty -eq $true) {
-$Product = "Putty"
-$PackageName = "Putty"
-$putty = Get-NevergreenApp -Name SimonTathamPuTTY | Where-Object {$_.Architecture -eq "x64"}
-$Version = $putty.Version
-$URL = $putty.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
+	$Product = "Putty"
+	$PackageName = "Putty"
+	Try {
+	$putty = Get-NevergreenApp -Name SimonTathamPuTTY | Where-Object {$_.Architecture -eq "x64"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $putty.Version
+	$URL = $putty.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
-}
-
-# Stop UpdateLog
-Stop-Transcript | Out-Null
 
 
 # Download Zoom VDI Installer
 IF ($SoftwareSelection.ZoomVDI -eq $true) {
-$Product = "Zoom VDI Host"
-$PackageName = "ZoomInstallerVDI"
-$ZoomVDI = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom VDI Client"}
-$Version = $ZoomVDI.Version
-$URL = $ZoomVDI.Uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "Zoom VDI Host"
+	$PackageName = "ZoomInstallerVDI"
+	Try {
+	$ZoomVDI = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom VDI Client"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $ZoomVDI.Version
+	$URL = $ZoomVDI.Uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download Zoom Citrix client
 IF ($SoftwareSelection.ZoomCitrix -eq $true) {
-$Product = "Zoom Citrix Client"
-$PackageName = "ZoomCitrixHDXMediaPlugin"
-$ZoomCitrix = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom Citrix HDX Media Plugin"}
-$Version = $ZoomCitrix.Version
-$URL = $ZoomCitrix.Uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "Zoom Citrix Client"
+	$PackageName = "ZoomCitrixHDXMediaPlugin"
+	Try {
+	$ZoomCitrix = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom Citrix HDX Media Plugin"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $ZoomCitrix.Version
+	$URL = $ZoomCitrix.Uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download Zoom VMWare client
 IF ($SoftwareSelection.ZoomVMWare -eq $true) {
-$Product = "Zoom VMWare Client"
-$PackageName = "ZoomVMWareMediaPlugin"
-$ZoomVMWare = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom VMWare Media Plugin"}
-$Version = $ZoomVMWare.Version
-$URL = $ZoomVMWare.Uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "Zoom VMWare Client"
+	$PackageName = "ZoomVMWareMediaPlugin"
+	Try {
+	$ZoomVMWare = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom VMWare Media Plugin"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $ZoomVMWare.Version
+	$URL = $ZoomVMWare.Uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 <#
@@ -2719,7 +3180,7 @@ Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
+Write-Host -ForegroundColor Green "Update available"
 IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
 Remove-Item "$SoftwareFolder\$Product\*" -Recurse
@@ -2754,7 +3215,7 @@ Write-Host -ForegroundColor Yellow "Download $Product"
 Write-Host "Download Version: $Version"
 Write-Host "Current Version: $CurrentVersion"
 IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
+Write-Host -ForegroundColor Green "Update available"
 IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 $LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
 Remove-Item "$SoftwareFolder\$Product\*" -Recurse
@@ -2777,73 +3238,96 @@ Write-Output ""
 
 # Download ImageGlass
 IF ($SoftwareSelection.ImageGlass -eq $true) {
-$Product = "ImageGlass"
-$PackageName = "ImageGlass"
-$ImageGlass = Get-EvergreenApp -Name ImageGlass | Where-Object {$_.Architecture -eq "x64"} | Select-Object -First 1
-$Version = $ImageGlass.Version
-$URL = $ImageGlass.uri
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "ImageGlass"
+	$PackageName = "ImageGlass"
+	Try {
+	$ImageGlass = Get-EvergreenApp -Name ImageGlass | Where-Object {$_.Architecture -eq "x64"} | Select-Object -First 1 -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $ImageGlass.Version
+	$URL = $ImageGlass.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
 
 # Download Greenshot
 IF ($SoftwareSelection.Greenshot -eq $true) {
-$Product = "Greenshot"
-$PackageName = "Greenshot"
-$Greenshot = Get-EvergreenApp -Name Greenshot | Where-Object {$_.Type -eq "exe"} | Select-Object -Last 1
-$Version = $Greenshot.Version
-$URL = $Greenshot.uri
-$InstallerType = "exe"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor DarkRed "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
+	$Product = "Greenshot"
+	$PackageName = "Greenshot"
+	Try {
+	$Greenshot = Get-EvergreenApp -Name Greenshot | Where-Object {$_.Type -eq "exe"} | Select-Object -Last 1 -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $Greenshot.Version
+	$URL = $Greenshot.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Write-Host "Stop logging"
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+			Write-Host -ForegroundColor Yellow "No new version available"
+			Write-Output ""
+			}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
 }
 
+
+# Stop UpdateLog
+Stop-Transcript | Out-Null
 
 # Format UpdateLog
 $Content = Get-Content -Path $UpdateLog | Select-Object -Skip 18
