@@ -66,13 +66,40 @@ $EvergreenVersion = "2.01"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1"
-If ($WebResponseVersion) {
-    $WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
+If ((Test-NetConnection -ComputerName github.com -Port 443).TcpTestSucceeded) {
+	$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1"
+	If ($WebResponseVersion) {
+		$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
+	}
+	If ($WebVersion -gt $EvergreenVersion) {
+		$NewerVersion = $true
+	}
 }
-If ($WebVersion -gt $EvergreenVersion) {
-    $NewerVersion = $true
+ELSE {
+	Write-Host -ForegroundColor Red "Check your internet connection to get updated scripts, server can't reach the GitHub URL!"
+	Write-Output ""
+	
+	$title = ""
+	$message = "Do you want to cancel the installation?"
+	$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
+	$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
+	$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
+	$choice=$host.ui.PromptForChoice($title, $message, $options, 0)
+
+	switch ($choice) {
+		0 {
+		$answer = 'Yes'       
+		}
+		1 {
+		$answer = 'No'
+		}
+	}
+
+	if ($answer -eq 'Yes') {
+		BREAK
+	}
 }
+
 
 Clear-Host
 
@@ -109,7 +136,7 @@ Else {
 				$update = @'
                 Remove-Item -Path "$PSScriptRoot\Evergreen-Software Installer.ps1" -Force 
                 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Installer.ps1")
-				$TempFolder = "$PSScriptRoot\Temp"
+				$TempFolder = "$PSScriptRoot\SoftwareTemp"
 				IF (!(Test-Path $TempFolder)) {
 					New-Item -Path $TempFolder -ItemType Directory
 					}
