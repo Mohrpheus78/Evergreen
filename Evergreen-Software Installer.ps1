@@ -20,7 +20,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 There are no install scripts for VMWare Tools and openJDK yet!
 Run as admin!
-Version: 2.00
+Version: 2.01
 #>
 
 Param (
@@ -62,7 +62,7 @@ else
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "2.00"
+$EvergreenVersion = "2.01"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -82,6 +82,15 @@ Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
 Write-Output ""
 
+
+# Variables
+Write-Host -ForegroundColor Cyan "Setting Variables"
+Write-Output ""
+$SoftwareFolder = ("$PSScriptRoot" + "\" + "Software\")
+$ErrorActionPreference = "Continue"
+$SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername.xml"
+
+# Check version
 Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion
 Is there a newer Evergreen Script version?"
 Write-Output ""
@@ -100,6 +109,16 @@ Else {
 				$update = @'
                 Remove-Item -Path "$PSScriptRoot\Evergreen-Software Installer.ps1" -Force 
                 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Installer.ps1")
+				$TempFolder = "$PSScriptRoot\Temp"
+				IF (!(Test-Path $TempFolder)) {
+					New-Item -Path $TempFolder -ItemType Directory
+					}
+				Invoke-WebRequest -Uri https://github.com/Mohrpheus78/Evergreen/archive/refs/heads/main.zip -OutFile "$TempFolder\Evergreen.zip"
+				Expand-Archive -Path "$TempFolder\Evergreen.zip" -DestinationPath $TempFolder
+
+				Get-ChildItem "$TempFolder\Evergreen-main\Software\*.ps1" | Move-Item -Destination $TempFolder -Force
+				Get-ChildItem "$TempFolder\*.ps1" | Copy-Item -Destination "$SoftwareFolder" -Force
+				Remove-Item -Path $TempFolder -Recurse -Force
                 & "$PSScriptRoot\Evergreen-Software Installer.ps1"
 '@
                 $update > "$PSScriptRoot\Update.ps1"
@@ -108,14 +127,6 @@ Else {
 			}
 
 }
-
-Write-Host -ForegroundColor Cyan "Setting Variables"
-Write-Output ""
-
-# Variables
-$SoftwareFolder = ("$PSScriptRoot" + "\" + "Software\")
-$ErrorActionPreference = "Continue"
-$SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername.xml"
 
 # General install logfile
 $Date = $Date = Get-Date -UFormat "%d.%m.%Y"
