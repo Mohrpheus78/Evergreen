@@ -75,6 +75,7 @@ DS_WriteLog "E" "Error while installing Adobe Reader DC x64 Update (error: $($Er
 }
 DS_WriteLog "-" "" $LogFile
 
+<#
 # Adobe Reader DC Font Pack
 Write-Host -ForegroundColor Yellow "Installing Font Pack"
 DS_WriteLog "I" "Installing Font Pack" $LogFile
@@ -84,6 +85,7 @@ try {
 	} catch {
 DS_WriteLog "E" "Error while installing Font Pack (error: $($Error[0]))" $LogFile 
 }
+#>
 
 # Disale update service and scheduled task
 Start-Sleep 5
