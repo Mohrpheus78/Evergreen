@@ -170,7 +170,7 @@ Else {
                 & "$PSScriptRoot\Evergreen-Software Installer.ps1"
 '@
                 $update > "$PSScriptRoot\UpdateInstaller.ps1"
-                & "$PSScriptRoot\Update.ps1"
+                & "$PSScriptRoot\UpdateInstaller.ps1"
                 BREAK
 			}
 
