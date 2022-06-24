@@ -17,8 +17,9 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.03
+Version: 2.04
 06/24: Changed internet connection check, changed version check for several apps
+06/25: Changed internet connection check
 #>
 
 
@@ -56,13 +57,35 @@ else
    }
 # ========================================================================================================================================
 
+
+# FUNCTION Check internet access
+# ========================================================================================================================================
+Function Get-StatusCodeFromWebsite {
+	param($Website)
+	Try {
+    (Invoke-WebRequest -Uri $Website -TimeoutSec 1 -UseBasicParsing).StatusCode
+	}
+	Catch {
+    }
+}
+$Result = Get-StatusCodeFromWebsite -Website github.com
+
+IF($Result -eq 200) {
+	$Internet = "True"
+}
+ELSE {
+    $Internet = "False"
+}
+# ========================================================================================================================================
+
+
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "2.03"
+$EvergreenVersion = "2.04"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-If ((Test-NetConnection -ComputerName github.com).PingSucceeded) {
+If ($Internet -eq "True") {
 	$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1"
 	If ($WebResponseVersion) {
 		$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
@@ -130,13 +153,13 @@ Else {
             If ($AnswerPending -eq "6") {
 				$update = @'
                 Remove-Item -Path "$PSScriptRoot\Evergreen-Software Installer.ps1" -Force 
-                Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Installer.ps1")
+                Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Installer.ps1")
 				$TempFolder = "$PSScriptRoot\SoftwareTemp"
 				IF (!(Test-Path $TempFolder)) {
-					New-Item -Path $TempFolder -ItemType Directory
+					New-Item -Path $TempFolder -ItemType Directory | Out-Null
 					}
 				Invoke-WebRequest -Uri https://github.com/Mohrpheus78/Evergreen/archive/refs/heads/main.zip -OutFile "$TempFolder\Evergreen.zip"
-				Expand-Archive -Path "$TempFolder\Evergreen.zip" -DestinationPath $TempFolder
+				Expand-Archive -Path "$TempFolder\Evergreen.zip" -DestinationPath $TempFolder 
 
 				Get-ChildItem "$TempFolder\Evergreen-main\Software\*.ps1" | Move-Item -Destination $TempFolder -Force
 				Get-ChildItem "$TempFolder\*.ps1" | Copy-Item -Destination "$SoftwareFolder" -Force
