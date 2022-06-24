@@ -49,9 +49,9 @@ DS_WriteLog "-" "" $LogFile
 
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$Greenshot = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Greenshot*"}).DisplayVersion
-IF ($Greenshot -ne $Version) {
+[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+[version]$Greenshot = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Greenshot*"}).DisplayVersion
+IF ($Greenshot -lt $Version) {
 	$Options = @(
                 "/VERYSILENT"
                 "/NORESTART"

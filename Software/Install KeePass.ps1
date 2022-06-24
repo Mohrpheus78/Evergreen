@@ -49,10 +49,10 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$KeePass = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*KeePass*"}).DisplayVersion
+[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+[version]$KeePass = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*KeePass*"}).DisplayVersion
 # IF ($KeePass) {$KeePass = $KeePass -replace ".{2}$"}
-IF ($KeePass -ne $Version) {
+IF ($KeePass -lt $Version) {
 
 # KeePass
 Write-Host -ForegroundColor Yellow "Installing $Product"

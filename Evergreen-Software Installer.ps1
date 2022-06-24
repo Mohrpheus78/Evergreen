@@ -18,7 +18,7 @@ Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the 
 https://github.com/aaronparker/Evergreen
 Run as admin!
 Version: 2.03
-06/24: Changed internet connection check
+06/24: Changed internet connection check, changed version check for several apps
 #>
 
 

@@ -87,9 +87,9 @@ else {
 
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$ImageGlass = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "ImageGlass*"}).DisplayVersion
-IF ($ImageGlass -ne $Version) {
+[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+[version]$ImageGlass = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "ImageGlass*"}).DisplayVersion
+IF ($ImageGlass -lt $Version) {
 	
 # Zoom VDI Host Installation
 Write-Host -ForegroundColor Yellow "Installing $Product"

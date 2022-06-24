@@ -49,10 +49,10 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$FileZilla = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*FileZilla Client*"}).DisplayVersion
+[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+[version]$FileZilla = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*FileZilla Client*"}).DisplayVersion
 # IF ($FileZilla) {$FileZilla = $FileZilla -replace ".{2}$"}
-IF ($FileZilla -ne $Version) {
+IF ($FileZilla -lt $Version) {
 
 # FileZilla
 Write-Host -ForegroundColor Yellow "Installing $Product"

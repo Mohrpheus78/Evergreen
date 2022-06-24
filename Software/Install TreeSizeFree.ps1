@@ -49,10 +49,10 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$Version = $Version.Insert(3,'.')
+[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+[version]$Version = $Version.Insert(3,'.')
 $TreeSize = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*TreeSize*"}).DisplayVersion
-IF ($TreeSize -ne $Version) {
+IF ($TreeSize -lt $Version) {
 
 # Installation Tree Size Free
 Write-Host -ForegroundColor Yellow "Installing $Product"
