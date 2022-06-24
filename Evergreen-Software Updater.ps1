@@ -158,7 +158,7 @@ Else {
                 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Updater.ps1")
                 & "$PSScriptRoot\Evergreen-Software Updater.ps1"
 '@
-                $update > "$PSScriptRoot\Update.ps1"
+                $update > "$PSScriptRoot\UpdateUpdater.ps1"
                 & "$PSScriptRoot\Update.ps1"
                 BREAK
 			}

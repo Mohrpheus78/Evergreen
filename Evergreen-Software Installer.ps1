@@ -169,7 +169,7 @@ Else {
 				Remove-Item -Path $TempFolder -Recurse -Force
                 & "$PSScriptRoot\Evergreen-Software Installer.ps1"
 '@
-                $update > "$PSScriptRoot\Update.ps1"
+                $update > "$PSScriptRoot\UpdateInstaller.ps1"
                 & "$PSScriptRoot\Update.ps1"
                 BREAK
 			}
