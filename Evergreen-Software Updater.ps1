@@ -17,7 +17,8 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.02
+Version: 2.03
+06/24: Changed internet connection check
 #>
 
 
@@ -57,11 +58,11 @@ else
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "2.02"
+$EvergreenVersion = "2.03"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-If ((Test-NetConnection -ComputerName github.com -Port 443).TcpTestSucceeded) {
+If ((Test-NetConnection -ComputerName github.com).PingSucceeded) {
 	$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1"
 	If ($WebResponseVersion) {
 		$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
