@@ -37,6 +37,9 @@ Param (
     
 )
 
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+
 # Do you run the script as admin?
 # ========================================================================================================================================
 $myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
@@ -87,7 +90,6 @@ ELSE {
 $EvergreenVersion = "2.04"
 $WebVersion = ""
 [bool]$NewerVersion = $false
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 If ($Internet -eq "True") {
 	$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1"
 	If ($WebResponseVersion) {
