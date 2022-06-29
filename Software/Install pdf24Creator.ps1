@@ -89,7 +89,7 @@ else {
 
 # Check, if a new version is available
 [version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-[version]$pdf24Creator = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*PDF24*"}).DisplayVersion
+[version]$pdf24Creator = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*PDF24*"}).DisplayVersion | Select-Object -Last 1
 IF ($pdf24Creator -lt $Version) {
 
 

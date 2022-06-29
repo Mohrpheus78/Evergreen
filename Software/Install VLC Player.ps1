@@ -87,10 +87,10 @@ else {
 #========================================================================================================================================
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$VLC = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*VLC*"}).DisplayVersion
+[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+[version]$VLC = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*VLC*"}).DisplayVersion
 IF ($VLC) {$VLC = $VLC -replace ".{2}$"}
-IF ($VLC -ne $Version) {
+IF ($VLC -lt $Version) {
 
 # VLC Player
 Write-Host -ForegroundColor Yellow "Installing $Product"
