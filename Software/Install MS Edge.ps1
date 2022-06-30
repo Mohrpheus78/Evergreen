@@ -108,7 +108,6 @@ $EdgeTasks= (Get-ScheduledTask | Where-Object {$_.TaskName -like "MicrosoftEdge*
 foreach ($Task in $EdgeTasks) {
     Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue | Out-Null
 	} 
-Write-Output ""
 
 # Disable Active Setup
 $EdgeKey = (Get-Childitem -recurse "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components" | Get-Itemproperty | Where-Object { $_  -match 'Edge' }).PSChildName | Select-Object -First 1

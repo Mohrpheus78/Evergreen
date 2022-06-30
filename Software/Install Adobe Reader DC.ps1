@@ -48,7 +48,7 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Adobe Reader Installation
-IF (!(Test-Path -Path "C:\Program Files (x86)\Adobe\Acrobat Reader DC")) {
+IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Adobe Acrobat Reader DC*"})) {
 Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
