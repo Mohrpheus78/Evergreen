@@ -50,7 +50,7 @@ DS_WriteLog "-" "" $LogFile
 
 # Check, if a new version is available
 [version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-[version]$FileZilla = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*FileZilla Client*"}).DisplayVersion
+[version]$FileZilla = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*FileZilla*"}).DisplayVersion
 # IF ($FileZilla) {$FileZilla = $FileZilla -replace ".{2}$"}
 IF ($FileZilla -lt $Version) {
 
