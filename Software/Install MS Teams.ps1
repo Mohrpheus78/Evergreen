@@ -131,7 +131,7 @@ IF (!(Test-Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams"))
 
 # Prevents MS Teams from starting at logon
 Start-Sleep 5
-Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name "Teams" -Force
+Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name "Teams" -Force -EA SilentlyContinue | out-null
 
 # Register Teams add-in for Outlook - https://microsoftteams.uservoice.com/forums/555103-public/suggestions/38846044-fix-the-teams-meeting-addin-for-outlook
 $appDLLs = (Get-ChildItem -Path "${env:ProgramFiles(x86)}\Microsoft\TeamsMeetingAddin" -Include "Microsoft.Teams.AddinLoader.dll" -Recurse).FullName
