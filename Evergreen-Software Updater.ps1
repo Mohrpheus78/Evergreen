@@ -17,10 +17,11 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.05
+Version: 2.06
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
+07/04: Changed Adobe Reader update source (Evergreen)
 #>
 
 
@@ -83,7 +84,7 @@ ELSE {
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "2.05"
+$EvergreenVersion = "2.06"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 If ($Internet -eq "True") {
@@ -1658,7 +1659,7 @@ IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
 	$Product = "Adobe Reader DC MUI"
 	$PackageName = "Adobe_DC_MUI_Update"
 	Try {
-	$Adobe = Get-NevergreenApp -Name AdobeAcrobatReader | Where-Object {$_.Architecture -eq "x86" -and $_.Language -eq "Multi"} -ErrorAction Stop
+	$Adobe = Get-EvergreenApp -Name AdobeAcrobatDC | Where-Object {$_.Architecture -eq "x86" -and $_.Type -eq "ReaderMUI"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product"
 		}
@@ -1697,43 +1698,53 @@ IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
 	}
 }
 
-<#
+
 # Download Adobe Reader DC MUI x64 Update
 IF ($SoftwareSelection.AdobeReaderDCx64_MUI -eq $true) {
-$Product = "Adobe Reader DC x64 MUI"
-$PackageName = "Adobe_DC_MUI_x64_Update"
-$Adobe = Get-NevergreenApp -Name AdobeAcrobatReader | Where-Object {$_.Architecture -eq "x64" -and $_.Language -eq "Multi"}
-$Version = $Adobe.Version
-$URL = $Adobe.uri
-$InstallerType = "msp"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor Green "Update available for $Product"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
-}
-#>
+	$Product = "Adobe Reader DC x64 MUI"
+	$PackageName = "Adobe_DC_MUI_x64_Update"
+	Try {
+		$Adobe = Get-EvergreenApp -Name AdobeAcrobatDC | Where-Object {$_.Architecture -eq "x64" -and $_.Type -eq "ReaderMUI"} -ErrorAction Stop
+		} catch {
+			Write-Warning "Failed to find update of $Product"
+			}
+		$Version = $Adobe.Version
+		$URL = $Adobe.uri
+		$InstallerType = "msp"
+		$Source = "$PackageName" + "." + "$InstallerType"
+		$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+		Write-Host -ForegroundColor Yellow "Download $Product"
+		Write-Host "Download Version: $Version"
+		Write-Host "Current Version: $CurrentVersion"
+		IF ($Version) {
+			IF (!($CurrentVersion -eq $Version)) {
+			Write-Host -ForegroundColor Green "Update available"
+			IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+			$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+			Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
+			Start-Transcript $LogPS | Out-Null
+			New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+			Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+			Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+			#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+			Write-Host "Stop logging"
+			Stop-Transcript | Out-Null
+			Write-Output ""
+			}
+			ELSE {
+			Write-Host -ForegroundColor Yellow "No new version available"
+			Write-Output ""
+			}
+		}
+		ELSE {
+			Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+			Write-Output ""
+		}
+	}
 
 
+<#
 # Download Adobe Reader DC x64 MUI Update
 IF ($SoftwareSelection.AdobeReaderDCx64_MUI -eq $true) {
 	$Product = "Adobe Reader DC x64 MUI"
@@ -1782,6 +1793,7 @@ IF ($SoftwareSelection.AdobeReaderDCx64_MUI -eq $true) {
 		Write-Output ""
 	}
 }
+#>
 
 
 # Download FSLogix
