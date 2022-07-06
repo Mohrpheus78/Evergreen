@@ -20,7 +20,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 There are no install scripts for VMWare Tools and openJDK yet!
 Run as admin!
-Version: 2.09
+Version: 2.10
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -28,6 +28,7 @@ Version: 2.09
 06/30: Changed Adobe Reader check if Reader is already installed, changed TreeSize version check
 06/30: Changed FileZilla version check
 07/04: Suppress error message while removing Teams from run key (if already removed)
+07/06: Citrix WorkspaceApp run keys prevented the app from starting at logon (Current Release)
 #>
 
 Param (
@@ -94,7 +95,7 @@ ELSE {
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "2.09"
+$EvergreenVersion = "2.10"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 If ($Internet -eq "True") {

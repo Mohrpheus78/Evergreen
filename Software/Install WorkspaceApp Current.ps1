@@ -99,8 +99,6 @@ try	{
 	New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Citrix" -Name EnableFTU -Value 0 -PropertyType DWORD -EA SilentlyContinue | Out-Null
 	Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name Redirector -Force -EA SilentlyContinue | Out-Null
 	Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name ConnectionCenter -Force -EA SilentlyContinue | Out-Null
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name InstallHelper -Force -EA SilentlyContinue | Out-Null
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name AnalyticsSrv -Force -EA SilentlyContinue | Out-Null
 	} catch {
 	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 }
