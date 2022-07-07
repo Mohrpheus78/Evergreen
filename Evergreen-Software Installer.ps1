@@ -159,7 +159,7 @@ If ($NewerVersion -eq $false) {
 }
 Else {
         # There is a new Evergreen Script Version
-        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer, please download the new file and check the other installer scripts!"
+        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer!"
         Write-Output ""
 		$wshell = New-Object -ComObject Wscript.Shell
             $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
