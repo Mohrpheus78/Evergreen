@@ -20,7 +20,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 There are no install scripts for VMWare Tools and openJDK yet!
 Run as admin!
-Version: 2.9
+Version: 2.9.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -95,13 +95,13 @@ ELSE {
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-$EvergreenVersion = "2.9"
+[version]$EvergreenVersion = "2.9.1"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 If ($Internet -eq "True") {
 	$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1"
 	If ($WebResponseVersion) {
-		$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
+		[version]$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
 	}
 	If ($WebVersion -gt $EvergreenVersion) {
 		$NewerVersion = $true
