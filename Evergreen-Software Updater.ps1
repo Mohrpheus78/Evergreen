@@ -17,11 +17,12 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.6
+Version: 2.6.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
 07/04: Changed Adobe Reader update source (Evergreen)
+07/25: Changed version check from pdf24Creator
 #>
 
 
@@ -84,7 +85,7 @@ ELSE {
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-[version]$EvergreenVersion = "2.6"
+[version]$EvergreenVersion = "2.6.1"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 If ($Internet -eq "True") {
@@ -1155,25 +1156,24 @@ IF ($SoftwareSelection.pdf24Creator -eq $true) {
 	Try {
 	$URLVersion = "https://creator.pdf24.org/listVersions.php"
 	$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-	$regexAppVersion = "pdf24-creator-.*"
-	$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-	$Version = $webVersion.Split("-")[2]
-	$Version = $Version.Split("exe")[0]
-	$Version = $Version.Split("\.")
-	$VersionTable = $webVersion.Trim("</td>").Trim("</td>")
-	$Version = $Version[0] + "." + $Version[1] + "." + $Version[2]
-	$URL = "https://creator.pdf24.org/download/pdf24-creator-" + "$Version" + ".msi"
+	$regexAppVersionPDF2 = "\d\d\.\d\.\d+"
+    $webVersionPDF24 = $webRequest.RawContent | Select-String -Pattern $regexAppVersionPDF2 -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+    [version]$VersionPDF24 = $webVersionPDF24
+    $regexAppVersionDL = "pdf24-creator-.*.msi"
+    $webVersionPDF24 = $webRequest.RawContent | Select-String -Pattern $regexAppVersionDL -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+    $VersionPDF24DL = $webVersionPDF24.Split('"<')[0]
+    $URL = "https://creator.pdf24.org/download/$VersionPDF24DL"
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
-	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	[version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"
-	Write-Host "Download Version: $Version"
+	Write-Host "Download Version: $VersionPDF24"
 	Write-Host "Current Version: $CurrentVersion"
-	IF ($Version) {
-		IF (!($CurrentVersion -eq $Version)) {
+	IF ($VersionPDF24) {
+		IF ($VersionPDF24 -gt $CurrentVersion) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
@@ -1183,7 +1183,7 @@ IF ($SoftwareSelection.pdf24Creator -eq $true) {
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 		#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $appx64URL -File ("$SoftwareFolder\$Product\" + ($Source))
 		Write-Host "Stop logging"
 		Stop-Transcript | Out-Null
 		Write-Output ""
