@@ -23,7 +23,7 @@ Version: 2.6.2
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
 07/04: Changed Adobe Reader update source (Evergreen)
 07/25: Changed version check from pdf24Creator
-07/27: Wrong URL for pdf24Creator, please remove all files from pdf24Creator folder before launching Updater again!
+07/27: Wrong URL for pdf24Creator, please remove all files from pdf24Creator folder before launching Updater again! Changed Citrix WorkspaceApp version check and always install MS Edge WebView updates, changed Adobe DC update check
 #>
 
 
@@ -1177,12 +1177,12 @@ IF ($SoftwareSelection.pdf24Creator -eq $true) {
 		IF ($VersionPDF24 -gt $CurrentVersion) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionPDF24.log"
 		Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, *.log, Version.txt, Download* -Recurse
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionPDF24"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionPDF24"
 		#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 		Write-Host "Stop logging"

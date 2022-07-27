@@ -63,6 +63,10 @@ DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile
 Write-Host -ForegroundColor Green "...ready"
 Write-Output ""
 
+# Check, if a new version is available
+[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+[version]$Adobe = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Adobe Acrobat Reader*"}).DisplayVersion
+IF ($Adobe -lt $Version) {
 # Adobe Reader DC Update
 Write-Host -ForegroundColor Yellow "Installing Adobe Reader DC Update"
 DS_WriteLog "I" "Installing Adobe Reader DC Update" $LogFile
@@ -81,3 +85,10 @@ Set-Service AdobeARMservice -StartupType Disabled
 Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
 Write-Host -ForegroundColor Green "...ready"
 Write-Output ""
+}
+
+# Stop, if no new version is available
+Else {
+Write-Host "No Update available for $Product"
+Write-Output ""
+}
