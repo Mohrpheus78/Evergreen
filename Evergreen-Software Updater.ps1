@@ -17,12 +17,13 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.6.1
+Version: 2.6.2
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
 07/04: Changed Adobe Reader update source (Evergreen)
 07/25: Changed version check from pdf24Creator
+07/27: Wrong URL for pdf24Creator, please remove all files from pdf24Creator folder before launching Updater again!
 #>
 
 
@@ -85,7 +86,7 @@ ELSE {
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-[version]$EvergreenVersion = "2.6.1"
+[version]$EvergreenVersion = "2.6.2"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 If ($Internet -eq "True") {
@@ -1162,7 +1163,7 @@ IF ($SoftwareSelection.pdf24Creator -eq $true) {
     $regexAppVersionDL = "pdf24-creator-.*.msi"
     $webVersionPDF24 = $webRequest.RawContent | Select-String -Pattern $regexAppVersionDL -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
     $VersionPDF24DL = $webVersionPDF24.Split('"<')[0]
-    $URL = "https://creator.pdf24.org/download/$VersionPDF24DL"
+    $URL = "https://download.pdf24.org/$VersionPDF24DL"
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
@@ -1183,7 +1184,7 @@ IF ($SoftwareSelection.pdf24Creator -eq $true) {
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 		#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-		Get-FileFromWeb -Url $appx64URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 		Write-Host "Stop logging"
 		Stop-Transcript | Out-Null
 		Write-Output ""
