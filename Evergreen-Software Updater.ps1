@@ -17,13 +17,14 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.6.2
+Version: 2.6.3
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
 07/04: Changed Adobe Reader update source (Evergreen)
 07/25: Changed version check from pdf24Creator
 07/27: Wrong URL for pdf24Creator, please remove all files from pdf24Creator folder before launching Updater again! Changed Citrix WorkspaceApp version check and always install MS Edge WebView updates, changed Adobe DC update check
+11/21: Changed RemoteDesktopManager URL
 #>
 
 
@@ -86,7 +87,7 @@ ELSE {
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-[version]$EvergreenVersion = "2.6.2"
+[version]$EvergreenVersion = "2.6.3"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 If ($Internet -eq "True") {
@@ -1112,7 +1113,7 @@ IF ($SoftwareSelection.RemoteDesktopManager -eq $true) {
 	$regexAppVersionRDM = "\d\d\d\d\.\d\.\d\d\.\d+"
 	$webVersionRDM = $webRequestRDM.RawContent | Select-String -Pattern $regexAppVersionRDM -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
 	[Version]$VersionRDM = $webVersionRDM.Trim("</td>").Trim("</td>")
-	$URL = "https://cdn.devolutions.net/download/Setup.RemoteDesktopManagerFree.$VersionRDM.msi"
+	$URL = "https://cdn.devolutions.net/download/Setup.RemoteDesktopManager.$VersionRDM.msi"
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
