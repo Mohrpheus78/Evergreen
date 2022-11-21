@@ -52,7 +52,7 @@ DS_WriteLog "-" "" $LogFile
 $Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 $Version = $Version.Insert(3,'.')
 $Version = [version]$Version
-$TreeSize = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*TreeSize*"}).DisplayVersion
+$TreeSize = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*TreeSize*"}).DisplayVersion
 IF ($TreeSize -lt $Version) {
 
 # Installation Tree Size Free
