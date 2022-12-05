@@ -89,75 +89,81 @@ else {
 #========================================================================================================================================
 
 # Check, if a new version is available
-[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-[version]$Teams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).DisplayVersion
-# IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
-IF ($Teams -lt $Version) {
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	[version]$Teams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).DisplayVersion
+	# IF ($Teams) {$Teams = $Teams.Insert(5,'0')}
+	IF ($Teams -lt $Version) {
 
-#Uninstalling MS Teams
-IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where DisplayName -like "*Teams Machine*") {
-Write-Host -ForegroundColor Yellow "Uninstalling $Product"
-DS_WriteLog "I" "Uninstalling $Product" $LogFile
-try {
-    $UninstallTeams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).UninstallString
-	$UninstallTeams = $UninstallTeams -Replace("MsiExec.exe /I","")
-	Start-Process -FilePath msiexec.exe -ArgumentList "/X $UninstallTeams /qn" -wait
-	Start-Sleep 25
-    } catch {
-DS_WriteLog "E" "Ein Fehler ist aufgetreten beim Deinstallieren von $Product (error: $($Error[0]))" $LogFile       
-}
-DS_WriteLog "-" "" $LogFile
-Write-Host -ForegroundColor Green " ...ready!" 
-Write-Output ""
-}
-
-# MS Teams Installation
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try {
-    "$PSScriptRoot\$Product\Teams_windows_x64.msi" | Install-MSIFile
-	} catch {
-DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-}
-DS_WriteLog "-" "" $LogFile
-
-# Configure Teams Settings with json template
-IF (!(Test-Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams"))
-	{
-	New-Item -ItemType Directory -Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams" | out-null
-	Write-Host -ForegroundColor Cyan "Default Teams settings configured for Default User profile, please check settings!"
-	copy-item -Path "$PSScriptRoot\$Product\desktop-config.json" -Destination "C:\Users\Default\AppData\Roaming\Microsoft\Teams\desktop-config.json"
+	#Uninstalling MS Teams
+	IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where DisplayName -like "*Teams Machine*") {
+	Write-Host -ForegroundColor Yellow "Uninstalling $Product"
+	DS_WriteLog "I" "Uninstalling $Product" $LogFile
+	try {
+		$UninstallTeams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).UninstallString
+		$UninstallTeams = $UninstallTeams -Replace("MsiExec.exe /I","")
+		Start-Process -FilePath msiexec.exe -ArgumentList "/X $UninstallTeams /qn" -wait
+		Start-Sleep 25
+		} catch {
+	DS_WriteLog "E" "Ein Fehler ist aufgetreten beim Deinstallieren von $Product (error: $($Error[0]))" $LogFile       
+	}
+	DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green " ...ready!" 
+	Write-Output ""
 	}
 
-# Prevents MS Teams from starting at logon
-Start-Sleep 5
-Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name "Teams" -Force -EA SilentlyContinue | out-null
+	# MS Teams Installation
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try {
+		"$PSScriptRoot\$Product\Teams_windows_x64.msi" | Install-MSIFile
+		} catch {
+	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+	}
+	DS_WriteLog "-" "" $LogFile
 
-# Register Teams add-in for Outlook - https://microsoftteams.uservoice.com/forums/555103-public/suggestions/38846044-fix-the-teams-meeting-addin-for-outlook
-$appDLLs = (Get-ChildItem -Path "${env:ProgramFiles(x86)}\Microsoft\TeamsMeetingAddin" -Include "Microsoft.Teams.AddinLoader.dll" -Recurse).FullName
-$appX64DLL = $appDLLs[0]
-$appX86DLL = $appDLLs[1]
-Start-Process "$env:WinDir\SysWOW64\regsvr32.exe" -ArgumentList "/s /n /i:user `"$appX64DLL`"" -wait
-Start-Process "$env:WinDir\SysWOW64\regsvr32.exe" -ArgumentList "/s /n /i:user `"$appX86DLL`"" -wait
-	
-# Register Teams as the chat app for Office
-$(
-New-Item -Path "HKLM:\SOFTWARE\IM Providers\Teams" -Force
-New-Item -Path "HKLM:\SOFTWARE\WOW6432Node\IM Providers\Teams" -Force
-New-ItemProperty -Path "HKLM:\SOFTWARE\IM Providers\Teams" -Name "FriendlyName" -Type "String" -Value "Microsoft Teams"
-New-ItemProperty -Path "HKLM:\SOFTWARE\IM Providers\Teams" -Name "GUID" -Type "String" -Value "{00425F68-FFC1-445F-8EDF-EF78B84BA1C7}"
-New-ItemProperty -Path "HKLM:\SOFTWARE\IM Providers\Teams" -Name "ProcessName" -Type "String" -Value "Teams.exe"
-New-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\IM Providers\Teams" -Name "FriendlyName" -Type "String" -Value "Microsoft Teams"
-New-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\IM Providers\Teams" -Name "GUID" -Type "String" -Value "{00425F68-FFC1-445F-8EDF-EF78B84BA1C7}"
-New-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\IM Providers\Teams" -Name "ProcessName" -Type "String" -Value "Teams.exe"
-) | Out-Null
+	# Configure Teams Settings with json template
+	IF (!(Test-Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams"))
+		{
+		New-Item -ItemType Directory -Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams" | out-null
+		Write-Host -ForegroundColor Cyan "Default Teams settings configured for Default User profile, please check settings!"
+		copy-item -Path "$PSScriptRoot\$Product\desktop-config.json" -Destination "C:\Users\Default\AppData\Roaming\Microsoft\Teams\desktop-config.json"
+		}
 
-Write-Host -ForegroundColor Green " ...ready!" 
-Write-Output ""
+	# Prevents MS Teams from starting at logon
+	Start-Sleep 5
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name "Teams" -Force -EA SilentlyContinue | out-null
+
+	# Register Teams add-in for Outlook - https://microsoftteams.uservoice.com/forums/555103-public/suggestions/38846044-fix-the-teams-meeting-addin-for-outlook
+	$appDLLs = (Get-ChildItem -Path "${env:ProgramFiles(x86)}\Microsoft\TeamsMeetingAddin" -Include "Microsoft.Teams.AddinLoader.dll" -Recurse).FullName
+	$appX64DLL = $appDLLs[0]
+	$appX86DLL = $appDLLs[1]
+	Start-Process "$env:WinDir\SysWOW64\regsvr32.exe" -ArgumentList "/s /n /i:user `"$appX64DLL`"" -wait
+	Start-Process "$env:WinDir\SysWOW64\regsvr32.exe" -ArgumentList "/s /n /i:user `"$appX86DLL`"" -wait
+		
+	# Register Teams as the chat app for Office
+	$(
+	New-Item -Path "HKLM:\SOFTWARE\IM Providers\Teams" -Force
+	New-Item -Path "HKLM:\SOFTWARE\WOW6432Node\IM Providers\Teams" -Force
+	New-ItemProperty -Path "HKLM:\SOFTWARE\IM Providers\Teams" -Name "FriendlyName" -Type "String" -Value "Microsoft Teams"
+	New-ItemProperty -Path "HKLM:\SOFTWARE\IM Providers\Teams" -Name "GUID" -Type "String" -Value "{00425F68-FFC1-445F-8EDF-EF78B84BA1C7}"
+	New-ItemProperty -Path "HKLM:\SOFTWARE\IM Providers\Teams" -Name "ProcessName" -Type "String" -Value "Teams.exe"
+	New-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\IM Providers\Teams" -Name "FriendlyName" -Type "String" -Value "Microsoft Teams"
+	New-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\IM Providers\Teams" -Name "GUID" -Type "String" -Value "{00425F68-FFC1-445F-8EDF-EF78B84BA1C7}"
+	New-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\IM Providers\Teams" -Name "ProcessName" -Type "String" -Value "Teams.exe"
+	) | Out-Null
+
+	Write-Host -ForegroundColor Green " ...ready!" 
+	Write-Output ""
+	}
+
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
 }
-
-# Stop, if no new version is available
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

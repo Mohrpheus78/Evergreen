@@ -92,27 +92,33 @@ else {
 
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-Write-Host $Version
-$CitrixTools = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Hypervisor*"}).DisplayVersion
-IF ($CitrixTools) {$CitrixTools = $CitrixTools.Insert(4,'0.')}
-IF ($CitrixTools -ne $Version) {
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	Write-Host $Version
+	$CitrixTools = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Hypervisor*"}).DisplayVersion
+	IF ($CitrixTools) {$CitrixTools = $CitrixTools.Insert(4,'0.')}
+	IF ($CitrixTools -ne $Version) {
 
-# Citrix Hypervisor Tools Installation
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try {
-	"$PSScriptRoot\$Product\managementagentx64.msi" | Install-MSIFile
-	} catch {
-DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
-copy-item $LogFile "$PSScriptRoot\_Install Logs" 
-}
-Write-Host -ForegroundColor Green "...ready"
-Write-Output ""
-}
+	# Citrix Hypervisor Tools Installation
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try {
+		"$PSScriptRoot\$Product\managementagentx64.msi" | Install-MSIFile
+		} catch {
+	DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
+	copy-item $LogFile "$PSScriptRoot\_Install Logs" 
+	}
+	Write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
+	}
 
-# Stop, if no new version is available
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
+}
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

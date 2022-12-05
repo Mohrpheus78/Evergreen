@@ -49,35 +49,41 @@ DS_WriteLog "-" "" $LogFile
 
 
 # Check, if a new version is available
-[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-[version]$Greenshot = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Greenshot*"}).DisplayVersion
-IF ($Greenshot -lt $Version) {
-	$Options = @(
-                "/VERYSILENT"
-                "/NORESTART"
-                "/NORESTARTAPPLICATIONS"
-                "/SUPPRESSMSGBOXES"
-				"/LOADINF=Greenshot.inf"
-            )
-	
-# Greenshot Installation
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try {
-	$inst = Start-Process -FilePath "$PSScriptRoot\$Product\Greenshot.exe" -ArgumentList $Options -PassThru -ErrorAction Stop
-		If ($inst) {
-		Wait-Process -InputObject $inst
-		Write-Host -ForegroundColor Green "...ready"
-		}
-	} catch {
-DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
-copy-item $LogFile "$PSScriptRoot\_Install Logs" 
-}
-Write-Output ""
-}
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	[version]$Greenshot = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Greenshot*"}).DisplayVersion
+	IF ($Greenshot -lt $Version) {
+		$Options = @(
+					"/VERYSILENT"
+					"/NORESTART"
+					"/NORESTARTAPPLICATIONS"
+					"/SUPPRESSMSGBOXES"
+					"/LOADINF=Greenshot.inf"
+				)
+		
+	# Greenshot Installation
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try {
+		$inst = Start-Process -FilePath "$PSScriptRoot\$Product\Greenshot.exe" -ArgumentList $Options -PassThru -ErrorAction Stop
+			If ($inst) {
+			Wait-Process -InputObject $inst
+			Write-Host -ForegroundColor Green "...ready"
+			}
+		} catch {
+	DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
+	copy-item $LogFile "$PSScriptRoot\_Install Logs" 
+	}
+	Write-Output ""
+	}
 
-# Stop, if no new version is available
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
+}
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

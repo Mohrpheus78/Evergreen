@@ -87,27 +87,33 @@ else {
 #========================================================================================================================================
 
 # Check, if a new version is available
-[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-[version]$deviceTRUST = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*deviceTrust*"}).DisplayVersion
-IF ($deviceTRUST -lt $Version) {
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	[version]$deviceTRUST = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*deviceTrust*"}).DisplayVersion
+	IF ($deviceTRUST -lt $Version) {
 
-# deviceTRUST
-write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try {
-	$msi = (Get-ChildItem -Path "$PSScriptRoot\$Product" | where Name -like "*dtagent-x64*").Name
-	"$PSScriptRoot\$Product\$msi" | Install-MSIFile
-	} catch {
-DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-}
-DS_WriteLog "-" "" $LogFile
-write-Host -ForegroundColor Green "...ready"
-Write-Host -ForegroundColor Red "Server needs to reboot after installation!"
-Write-Output ""
-}
+	# deviceTRUST
+	write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try {
+		$msi = (Get-ChildItem -Path "$PSScriptRoot\$Product" | where Name -like "*dtagent-x64*").Name
+		"$PSScriptRoot\$Product\$msi" | Install-MSIFile
+		} catch {
+	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+	}
+	DS_WriteLog "-" "" $LogFile
+	write-Host -ForegroundColor Green "...ready"
+	Write-Host -ForegroundColor Red "Server needs to reboot after installation!"
+	Write-Output ""
+	}
 
-# Stop, if no new version is available
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
+}
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

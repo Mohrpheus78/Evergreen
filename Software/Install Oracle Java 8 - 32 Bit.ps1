@@ -48,31 +48,39 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$Java = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Java*"}).InstallLocation
-$Java = $Java.TrimEnd('\') -replace "C:\\Program Files \(x86\)\\Java\\jre",""
-IF ($Java -ne $Version) {
-
-# Oracle Java 8
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try	{
-	Start-Process "$PSScriptRoot\$Product\Oracle Java 8 x86.exe" –ArgumentList 'INSTALL_SILENT=1 STATIC=0 AUTO_UPDATE=0 WEB_JAVA=1 WEB_JAVA_SECURITY_LEVEL=M WEB_ANALYTICS=0 EULA=0 REBOOT=0 SPONSORS=0 REMOVEOUTOFDATEJRES=1' –NoNewWindow -Wait
-	REG ADD "HKLM\SOFTWARE\JavaSoft\Java Update\Policy" /v EnableJavaUpdate /t REG_DWORD /d 0 /f | Out-Null
-	REG ADD "HKLM\SOFTWARE\JavaSoft\Java Update\Policy" /v EnableAutoUpdateCheck /t REG_DWORD /d 0 /f | Out-Null
-	REG ADD "HKLM\SOFTWARE\JavaSoft\Java Update\Policy" /v NotifyDownload /t REG_DWORD /d 0 /f | Out-Null
-	REG ADD "HKLM\SOFTWARE\JavaSoft\Java Update\Policy" /v NotifyInstall /t REG_DWORD /d 0 /f | Out-Null
-	REG DELETE "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Run" /v SunJavaUpdateSched /f | Out-Null
-	} catch {
-DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	$Java32 = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Java 8*Update*"}).InstallLocation
+	IF ($Java32 -ne $null) {
+	$Java32 = $Java32.TrimEnd('\') -replace "C:\\Program Files \(x86\)\\Java\\jre",""
+	$Java32 = $Java32 -replace "_","."
+	[version]$Java32 = [string]$Java32
+	}
+	IF ($Java32 -lt $Version) {
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try	{
+		Start-Process "$PSScriptRoot\$Product\Oracle Java 8 x86.exe" –ArgumentList 'INSTALL_SILENT=1 STATIC=0 AUTO_UPDATE=0 WEB_JAVA=1 WEB_JAVA_SECURITY_LEVEL=M WEB_ANALYTICS=0 EULA=0 REBOOT=0 SPONSORS=0 REMOVEOUTOFDATEJRES=1' –NoNewWindow -Wait
+		REG ADD "HKLM\SOFTWARE\JavaSoft\Java Update\Policy" /v EnableJavaUpdate /t REG_DWORD /d 0 /f | Out-Null
+		REG ADD "HKLM\SOFTWARE\JavaSoft\Java Update\Policy" /v EnableAutoUpdateCheck /t REG_DWORD /d 0 /f | Out-Null
+		REG ADD "HKLM\SOFTWARE\JavaSoft\Java Update\Policy" /v NotifyDownload /t REG_DWORD /d 0 /f | Out-Null
+		REG ADD "HKLM\SOFTWARE\JavaSoft\Java Update\Policy" /v NotifyInstall /t REG_DWORD /d 0 /f | Out-Null
+		REG DELETE "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Run" /v SunJavaUpdateSched /f | Out-Null
+		} catch {
+	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+	}
+	DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green " ...fertig!"
+	Write-Output ""
+	}
+	
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
 }
-DS_WriteLog "-" "" $LogFile
-Write-Host -ForegroundColor Green " ...fertig!"
-Write-Output ""
-}
-
-# Stop, if no new version is available
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

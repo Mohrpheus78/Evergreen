@@ -48,29 +48,35 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Check, if a new version is available
-[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-[version]$MS365Apps = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Office * 2021*"}).DisplayVersion | Select-Object -First 1
-[version]$MS365Apps = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Office * 2021*"}).DisplayVersion | Select-Object -First 1
-IF ($MS365Apps -lt $Version) {
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	[version]$MS365Apps = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Office * 2021*"}).DisplayVersion | Select-Object -First 1
+	[version]$MS365Apps = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Office * 2021*"}).DisplayVersion | Select-Object -First 1
+	IF ($MS365Apps -lt $Version) {
 
-# Installation MS 365 Apps-Semi Annual Channel
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try	{
-	$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
-	if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
-		Write-Host -ForegroundColor DarkRed "Achtung! Keine Configuration.xml Datei gefunden, Office kann nicht installiert werden! Bitte eine XML Datei erstellen!" }
-	else {
-		  $InstallArgs = "/Configure `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
-		  Start-Process "$SoftwareFolder\$Product\setup.exe" -ArgumentList $InstallArgs -NoNewWindow -Wait
-		  Sleep -Seconds 5
-		  Stop-Process -Name "OfficeC2RClient"
-		  }
-	} catch {
-DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+	# Installation MS 365 Apps-Semi Annual Channel
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try	{
+		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
+		if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+			Write-Host -ForegroundColor DarkRed "Achtung! Keine Configuration.xml Datei gefunden, Office kann nicht installiert werden! Bitte eine XML Datei erstellen!" }
+		else {
+			  $InstallArgs = "/Configure `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
+			  Start-Process "$SoftwareFolder\$Product\setup.exe" -ArgumentList $InstallArgs -NoNewWindow -Wait
+			  Sleep -Seconds 5
+			  Stop-Process -Name "OfficeC2RClient"
+			  }
+		} catch {
+	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+	}
+	DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
+	}
 }
-DS_WriteLog "-" "" $LogFile
-Write-Host -ForegroundColor Green "...ready"
+Else {
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }
 

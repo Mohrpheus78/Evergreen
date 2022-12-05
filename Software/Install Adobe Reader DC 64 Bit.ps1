@@ -67,43 +67,49 @@ Write-Output ""
 }
 
 # Check, if a new version is available
-[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-[version]$Adobe = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Adobe Acrobat DC*"}).DisplayVersion
-IF ($Adobe -lt $Version) {
-# Adobe Reader DC Update
-Write-Host -ForegroundColor Yellow "Installing Adobe Reader DC x64 Update"
-DS_WriteLog "I" "Installing Adobe Reader DC x64 Update" $LogFile
-try {
-	$mspArgs = "/P `"$PSScriptRoot\$Product\Adobe_DC_MUI_x64_Update.msp`" /quiet /qn"
-	Start-Process -FilePath msiexec.exe -ArgumentList $mspArgs -Wait	
-	} catch {
-DS_WriteLog "E" "Error while installing Adobe Reader DC x64 Update (error: $($Error[0]))" $LogFile       
-}
-DS_WriteLog "-" "" $LogFile
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	[version]$Adobe = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Adobe Acrobat DC*"}).DisplayVersion
+	IF ($Adobe -lt $Version) {
+	# Adobe Reader DC Update
+	Write-Host -ForegroundColor Yellow "Installing Adobe Reader DC x64 Update"
+	DS_WriteLog "I" "Installing Adobe Reader DC x64 Update" $LogFile
+	try {
+		$mspArgs = "/P `"$PSScriptRoot\$Product\Adobe_DC_MUI_x64_Update.msp`" /quiet /qn"
+		Start-Process -FilePath msiexec.exe -ArgumentList $mspArgs -Wait	
+		} catch {
+	DS_WriteLog "E" "Error while installing Adobe Reader DC x64 Update (error: $($Error[0]))" $LogFile       
+	}
+	DS_WriteLog "-" "" $LogFile
 
-<#
-# Adobe Reader DC Font Pack
-Write-Host -ForegroundColor Yellow "Installing Font Pack"
-DS_WriteLog "I" "Installing Font Pack" $LogFile
-try {
-	$msiArgs = "/I `"$PSScriptRoot\$Product\Font Pack\AcroRdrALSDx64_2200120085_all_DC.msi`"/quiet /qn"
-	Start-Process -FilePath msiexec.exe -ArgumentList $msiArgs -Wait
-	} catch {
-DS_WriteLog "E" "Error while installing Font Pack (error: $($Error[0]))" $LogFile 
-}
-#>
+	<#
+	# Adobe Reader DC Font Pack
+	Write-Host -ForegroundColor Yellow "Installing Font Pack"
+	DS_WriteLog "I" "Installing Font Pack" $LogFile
+	try {
+		$msiArgs = "/I `"$PSScriptRoot\$Product\Font Pack\AcroRdrALSDx64_2200120085_all_DC.msi`"/quiet /qn"
+		Start-Process -FilePath msiexec.exe -ArgumentList $msiArgs -Wait
+		} catch {
+	DS_WriteLog "E" "Error while installing Font Pack (error: $($Error[0]))" $LogFile 
+	}
+	#>
 
-# Disale update service and scheduled task
-Start-Sleep 5
-Stop-Service AdobeARMservice
-Set-Service AdobeARMservice -StartupType Disabled
-Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
-Write-Host -ForegroundColor Green "...ready"
-Write-Output ""
-}
+	# Disale update service and scheduled task
+	Start-Sleep 5
+	Stop-Service AdobeARMservice
+	Set-Service AdobeARMservice -StartupType Disabled
+	Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
+	Write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
+	}
 
-# Stop, if no new version is available
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
+}
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

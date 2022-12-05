@@ -87,25 +87,31 @@ else {
 
 
 # Check, if a new version is available
-[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-[version]$ImageGlass = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "ImageGlass*"}).DisplayVersion
-IF ($ImageGlass -lt $Version) {
-	
-# Zoom VDI Host Installation
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try {
-	"$PSScriptRoot\$Product\ImageGlass.msi" | Install-MSIFile
-	} catch {
-DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
-copy-item $LogFile "$PSScriptRoot\_Install Logs" 
-}
-Write-Host -ForegroundColor Green "...ready"
-Write-Output ""
-}
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	[version]$ImageGlass = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "ImageGlass*"}).DisplayVersion
+	IF ($ImageGlass -lt $Version) {
+		
+	# Zoom VDI Host Installation
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try {
+		"$PSScriptRoot\$Product\ImageGlass.msi" | Install-MSIFile
+		} catch {
+	DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
+	copy-item $LogFile "$PSScriptRoot\_Install Logs" 
+	}
+	Write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
+	}
 
-# Stop, if no new version is available
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
+}
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

@@ -48,32 +48,38 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Check, if a new version is available
-[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-[version]$Adobe = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Adobe Acrobat Reader*"}).DisplayVersion
-IF ($Adobe -lt $Version) {
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	[version]$Adobe = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Adobe Acrobat Reader*"}).DisplayVersion
+	IF ($Adobe -lt $Version) {
 
-# Adobe Reader DC Update
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try {
-	$mspArgs = "/P `"$PSScriptRoot\$Product\Adobe_DC_MUI_Update.msp`" /quiet /qn"
-	Start-Process -FilePath msiexec.exe -ArgumentList $mspArgs -Wait
-	} catch {
-DS_WriteLog "E" "Error installinng $Product (error: $($Error[0]))" $LogFile       
+	# Adobe Reader DC Update
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try {
+		$mspArgs = "/P `"$PSScriptRoot\$Product\Adobe_DC_MUI_Update.msp`" /quiet /qn"
+		Start-Process -FilePath msiexec.exe -ArgumentList $mspArgs -Wait
+		} catch {
+	DS_WriteLog "E" "Error installinng $Product (error: $($Error[0]))" $LogFile       
+	}
+	DS_WriteLog "-" "" $LogFile
+
+	# Disale update service and scheduled task
+	Start-Sleep 5
+	Stop-Service AdobeARMservice
+	Set-Service AdobeARMservice -StartupType Disabled
+	Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
+	write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
+	}
+
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
 }
-DS_WriteLog "-" "" $LogFile
-
-# Disale update service and scheduled task
-Start-Sleep 5
-Stop-Service AdobeARMservice
-Set-Service AdobeARMservice -StartupType Disabled
-Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
-write-Host -ForegroundColor Green "...ready"
-Write-Output ""
-}
-
-# Stop, if no new version is available
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

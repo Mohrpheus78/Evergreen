@@ -5,17 +5,18 @@
 
 <#
 .SYNOPSIS
-This script installs Google Chrome on a MCS/PVS master server/client or wherever you want.
+This script installs VMWare Tools Apps on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
-package it gets installed. 
+package it will be first uninstalled after that it gets installed. 
 The script compares the software version and will install or update the software. A log file will be created in the 'Install Logs' folder. 
 
 .EXAMPLE
 
 .NOTES
 Always call this script with the Software Installer script!
+Needs a reboot, call a second time after reboot.
 #>
 
 
@@ -25,11 +26,11 @@ $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "Google Chrome"
+$Product = "VMWare Tools"
 
 #========================================================================================================================================
 # Logging
-$BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of your log directory here
+$BaseLogDir = "$PSScriptRoot\_Install Logs" # [edit] add the location of your log directory here
 $PackageName = "$Product" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
@@ -48,65 +49,25 @@ DS_WriteLog "I" "START SCRIPT - $PackageName" $LogFile
 DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
-
-# FUNCTION MSI Installation
-#========================================================================================================================================
-function Install-MSIFile {
-
-[CmdletBinding()]
- Param(
-  [parameter(mandatory=$true,ValueFromPipeline=$true,ValueFromPipelinebyPropertyName=$true)]
-        [ValidateNotNullorEmpty()]
-        [string]$msiFile,
-
-        [parameter()]
-        [ValidateNotNullorEmpty()]
-        [string]$targetDir
- )
-if (!(Test-Path $msiFile)){
-    throw "Path to MSI file ($msiFile) is invalid. Please check name and path"
-}
-$arguments = @(
-    "/i"
-    "`"$msiFile`""
-    "/qn"
-)
-if ($targetDir){
-    if (!(Test-Path $targetDir)){
-        throw "Pfad zum Installationsverzeichnis $($targetDir) ist ungültig. Bitte Pfad und Dateinamen überprüfen!"
-    }
-    $arguments += "INSTALLDIR=`"$targetDir`""
-}
-$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -NoNewWindow -PassThru
-if ($process.ExitCode -eq 0){
-    }
-else {
-    Write-Verbose "Installer Exit Code  $($process.ExitCode) für Datei  $($msifile)"
-}
-}
-#========================================================================================================================================
-
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
-	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-	[version]$Chrome = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Google Chrome"}).DisplayVersion
-	IF ($Chrome -lt $Version) {
+	$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	$VMWareTools = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*VMWare Tools*"}).DisplayVersion
+	$VMWareTools = $VMWareTools.substring(0,6)
+	IF ($VMWareTools -ne $Version) {
 
-	# Google Chrome
+	# VMWareTools Install
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
-	try {
-		"$PSScriptRoot\$Product\googlechromestandaloneenterprise64.msi" | Install-MSIFile
+	try	{
+		if (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft Visual C++ 2015-2019*"})) {
+			Write-Host -ForegroundColor Red "Microsoft Visual C++ 2015-2019 Redistributable missing! A reboot is required to install VMWare Tools, call VMWare installer again after reboot!"}
+			Start-Process "$PSScriptRoot\$Product\VMWareTools.exe" -ArgumentList '/S /v "/qn REBOOT=R'  –NoNewWindow -Wait
 		} catch {
 	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 	}
 	DS_WriteLog "-" "" $LogFile
-
-	# Disable scheduled tasks
-	Start-Sleep -s 5
-	Disable-ScheduledTask -TaskName "GoogleUpdateTaskMachineCore" | Out-Null
-	Disable-ScheduledTask -TaskName "GoogleUpdateTaskMachineUA" | Out-Null
-	write-Host -ForegroundColor Green "...ready"
+	Write-Host -ForegroundColor Green "...ready"
 	Write-Output ""
 	}
 

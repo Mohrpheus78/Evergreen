@@ -87,25 +87,51 @@ else {
 
 
 # Check, if a new version is available
-[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-[version]$Putty = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Putty*"}).DisplayVersion
-IF ($Putty -lt $Version) {
-	
-# Putty Installation
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try {
-	"$PSScriptRoot\$Product\Putty.msi" | Install-MSIFile
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	$Putty = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Putty*"}).DisplayVersion
+	$Putty = $Putty -replace ".{4}$"
+	[version]$Putty = [string]$Putty
+	$UninstallPutty = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Putty*"}).UninstallString.replace("MsiExec.exe ","")
+	IF ($Putty -lt $Version) {
+		
+	# Uninstall Putty
+	IF ($Putty -ne $null) {
+	Write-Host -ForegroundColor Yellow "Uninstalling $Product"
+	DS_WriteLog "I" "Uninstalling $Product" $LogFile
+	$args = @(
+	"$UninstallPutty"
+    "/quiet"
+	)
+	try	{
+	Start-process msiexec.exe -ArgumentList $args –NoNewWindow -Wait
 	} catch {
-DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
-copy-item $LogFile "$PSScriptRoot\_Install Logs" 
-}
-Write-Host -ForegroundColor Green "...ready"
-Write-Output ""
-}
+	DS_WriteLog "E" "Error Uninstalling $Product (error: $($Error[0]))" $LogFile       
+	}
+	DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green "...ready"
+	}
+	
+	# Putty Installation
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try {
+		"$PSScriptRoot\$Product\Putty.msi" | Install-MSIFile
+		} catch {
+	DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
+	copy-item $LogFile "$PSScriptRoot\_Install Logs" 
+	}
+	Write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
+	}
 
-# Stop, if no new version is available
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
+}
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

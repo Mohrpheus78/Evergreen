@@ -20,7 +20,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 There are no install scripts for VMWare Tools and openJDK yet!
 Run as admin!
-Version: 2.9.4
+Version: 2.9.5
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -30,7 +30,8 @@ Version: 2.9.4
 07/04: Suppress error message while removing Teams from run key (if already removed)
 07/06: Citrix WorkspaceApp run keys prevented the app from starting at logon (Current Release)
 07/27: Changed Citrix WorkspaceApp version check and always install MS Edge WebView updates, changed Adobe DC update check
-11/21: Wrong CitrixFiles Run registry key to prevent Citrix Files from lauch automtically, changed Adobe Reader 64 Bit install check on target, changed TreeSizeFree install check to 64 Bit
+11/21: Wrong CitrixFiles Run registry key to prevent Citrix Files from lauch automtically
+11/22: Added support for PVS Admin Toolkit, no version check if you run with -noGUI parameter
 #>
 
 Param (
@@ -97,40 +98,42 @@ ELSE {
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-[version]$EvergreenVersion = "2.9.4"
-$WebVersion = ""
-[bool]$NewerVersion = $false
-If ($Internet -eq "True") {
-	$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1"
-	If ($WebResponseVersion) {
-		[version]$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
-	}
-	If ($WebVersion -gt $EvergreenVersion) {
-		$NewerVersion = $true
-	}
-}
-ELSE {
-	Write-Host -ForegroundColor Red "Check your internet connection to get updated scripts, server can't reach the GitHub URL!"
-	Write-Output ""
-	
-	$title = ""
-	$message = "Do you want to cancel the update? The installer scripts may be outdated!"
-	$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
-	$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
-	$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
-	$choice=$host.ui.PromptForChoice($title, $message, $options, 0)
-
-	switch ($choice) {
-		0 {
-		$answer = 'Yes'       
+if ($noGUI -eq $False) {
+	[version]$EvergreenVersion = "2.9.5"
+	$WebVersion = ""
+	[bool]$NewerVersion = $false
+	If ($Internet -eq "True") {
+		$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1"
+		If ($WebResponseVersion) {
+			[version]$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
 		}
-		1 {
-		$answer = 'No'
+		If ($WebVersion -gt $EvergreenVersion) {
+			$NewerVersion = $true
 		}
 	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Check your internet connection to get updated scripts, server can't reach the GitHub URL!"
+		Write-Output ""
+		
+		$title = ""
+		$message = "Do you want to cancel the update? The installer scripts may be outdated!"
+		$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
+		$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
+		$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
+		$choice=$host.ui.PromptForChoice($title, $message, $options, 0)
 
-	if ($answer -eq 'Yes') {
-		BREAK
+		switch ($choice) {
+			0 {
+			$answer = 'Yes'       
+			}
+			1 {
+			$answer = 'No'
+			}
+		}
+
+		if ($answer -eq 'Yes') {
+			BREAK
+		}
 	}
 }
 
@@ -151,9 +154,11 @@ $ErrorActionPreference = "Continue"
 $SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername.xml"
 
 # Check version
-Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion
-Is there a newer Evergreen Script version?"
+if ($noGUI -eq $False) {
+Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion"`n
 Write-Output ""
+Write-Host -Foregroundcolor Cyan "Is there a newer Evergreen Script version?"
+
 If ($NewerVersion -eq $false) {
         # No new version available
         Write-Host -Foregroundcolor Green "OK, script is newest version!"
@@ -186,6 +191,7 @@ Else {
                 BREAK
 			}
 
+}
 }
 
 # General install logfile
@@ -589,7 +595,7 @@ function gui_mode{
 	
 	# OracleJava8 Checkbox
     $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
-    $OracleJava8Box.text = "Oracle Java 8/x86"
+    $OracleJava8Box.text = "Oracle Java 8/x64"
     $OracleJava8Box.width = 95
     $OracleJava8Box.height = 20
     $OracleJava8Box.autosize = $true
@@ -599,7 +605,7 @@ function gui_mode{
 	
 	# OracleJava8-32Bit Checkbox
     $OracleJava8_32Box = New-Object system.Windows.Forms.CheckBox
-    $OracleJava8_32Box.text = "Oracle Java 8/x64"
+    $OracleJava8_32Box.text = "Oracle Java 8/x86"
     $OracleJava8_32Box.width = 95
     $OracleJava8_32Box.height = 20
     $OracleJava8_32Box.autosize = $true
@@ -771,7 +777,7 @@ function gui_mode{
 		$MSEdgeBox.checked = $True
 		$MSOneDriveBox.checked = $True
 		$MSTeamsBox.checked = $True
-		$MSTeamsPrevBox.checked = $True
+		#$MSTeamsPrevBox.checked = $True
 		$MS365AppsBox_SAC.checked = $True
 		$MS365AppsBox_MEC.checked = $True
 		$MSOffice2019Box.checked = $True
@@ -797,7 +803,7 @@ function gui_mode{
 		$ServerVDA_MCS_LTSRBox.checked = $True
 		$ServerVDA_MCS_CRBox.checked = $True
 		$WEM_Agent_PVSBox.checked = $True
-		$WEM_Agent_MCS_PVSBox.checked = $True
+		$WEM_Agent_MCSBox.checked = $True
 		$CitrixFilesBox.checked = $True
         $PuttyBox.checked = $True
         $WinSCPBox.checked = $True
@@ -1071,13 +1077,13 @@ IF ($SoftwareSelection.MSTeams -eq $true)
 	{
 		& "$SoftwareFolder\Install MS Teams.ps1"
 	}
-
+<#
 # Install MS Teams Preview
 IF ($SoftwareSelection.MSTeamsPrev -eq $true)
 	{
 		& "$SoftwareFolder\Install MS Teams-Preview.ps1"
 	}
-	
+#>
 # Install MS 365Apps
 IF ($SoftwareSelection.MS365Apps_SAC -eq $true)
 	{

@@ -89,28 +89,33 @@ else {
 }
 #========================================================================================================================================
 
-
 # Check, if a new version is available
-[version]$Version = Get-Content -Path "$PSScriptRoot\Citrix\$Product\Version.txt"
-[version]$CitrixFiles = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Files*"}).DisplayVersion
-IF ($CitrixFiles -lt $Version) {
-	
-# Citrix Files Installation
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try {
-	"$PSScriptRoot\Citrix\$Product\CitrixFiles.msi" | Install-MSIFile
-	} catch {
-DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile
-Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name CitrixFiles -Force -EA SilentlyContinue | Out-Null
-copy-item $LogFile "$PSScriptRoot\_Install Logs" 
-}
-Write-Host -ForegroundColor Green "...ready"
-Write-Output ""
-}
+IF (Test-Path -Path "$PSScriptRoot\Citrix\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\Citrix\$Product\Version.txt"
+	[version]$CitrixFiles = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Files*"}).DisplayVersion
+	IF ($CitrixFiles -lt $Version) {
+		
+	# Citrix Files Installation
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try {
+		"$PSScriptRoot\Citrix\$Product\CitrixFiles.msi" | Install-MSIFile
+		} catch {
+	DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name CitrixFiles -Force -EA SilentlyContinue | Out-Null
+	copy-item $LogFile "$PSScriptRoot\_Install Logs" 
+	}
+	Write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
+	}
 
-# Stop, if no new version is available
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
+}
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

@@ -87,26 +87,32 @@ else {
 
 
 # Check, if a new version is available
-$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-$ZoomCitrix = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Zoom*Citrix*"}).DisplayVersion
-IF ($ZoomCitrix) {$ZoomCitrix = $ZoomCitrix.Substring(0,5)}
-IF ($ZoomCitrix -ne $Version) {
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	$ZoomCitrix = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Zoom*Citrix*"}).DisplayVersion
+	IF ($ZoomCitrix) {$ZoomCitrix = $ZoomCitrix.Substring(0,5)}
+	IF ($ZoomCitrix -ne $Version) {
 
-# Zoom VDI Host Installation
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try {
-	"$PSScriptRoot\$Product\ZoomCitrixHDXMediaPlugin.msi" | Install-MSIFile
-	} catch {
-DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
-copy-item $LogFile "$PSScriptRoot\_Install Logs" 
-}
-Write-Host -ForegroundColor Green "...ready"
-Write-Output ""
-}
+	# Zoom VDI Host Installation
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try {
+		"$PSScriptRoot\$Product\ZoomCitrixHDXMediaPlugin.msi" | Install-MSIFile
+		} catch {
+	DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
+	copy-item $LogFile "$PSScriptRoot\_Install Logs" 
+	}
+	Write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
+	}
 
-# Stop, if no new version is available
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
+}
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

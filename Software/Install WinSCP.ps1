@@ -48,36 +48,42 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Check, if a new version is available
-[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-[version]$WinSCP = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "WinSCP*"}).DisplayVersion
-IF ($WinSCP -lt $Version) {
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	[version]$WinSCP = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "WinSCP*"}).DisplayVersion
+	IF ($WinSCP -lt $Version) {
 
-# Installation WinSCP
-Write-Host -ForegroundColor Yellow "Installing $Product"
-$arguments = @(
-    "/LOADINF=`"$PSScriptRoot\$Product\WinSCP.inf`""
-	"/VERYSILENT"
-    "/ALLUSERS"
-	)
-DS_WriteLog "I" "WinSCP wird installiert" $LogFile
-try	{
-	Start-Process "$PSScriptRoot\$Product\WinSCP.exe" –ArgumentList $arguments –NoNewWindow -Wait
-	$(
-	Set-ItemProperty -Path "HKCU:\Software\Martin Prikryl\WinSCP 2\Configuration\Interface\Updates" -Name 'ShowOnStartup' -Value 0
-	Set-ItemProperty -Path "HKCU:\Software\Martin Prikryl\WinSCP 2\Configuration\Interface\Updates" -Name 'Period' -Value 0
-	Set-ItemProperty -Path "HKCU:\Software\Martin Prikryl\WinSCP 2\Configuration\Interface\Updates" -Name 'BetaVersions' -Value 1
-	Set-ItemProperty -Path "HKCU:\Software\Martin Prikryl\WinSCP 2\Configuration\Interface" -Name 'CollectUsage' -Value 0
-	) | Out-Null
-	} catch {
-DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-}
-DS_WriteLog "-" "" $LogFile
-Write-Host -ForegroundColor Green " ...ready!" 
-Write-Output ""
-}
+	# Installation WinSCP
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	$arguments = @(
+		"/LOADINF=`"$PSScriptRoot\$Product\WinSCP.inf`""
+		"/VERYSILENT"
+		"/ALLUSERS"
+		)
+	DS_WriteLog "I" "WinSCP wird installiert" $LogFile
+	try	{
+		Start-Process "$PSScriptRoot\$Product\WinSCP.exe" –ArgumentList $arguments –NoNewWindow -Wait
+		$(
+		Set-ItemProperty -Path "HKCU:\Software\Martin Prikryl\WinSCP 2\Configuration\Interface\Updates" -Name 'ShowOnStartup' -Value 0
+		Set-ItemProperty -Path "HKCU:\Software\Martin Prikryl\WinSCP 2\Configuration\Interface\Updates" -Name 'Period' -Value 0
+		Set-ItemProperty -Path "HKCU:\Software\Martin Prikryl\WinSCP 2\Configuration\Interface\Updates" -Name 'BetaVersions' -Value 1
+		Set-ItemProperty -Path "HKCU:\Software\Martin Prikryl\WinSCP 2\Configuration\Interface" -Name 'CollectUsage' -Value 0
+		) | Out-Null
+		} catch {
+	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+	}
+	DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green " ...ready!" 
+	Write-Output ""
+	}
 
-# Stop, if no new version is available
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
+}
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

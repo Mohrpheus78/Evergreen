@@ -49,66 +49,79 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Check, if a new version of MS Edge WebView2 Runtime is available
-[version]$Version = Get-Content -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt"
-[version]$MEWV2RT = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Edge WebView*"}).DisplayVersion
-IF ($MEWV2RT -lt $Version) {
-Write-Host -ForegroundColor Yellow "Installing MS Edge WebView2 Runtime"
-DS_WriteLog "I" "Installing MS Edge WebView2 Runtime" $LogFile
-try	{
-	Start-Process -FilePath "$PSScriptRoot\MS Edge WebView2 Runtime\MicrosoftEdgeWebView2RuntimeInstallerX64.exe" -ArgumentList "/silent /install" –NoNewWindow -wait
-	} catch {
-	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-}
-DS_WriteLog "-" "" $LogFile
-Write-Host -ForegroundColor Green " ...ready!" 
-Write-Output ""
-}
-
-# Check, if a new version is available
-[version]$VersionWSA = Get-Content -Path "$PSScriptRoot\Citrix\WorkspaceApp\Windows\LTSR\Version.txt"
-[version]$WSA = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Workspace*" -and $_.UninstallString -like "*Trolley*"}).DisplayVersion
-IF ($WSA -lt $VersionWSA) {
-# Citrix WSA Installation
-$Options = @(
-"/silent"
-"/EnableCEIP=false"
-"/FORCE_LAA=1"
-"/AutoUpdateCheck=disabled"
-"/EnableCEIP=false"
-"/ALLOWADDSTORE=S"
-"/ALLOWSAVEPWD=S"
-"/includeSSON"
-"/ENABLE_SSON=Yes"
-)
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try	{
-	$inst = Start-Process -FilePath "$PSScriptRoot\Citrix\WorkspaceApp\Windows\LTSR\CitrixWorkspaceAppWeb.exe" -ArgumentList $Options -PassThru -ErrorAction Stop
-	if($inst -ne $null)
-	{
-	Wait-Process -InputObject $inst
+IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt"
+	[version]$MEWV2RT = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Edge WebView*"}).DisplayVersion
+	IF ($MEWV2RT -lt $Version) {
+	Write-Host -ForegroundColor Yellow "Installing MS Edge WebView2 Runtime"
+	DS_WriteLog "I" "Installing MS Edge WebView2 Runtime" $LogFile
+	try	{
+		Start-Process -FilePath "$PSScriptRoot\MS Edge WebView2 Runtime\MicrosoftEdgeWebView2RuntimeInstallerX64.exe" -ArgumentList "/silent /install" –NoNewWindow -wait
+		} catch {
+		DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
 	}
-	#New-Item -Path "HKCU:\SOFTWARE\Citrix\Splashscreen" -EA SilentlyContinue | Out-Null
-	#New-ItemProperty -Path "HKCU:\Software\Citrix\Splashscreen" -Name SplashscrrenShown -Value 1 -PropertyType DWORD -EA SilentlyContinue | Out-Null
-	New-Item -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Citrix" -EA SilentlyContinue | Out-Null
-	New-Item -Path "HKLM:\SOFTWARE\Policies\Citrix" -EA SilentlyContinue | Out-Null
-	New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Citrix" -Name EnableX1FTU -Value 0 -PropertyType DWORD -EA SilentlyContinue | Out-Null
-	New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Citrix" -Name EnableFTU -Value 0 -PropertyType DWORD -EA SilentlyContinue | Out-Null
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name Redirector -Force -EA SilentlyContinue | Out-Null
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name ConnectionCenter -Force -EA SilentlyContinue | Out-Null
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name InstallHelper -Force -EA SilentlyContinue | Out-Null
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name AnalyticsSrv -Force -EA SilentlyContinue | Out-Null
-	} catch {
-	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-}
-DS_WriteLog "-" "" $LogFile
-Write-Host -ForegroundColor Green " ... ready!"
-Write-Host -ForegroundColor Red "Server needs to reboot after installation!"
-Write-Output ""
-}
+	DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green " ...ready!" 
+	Write-Output ""
+	}
 
-# Stop, if no new version is available
-Else {
-Write-Host "No Update available for $Product"
-Write-Output ""
+	# Check, if a new version is available
+	IF (Test-Path -Path "$PSScriptRoot\Citrix\WorkspaceApp\Windows\LTSR\Version.txt") {
+	[version]$VersionWSA = Get-Content -Path "$PSScriptRoot\Citrix\WorkspaceApp\Windows\LTSR\Version.txt"
+	[version]$WSA = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Workspace*" -and $_.UninstallString -like "*Trolley*"}).DisplayVersion
+	IF ($WSA -lt $VersionWSA) {
+	# Citrix WSA Installation
+	$Options = @(
+	"/silent"
+	"/EnableCEIP=false"
+	"/FORCE_LAA=1"
+	"/AutoUpdateCheck=disabled"
+	"/EnableCEIP=false"
+	"/ALLOWADDSTORE=S"
+	"/ALLOWSAVEPWD=S"
+	"/includeSSON"
+	"/ENABLE_SSON=Yes"
+	)
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try	{
+		$inst = Start-Process -FilePath "$PSScriptRoot\Citrix\WorkspaceApp\Windows\LTSR\CitrixWorkspaceAppWeb.exe" -ArgumentList $Options -PassThru -ErrorAction Stop
+		if($inst -ne $null)
+		{
+		Wait-Process -InputObject $inst
+		}
+		#New-Item -Path "HKCU:\SOFTWARE\Citrix\Splashscreen" -EA SilentlyContinue | Out-Null
+		#New-ItemProperty -Path "HKCU:\Software\Citrix\Splashscreen" -Name SplashscrrenShown -Value 1 -PropertyType DWORD -EA SilentlyContinue | Out-Null
+		New-Item -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Citrix" -EA SilentlyContinue | Out-Null
+		New-Item -Path "HKLM:\SOFTWARE\Policies\Citrix" -EA SilentlyContinue | Out-Null
+		New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Citrix" -Name EnableX1FTU -Value 0 -PropertyType DWORD -EA SilentlyContinue | Out-Null
+		New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Citrix" -Name EnableFTU -Value 0 -PropertyType DWORD -EA SilentlyContinue | Out-Null
+		Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name Redirector -Force -EA SilentlyContinue | Out-Null
+		Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name ConnectionCenter -Force -EA SilentlyContinue | Out-Null
+		Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name InstallHelper -Force -EA SilentlyContinue | Out-Null
+		Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" -Name AnalyticsSrv -Force -EA SilentlyContinue | Out-Null
+		} catch {
+		DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+	}
+	DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green " ... ready!"
+	Write-Host -ForegroundColor Red "Server needs to reboot after installation!"
+	Write-Output ""
+	}
+
+
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
+	}
+	Else {
+	Write-Host -ForegroundColor Red "Version file not found for $Product"
+	Write-Output ""
+	}
 }
+Else {
+	Write-Host -ForegroundColor Red "Version file not found for MS Edge WebView2 Runtime"
+	Write-Output ""
+	}

@@ -49,27 +49,33 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Check, if a new version is available
-[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-[version]$KeePass = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*KeePass*"}).DisplayVersion
-# IF ($KeePass) {$KeePass = $KeePass -replace ".{2}$"}
-IF ($KeePass -lt $Version) {
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	[version]$KeePass = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*KeePass*"}).DisplayVersion
+	# IF ($KeePass) {$KeePass = $KeePass -replace ".{2}$"}
+	IF ($KeePass -lt $Version) {
 
-# KeePass
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try {
-    Start-Process "$PSScriptRoot\$Product\KeePass.exe" -ArgumentList '/COMPONENTS="KeePass core files" /VERYSILENT /NORESTART' -Wait
-	Copy-Item -Path "$PSScriptRoot\$Product\KeePass.config.enforced.xml" -Destination "$env:ProgramFiles\KeePass Password Safe 2" -Force
-    } catch {
-DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-}
-DS_WriteLog "-" "" $LogFile
-Write-Host -ForegroundColor Green "...ready"
-Write-Output ""
-}
+	# KeePass
+	Write-Host -ForegroundColor Yellow "Installing $Product"
+	DS_WriteLog "I" "Installing $Product" $LogFile
+	try {
+		Start-Process "$PSScriptRoot\$Product\KeePass.exe" -ArgumentList '/COMPONENTS="KeePass core files" /VERYSILENT /NORESTART' -Wait
+		Copy-Item -Path "$PSScriptRoot\$Product\KeePass.config.enforced.xml" -Destination "$env:ProgramFiles\KeePass Password Safe 2" -Force
+		} catch {
+	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+	}
+	DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
+	}
 
-# Stop, if no new version is available
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
+}
 Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }
