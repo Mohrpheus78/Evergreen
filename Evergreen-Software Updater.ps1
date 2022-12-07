@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.7
+Version: 2.7.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -26,6 +26,8 @@ Version: 2.7
 07/27: Wrong URL for pdf24Creator, please remove all files from pdf24Creator folder before launching Updater again! Changed Citrix WorkspaceApp version check and always install MS Edge WebView updates, changed Adobe DC update check
 11/21: Changed RemoteDesktopManager URL
 11/22: Improved download check for alle apps, warning if app download fails
+12/06: Changed MS SMSS to Nevergreen to get the current version, changed download url https://aka.ms/ssmsfullsetup
+12/07: Office downloads corrected, better improved expand archive deviceTRUST and FSLogix, copy ADMX files to subfolder _ADMX
 #>
 
 
@@ -88,7 +90,7 @@ ELSE {
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-[version]$EvergreenVersion = "2.7"
+[version]$EvergreenVersion = "2.7.1"
 $WebVersion = ""
 [bool]$NewerVersion = $false
 If ($Internet -eq "True") {
@@ -1084,7 +1086,7 @@ IF (!(Get-Module -ListAvailable -Name Nevergreen))
 	Write-Host -ForegroundColor Cyan "Nevergreen module not found, check module installation!"
 	BREAK
 	}
-	
+
 # Stop logfile Modules Update Log
 Stop-Transcript | Out-Null
 $Content = Get-Content -Path $ModulesUpdateLog | Select-Object -Skip 18
@@ -1102,6 +1104,11 @@ Write-Output ""
 # Write-Output "Evergreen Version: $EvergreenVersion" | Out-File $UpdateLog -Append
 Write-Host -ForegroundColor Cyan "Starting downloads..."
 Write-Output ""
+
+# Create ADMX subfolder
+IF (!(Test-Path -Path "$SoftwareFolder\_ADMX")) {
+	New-Item -Path "$SoftwareFolder\_ADMX" -Type Directory -EA SilentlyContinue | Out-Null
+}
 
 
 # Download RemoteDesktopManager
@@ -1940,17 +1947,20 @@ IF ($SoftwareSelection.FSLogix -eq $true) {
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\Install\" + ($Source))
 		Try {
-			Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\Install\" + ($Source))
+			#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\Install\" + ($Source))
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\Install\" + ($Source))
 		} catch {
 			throw $_.Exception.Message
 		}
 		expand-archive -path "$SoftwareFolder\$Product\Install\FSLogixAppsSetup.zip" -destinationpath "$SoftwareFolder\$Product\Install"
+		start-sleep -Seconds 10
 		Remove-Item -Path "$SoftwareFolder\$Product\Install\FSLogixAppsSetup.zip" -Force
 		Move-Item -Path "$SoftwareFolder\$Product\Install\x64\Release\*" -Destination "$SoftwareFolder\$Product\Install"
 		Remove-Item -Path "$SoftwareFolder\$Product\Install\Win32" -Force -Recurse
 		Remove-Item -Path "$SoftwareFolder\$Product\Install\x64" -Force -Recurse
+		Get-ChildItem -Path "$SoftwareFolder\$Product\Install\*.adm*" | Copy-Item -Destination (New-Item -Type Directory -Force ("$SoftwareFolder\_ADMX\FSLogix")) -Force -EA SilentlyContinue
 		Write-Host "Stop logging"
-		IF (!(Test-Path -Path "$SoftwareFolder\$Product\Install\$Source")) {
+		IF (!(Get-ChildItem -Path "$SoftwareFolder\$Product\Install\*.exe")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
         Remove-Item "$SoftwareFolder\$Product\Install\*"  -Exclude *.log -Recurse
         }
@@ -2108,7 +2118,6 @@ IF ($SoftwareSelection.MS365Apps_SAC -eq $true) {
 		} catch {
 			throw $_.Exception.Message
 		}
-		IF ($Download) {
 		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
 				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
@@ -2116,7 +2125,6 @@ IF ($SoftwareSelection.MS365Apps_SAC -eq $true) {
 				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
 				  $MS365Apps_SACUpdate = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
 				  }
-		}
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
@@ -2170,7 +2178,6 @@ IF ($SoftwareSelection.MS365Apps_MEC -eq $true) {
 		} catch {
 			throw $_.Exception.Message
 		}
-		IF ($Download) {
 		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
 				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
@@ -2178,7 +2185,6 @@ IF ($SoftwareSelection.MS365Apps_MEC -eq $true) {
 				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
 				  $MS365Apps_MECUpdate = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
 				  }
-		}
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
@@ -2232,7 +2238,6 @@ IF ($SoftwareSelection.MSOffice2019 -eq $true) {
 		} catch {
 			throw $_.Exception.Message
 		}
-		IF ($Download) {
 		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
 				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
@@ -2240,7 +2245,6 @@ IF ($SoftwareSelection.MSOffice2019 -eq $true) {
 				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
 				  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
 				  }
-		}
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
@@ -2294,7 +2298,6 @@ IF ($SoftwareSelection.MSOffice2021 -eq $true) {
 		} catch {
 			throw $_.Exception.Message
 		}
-		IF ($Download) {
 		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
 				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
@@ -2302,7 +2305,6 @@ IF ($SoftwareSelection.MSOffice2021 -eq $true) {
 				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
 				  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
 				  }
-		}
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
@@ -2434,12 +2436,12 @@ IF ($SoftwareSelection.MSSsmsEN -eq $true) {
 	$Product = "MS SQL Management Studio EN"
 	$PackageName = "SSMS-Setup-ENU"
 	Try {
-	$MSSQLManagementStudioEN = Get-EvergreenApp -Name MicrosoftSsms | Where-Object {$_.Language -eq "English"} -ErrorAction Stop
+	$MSSQLManagementStudioEN = Get-NevergreenApp -Name MicrosoftSsms -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
 	$Version = $MSSQLManagementStudioEN.Version
-	$URL = $MSSQLManagementStudioEN.uri
+	$URL = 'https://aka.ms/ssmsfullsetup?clcid=0x409'
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -2487,12 +2489,12 @@ IF ($SoftwareSelection.MSSsmsDE -eq $true) {
 	$Product = "MS SQL Management Studio DE"
 	$PackageName = "SSMS-Setup-DEU"
 	Try {
-	$MSSQLManagementStudioDE = Get-EvergreenApp -Name MicrosoftSsms | Where-Object {$_.Language -eq "German"} -ErrorAction Stop
+	$MSSQLManagementStudioDE = Get-NevergreenApp -Name MicrosoftSsms -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
 	$Version = $MSSQLManagementStudioDE.Version
-	$URL = $MSSQLManagementStudioDE.uri
+	$URL = 'https://aka.ms/ssmsfullsetup?clcid=0x407'
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -2875,21 +2877,21 @@ IF ($SoftwareSelection.deviceTRUST -eq $true) {
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-		#Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Try {
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-		} catch {
+			} catch {
 			throw $_.Exception.Message
 		}
 		expand-archive -path "$SoftwareFolder\$Product\deviceTRUST.zip" -destinationpath "$SoftwareFolder\$Product" -EA SilentlyContinue
+		expand-archive -path "$SoftwareFolder\$Product\dtpolicydefinitions-$Version.zip" -destinationpath "$SoftwareFolder\$Product\ADMX" -EA SilentlyContinue
+		start-sleep -Seconds 10
+		Get-ChildItem -Path "$SoftwareFolder\$Product\ADMX" | Copy-Item -Destination (New-Item -Type directory -Force ("$SoftwareFolder\_ADMX\deviceTRUST")) -Force -EA SilentlyContinue
 		Remove-Item -Path "$SoftwareFolder\$Product\deviceTRUST.zip" -Force -EA SilentlyContinue
-		expand-archive -path "$SoftwareFolder\$Product\dtpolicydefinitions-$Version.0.zip" -destinationpath "$SoftwareFolder\$Product\ADMX" -EA SilentlyContinue
-		copy-item -Path "$SoftwareFolder\$Product\ADMX\*" -Destination "$PSScriptRoot\ADMX\deviceTRUST" -Force -EA SilentlyContinue
 		Remove-Item -Path "$SoftwareFolder\$Product\ADMX" -Force -Recurse -EA SilentlyContinue
-		Remove-Item -Path "$SoftwareFolder\$Product\dtpolicydefinitions-$Version.0.zip" -Force -EA SilentlyContinue
+		Remove-Item -Path "$SoftwareFolder\$Product\dtpolicydefinitions-$Version.zip" -Force -EA SilentlyContinue
 		Get-ChildItem -Path "$SoftwareFolder\$Product" | Where-Object Name -like *"x86"* | Remove-Item -EA SilentlyContinue
 		Write-Host "Stop logging"
-		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+		IF (!(Get-ChildItem -Path "$SoftwareFolder\$Product\*.msi")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
         Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
         }
