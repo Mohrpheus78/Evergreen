@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.7.1
+Version: 2.7.2
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -28,6 +28,7 @@ Version: 2.7.1
 11/22: Improved download check for alle apps, warning if app download fails
 12/06: Changed MS SMSS to Nevergreen to get the current version, changed download url https://aka.ms/ssmsfullsetup
 12/07: Office downloads corrected, better improved expand archive deviceTRUST and FSLogix, copy ADMX files to subfolder _ADMX
+12/08: If -noGUI switch is used, there is no update check	
 #>
 
 
@@ -90,44 +91,45 @@ ELSE {
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
-[version]$EvergreenVersion = "2.7.1"
-$WebVersion = ""
-[bool]$NewerVersion = $false
-If ($Internet -eq "True") {
-	$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1"
-	If ($WebResponseVersion) {
-		[version]$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
-	}
-	If ($WebVersion -gt $EvergreenVersion) {
-		$NewerVersion = $true
-	}
-}
-
-ELSE {
-	Write-Host -ForegroundColor Red "Check your internet connection to get updated scripts, server can't reach the GitHub URL!"
-	Write-Output ""
-	
-	$title = ""
-	$message = "Do you want to cancel the update? The update script may be outdated!"
-	$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
-	$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
-	$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
-	$choice=$host.ui.PromptForChoice($title, $message, $options, 0)
-
-	switch ($choice) {
-		0 {
-		$answer = 'Yes'       
+if ($noGUI -eq $False) {
+	[version]$EvergreenVersion = "2.7.2"
+	$WebVersion = ""
+	[bool]$NewerVersion = $false
+	If ($Internet -eq "True") {
+		$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1"
+		If ($WebResponseVersion) {
+			[version]$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
 		}
-		1 {
-		$answer = 'No'
+		If ($WebVersion -gt $EvergreenVersion) {
+			$NewerVersion = $true
 		}
 	}
 
-	if ($answer -eq 'Yes') {
-		BREAK
+	ELSE {
+		Write-Host -ForegroundColor Red "Check your internet connection to get updated scripts, server can't reach the GitHub URL!"
+		Write-Output ""
+		
+		$title = ""
+		$message = "Do you want to cancel the update? The update script may be outdated!"
+		$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
+		$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
+		$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
+		$choice=$host.ui.PromptForChoice($title, $message, $options, 0)
+
+		switch ($choice) {
+			0 {
+			$answer = 'Yes'       
+			}
+			1 {
+			$answer = 'No'
+			}
+		}
+
+		if ($answer -eq 'Yes') {
+			BREAK
+		}
 	}
 }
-
 Clear-Host
 
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
@@ -146,6 +148,7 @@ $ErrorActionPreference = "SilentlyContinue"
 #$WarningPreference = "Continue"
 $SoftwareToUpdate = "$SoftwareFolder\Software-to-update.xml"
 
+if ($noGUI -eq $False) {
 Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion
 Is there a newer Evergreen Script version?"
 Write-Output ""
@@ -171,6 +174,7 @@ Else {
                 BREAK
 			}
 
+}
 }
 
 # General update logfile
@@ -3735,5 +3739,6 @@ Stop-Transcript | Out-Null
 $Content = Get-Content -Path $UpdateLog | Select-Object -Skip 18
 Set-Content -Value $Content -Path $UpdateLog
 
-if ($noGUI -eq $False) {pause}
+if ($noGUI -eq $False) {
+	pause}
 
