@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.7.2
+Version: 2.7.3
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -28,7 +28,8 @@ Version: 2.7.2
 11/22: Improved download check for alle apps, warning if app download fails
 12/06: Changed MS SMSS to Nevergreen to get the current version, changed download url https://aka.ms/ssmsfullsetup
 12/07: Office downloads corrected, better improved expand archive deviceTRUST and FSLogix, copy ADMX files to subfolder _ADMX
-12/08: If -noGUI switch is used, there is no update check	
+12/08: If -noGUI switch is used, there is no update check
+12/13: Wrong download path for Citrix WorkspaceApp CR, Added Cisco WebEx VDI
 #>
 
 
@@ -92,7 +93,7 @@ ELSE {
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.7.2"
+	[version]$EvergreenVersion = "2.7.3"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -729,17 +730,6 @@ function gui_mode{
     $form.Controls.Add($OpenJDKBox)
 	$OpenJDKBox.Checked =  $SoftwareSelection.OpenJDK
 	
-	<#
-	# Cisco WebEx VDI Plugin Checkbox
-    $CiscoWebExVDIBox = New-Object system.Windows.Forms.CheckBox
-    $CiscoWebExVDIBox.text = "Cisco WebEx VDI Plugin"
-    $CiscoWebExVDIBox.width = 95
-    $CiscoWebExVDIBox.height = 20
-    $CiscoWebExVDIBox.autosize = $true
-    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(250,395)
-    $form.Controls.Add($CiscoWebExVDIBox)
-	$CiscoWebExVDIBox.Checked =  $SoftwareSelection.CiscoWebExVDI
-	
 	# Cisco WebEx Desktop Checkbox
     $CiscoWebExDesktopBox = New-Object system.Windows.Forms.CheckBox
     $CiscoWebExDesktopBox.text = "Cisco WebEx Desktop"
@@ -749,7 +739,6 @@ function gui_mode{
     $CiscoWebExDesktopBox.location = New-Object System.Drawing.Point(250,420)
     $form.Controls.Add($CiscoWebExDesktopBox)
 	$CiscoWebExDesktopBox.Checked =  $SoftwareSelection.CiscoWebExDesktop
-	#>
 	
 	# TreeSizeFree Checkbox
     $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
@@ -811,6 +800,26 @@ function gui_mode{
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 	
+	# FoxItReader Checkbox
+    $FoxItReaderBox = New-Object system.Windows.Forms.CheckBox
+    $FoxItReaderBox.text = "FoxIt PDF Reader"
+    $FoxItReaderBox.width = 95
+    $FoxItReaderBox.height = 20
+    $FoxItReaderBox.autosize = $true
+    $FoxItReaderBox.location = New-Object System.Drawing.Point(685,195)
+    $form.Controls.Add($FoxItReaderBox)
+	$FoxItReaderBox.Checked =  $SoftwareSelection.FoxItReader
+	
+	# Cisco WebEx VDI Plugin Checkbox
+    $CiscoWebExVDIBox = New-Object system.Windows.Forms.CheckBox
+    $CiscoWebExVDIBox.text = "Cisco WebEx VDI Plugin"
+    $CiscoWebExVDIBox.width = 95
+    $CiscoWebExVDIBox.height = 20
+    $CiscoWebExVDIBox.autosize = $true
+    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(685,220)
+    $form.Controls.Add($CiscoWebExVDIBox)
+	$CiscoWebExVDIBox.Checked =  $SoftwareSelection.CiscoWebExVDI
+	
 	## Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
     $ZoomVDIBox.text = "Zoom VDI Host Installer (N/A)"
@@ -819,7 +828,7 @@ function gui_mode{
     $ZoomVDIBox.width = 95
     $ZoomVDIBox.height = 20
     $ZoomVDIBox.autosize = $true
-    $ZoomVDIBox.location = New-Object System.Drawing.Point(685,195)
+    $ZoomVDIBox.location = New-Object System.Drawing.Point(685,245)
     $form.Controls.Add($ZoomVDIBox)
 	$ZoomVDIBox.Checked =  $SoftwareSelection.ZoomVDI
 	
@@ -831,7 +840,7 @@ function gui_mode{
     $ZoomCitrixBox.width = 95
     $ZoomCitrixBox.height = 20
     $ZoomCitrixBox.autosize = $true
-    $ZoomCitrixBox.location = New-Object System.Drawing.Point(685,220)
+    $ZoomCitrixBox.location = New-Object System.Drawing.Point(685,270)
     $form.Controls.Add($ZoomCitrixBox)
 	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
 	
@@ -843,7 +852,7 @@ function gui_mode{
     $ZoomVMWareBox.width = 95
     $ZoomVMWareBox.height = 20
     $ZoomVMWareBox.autosize = $true
-    $ZoomVMWareBox.location = New-Object System.Drawing.Point(685,245)
+    $ZoomVMWareBox.location = New-Object System.Drawing.Point(685,295)
     $form.Controls.Add($ZoomVMWareBox)
 	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
 	
@@ -895,7 +904,7 @@ function gui_mode{
 		$ZoomVMWareBox.checked = $True
 		$VLCPlayerBox.checked = $True
 		$FileZillaBox.checked = $True
-		#$CiscoWebExVDIBox.checked = $True
+		$CiscoWebExVDIBox.checked = $True
 		#$CiscoWebExDesktopBox.checked = $True
 		$OpenJDKBox.checked = $True
 		$GreenshotBox.checked = $True
@@ -903,6 +912,7 @@ function gui_mode{
 		$OracleJava8_32Box.checked = $True
 		$ImageGlassBox.checked = $True
 		$pdf24CreatorBox.checked = $True	
+		$FoxItReaderBox.checked = $True
 		})
     $form.Controls.Add($SelectButton)
 	
@@ -953,7 +963,7 @@ function gui_mode{
 		$ZoomVMWareBox.checked = $False
 		$VLCPlayerBox.checked = $False
 		$FileZillaBox.checked = $False
-		#$CiscoWebExVDIBox.checked = $False
+		$CiscoWebExVDIBox.checked = $False
 		#$CiscoWebExDesktopBox.checked = $False
 		$OpenJDKBox.checked = $False
 		$GreenshotBox.checked = $False
@@ -961,6 +971,7 @@ function gui_mode{
 		$OracleJava8_32Box.checked = $False
 		$ImageGlassBox.checked = $False
 		$pdf24CreatorBox.checked = $False
+		$FoxItReaderBox.checked = $False
 		})
     $form.Controls.Add($UnselectButton)
 
@@ -1012,7 +1023,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVMWare" -Value $ZoomVMWareBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VLCPlayer" -Value $VLCPlayerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FileZilla" -Value $FileZillaBox.checked -Force
-		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExVDI" -Value $CiscoWebExVDIBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExVDI" -Value $CiscoWebExVDIBox.checked -Force
 		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExDesktop" -Value $CiscoWebExDesktopBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "deviceTRUST" -Value $deviceTRUSTBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VMWareTools" -Value $VMWareToolsBox.checked -Force
@@ -1021,6 +1032,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Putty" -Value $PuttyBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ImageGlass" -Value $ImageGlassBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "pdf24Creator" -Value $pdf24CreatorBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FoxItReader" -Value $FoxItReaderBox.checked -Force
 	
 	# Export objects to	XML
 	$SoftwareSelection | Export-Clixml $SoftwareToUpdate
@@ -1549,7 +1561,7 @@ IF ($SoftwareSelection.BISF -eq $true) {
 	}
 }
 
-
+<#
 # Download WorkspaceApp Current
 IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 	$Product = "WorkspaceApp"
@@ -1579,7 +1591,7 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
 		Try {
-			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
 		} catch {
 			throw $_.Exception.Message
 		}
@@ -1602,7 +1614,60 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 		Write-Output ""
 	}
 }
+#>
 
+# Download WorkspaceApp Current
+IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
+	$Product = "WorkspaceApp"
+	$PackageName = "CitrixWorkspaceApp"
+	Try {
+	$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "Current"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	[version]$Version = $WSA.Version
+	$URL = $WSA.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	[version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product CR"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF ($Version -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
+		Try {
+		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceAppWeb.exe" | Out-Null
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
 
 # Download Microsoft EdgeWebView2 Runtime
 IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
@@ -1692,7 +1757,7 @@ IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 		}
 		Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceAppWeb.exe" | Out-Null
 		Write-Host "Stop logging"
-		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
         Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
         }
@@ -2124,6 +2189,7 @@ IF ($SoftwareSelection.MS365Apps_SAC -eq $true) {
 		}
 		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+				Write-Output ""
 				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
 			else {
 				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
@@ -2175,7 +2241,7 @@ IF ($SoftwareSelection.MS365Apps_MEC -eq $true) {
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."´n
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Try {
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
@@ -2184,6 +2250,7 @@ IF ($SoftwareSelection.MS365Apps_MEC -eq $true) {
 		}
 		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+				Write-Output ""
 				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
 			else {
 				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
@@ -2244,6 +2311,7 @@ IF ($SoftwareSelection.MSOffice2019 -eq $true) {
 		}
 		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+				Write-Output ""
 				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
 			else {
 				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
@@ -2304,6 +2372,7 @@ IF ($SoftwareSelection.MSOffice2021 -eq $true) {
 		}
 		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+				Write-Output ""
 				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
 			else {
 				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
@@ -3395,7 +3464,7 @@ IF ($SoftwareSelection.Putty -eq $true) {
 	}
 }
 
-
+<#
 # Download Zoom VDI Installer
 IF ($SoftwareSelection.ZoomVDI -eq $true) {
 	$Product = "Zoom VDI Host"
@@ -3554,42 +3623,6 @@ IF ($SoftwareSelection.ZoomVMWare -eq $true) {
 	}
 }
 
-<#
-# Download Cisco WebEx VDI Plugin
-IF ($SoftwareSelection.CiscoWebExVDI -eq $true) {
-$Product = "Cisco WebEx VDI Plugin"
-$PackageName = "WebExVDIPlugin"
-$URLVersion = "https://www.webex.com/downloads/teams-vdi.html"
-$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-$regexAppVersion = "\d\d.\d.\d.\d\d\d\d\d+"
-$webVersion = $webRequest.RawContent | Select-String -Pattern $regexAppVersion -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-$InstallerType = "msi"
-$Source = "$PackageName" + "." + "$InstallerType"
-$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-Write-Host -ForegroundColor Yellow "Download $Product"
-Write-Host "Download Version: $Version"
-Write-Host "Current Version: $CurrentVersion"
-IF (!($CurrentVersion -eq $Version)) {
-Write-Host -ForegroundColor Green "Update available"
-IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-Remove-Item "$SoftwareFolder\$Product\*" -Recurse
-Start-Transcript $LogPS | Out-Null
-New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) -EA SilentlyContinue
-Write-Host "Stop logging"
-Stop-Transcript | Out-Null
-Write-Output ""
-}
-IF ($CurrentVersion -eq $Version) {
-Write-Host -ForegroundColor Yellow "No new version available"
-Write-Output ""
-}
-}
-
-
 
 # Download Cisco WebEx Desktop
 IF ($SoftwareSelection.CiscoWebExDesktop -eq $true) {
@@ -3624,6 +3657,61 @@ Write-Output ""
 }
 }
 #>
+
+# Download Cisco WebEx VDI Plugin
+IF ($SoftwareSelection.CiscoWebExVDI -eq $true) {
+	$Product = "Cisco WebEx VDI Plugin"
+	$PackageName = "WebExVDIPlugin"
+	$URLVersionWebExVDI = "https://www.webex.com/downloads/teams-vdi.html"
+	$webRequestWebExVDI = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionWebExVDI) -SessionVariable websession
+	$regexAppVersionWebExVDI = '\(\d\d\.\d\d\.\d\.\d\d\d\d\d\)'
+	$webVersionWebExVDI = $webRequestWebExVDI.RawContent | Select-String -Pattern $regexAppVersionWebExVDI -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+	$webVersionWebExVDI = $webVersionWebExVDI.TrimEnd(')').Substring(1)
+	[Version]$VersionWebExVDI  = $webVersionWebExVDI
+	$regexLinkWebExVDI = '<td>Windows\s<a\shref=".*"\starget="_self">64-bit</a></td>'
+	$URL = $webRequestWebExVDI.RawContent | Select-String -Pattern $regexLinkWebExVDI -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+	$URL = $URL.Split('"')
+	$URL = $URL[1]
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $VersionWebExVDI"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($VersionWebExVDI) {
+		IF ($VersionWebExVDI -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionWebExVDI.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionWebExVDI"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionWebExVDI"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
 
 
 # Download ImageGlass
@@ -3690,6 +3778,59 @@ IF ($SoftwareSelection.Greenshot -eq $true) {
 		}
 	$Version = $Greenshot.Version
 	$URL = $Greenshot.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""	
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
+
+
+# Download FoxItReader
+IF ($SoftwareSelection.FoxItReader -eq $true) {
+	$Product = "FoxitReader"
+	$PackageName = "FoxIt-Reader"
+	Try {
+	$FoxItReader = Get-EvergreenApp -Name FoxItReader
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $FoxItReader.Version
+	$URL = $FoxItReader.uri
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
