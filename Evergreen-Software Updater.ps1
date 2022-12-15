@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.7.3
+Version: 2.7.4
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -30,6 +30,7 @@ Version: 2.7.3
 12/07: Office downloads corrected, better improved expand archive deviceTRUST and FSLogix, copy ADMX files to subfolder _ADMX
 12/08: If -noGUI switch is used, there is no update check
 12/13: Wrong download path for Citrix WorkspaceApp CR, Added Cisco WebEx VDI
+15/12: Wrong download path for Citrix Files
 #>
 
 
@@ -93,7 +94,7 @@ ELSE {
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.7.3"
+	[version]$EvergreenVersion = "2.7.4"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -2844,9 +2845,8 @@ IF ($SoftwareSelection.CitrixFiles -eq $true) {
 		New-Item -Path "$SoftwareFolder\Citrix\$Product" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -Value "$Version"
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\\Citrix\$Product\" + ($Source))
 		Try {
-			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\" + ($Source))
 		} catch {
 			throw $_.Exception.Message
 		}
