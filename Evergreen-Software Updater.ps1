@@ -2851,7 +2851,7 @@ IF ($SoftwareSelection.CitrixFiles -eq $true) {
 			throw $_.Exception.Message
 		}
 		Write-Host "Stop logging"
-		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
         Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
         }
