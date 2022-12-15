@@ -72,8 +72,9 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 			}
 		} catch {
 	DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
-	copy-item $LogFile "$PSScriptRoot\_Install Logs" 
 	}
+	DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green "...ready"
 	Write-Output ""
 	}
 

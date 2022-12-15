@@ -5,14 +5,14 @@
 
 <#
 .SYNOPSIS
-This script installs the current Citrix Hypervisor Tools on a MCS/PVS master server/client or wherever you want. You have to perform a reverse image before installing the tools inside a PVS vDisk!
+This script installs the current Zoom VDI Host on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
 package it gets installed. 
 The script compares the software version and will install or update the software. A log file will be created in the 'Install Logs' folder. 
 
-.EXAMPLE
+.EXAMPLEY
 
 .NOTES
 Always call this script with the Software Installer script!
@@ -24,12 +24,12 @@ $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "Citrix Hypervisor Tools"
+$Product = "Cisco WebEx Desktop"
 
 #========================================================================================================================================
 # Logging
 $BaseLogDir = $ENV:Temp       				# [edit] add the location of your log directory here, local folder because network gets interrupted 
-$PackageName = "Citrix Hypervisor Tools" 	 # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
+$PackageName = "Cisco WebEx Desktop" 	 # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
 $StartDir = $PSScriptRoot # the directory path of the script currently being executed
@@ -65,16 +65,11 @@ if (!(Test-Path $msiFile)){
     throw "Path to MSI file ($msiFile) is invalid. Please check name and path"
 }
 $arguments = @(
-	"ALLOWDRIVERSINSTALL=YES"
-	"ALLOWAUTOUPDATE=NO"
-	"ALLOWDRIVERUPDATE=NO"
-	"IDENTIFYAUTOUPDATE=NO"
-	"ALLUSERS=1"
-    "/i"
+	"/i"
     "`"$msiFile`""
-    "/quiet"
-	"/norestart"
-)
+    "/qn"
+	)
+
 if ($targetDir){
     if (!(Test-Path $targetDir)){
         throw "Pfad zum Installationsverzeichnis $($targetDir) ist ungültig. Bitte Pfad und Dateinamen überprüfen!"
@@ -94,16 +89,17 @@ else {
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-	Write-Host $Version
-	$CitrixTools = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Hypervisor*"}).DisplayVersion
-	IF ($CitrixTools) {$CitrixTools = $CitrixTools.Insert(4,'0.')}
-	IF ($CitrixTools -ne $Version) {
-
-	# Citrix Hypervisor Tools Installation
+	$CiscoWebExDesktop = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Cisco WebEx*"}).DisplayVersion
+	IF ($CiscoWebExDesktop -ne $Version) {
+		
+	# Zoom VDI Host Installation
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
-		"$PSScriptRoot\$Product\managementagentx64.msi" | Install-MSIFile
+		"$PSScriptRoot\$Product\WebEx.msi" | Install-MSIFile
+		Start-Sleep -Seconds 2
+		Stop-Process -Name "ptoneclk" -Force
+		Stop-Process -Name "ptSrv" -Force
 		} catch {
 	DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
 	}

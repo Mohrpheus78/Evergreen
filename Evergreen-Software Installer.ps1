@@ -20,7 +20,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 There are no install scripts for VMWare Tools and openJDK yet!
 Run as admin!
-Version: 2.9.5
+Version: 2.9.6
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -32,6 +32,7 @@ Version: 2.9.5
 07/27: Changed Citrix WorkspaceApp version check and always install MS Edge WebView updates, changed Adobe DC update check
 11/21: Wrong CitrixFiles Run registry key to prevent Citrix Files from lauch automtically
 11/22: Added support for PVS Admin Toolkit, no version check if you run with -noGUI parameter
+15/12: Minor changes in install scripts
 #>
 
 Param (
@@ -99,7 +100,7 @@ ELSE {
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.9.5"
+	[version]$EvergreenVersion = "2.9.6"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {

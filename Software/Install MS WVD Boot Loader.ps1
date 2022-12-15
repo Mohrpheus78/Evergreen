@@ -99,12 +99,11 @@ try {
 	"$PSScriptRoot\$Product\Microsoft.RDInfra.RDAgent.Installer-x64.msi" | Install-MSIFile
 	} catch {
 DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
-copy-item $LogFile "$PSScriptRoot\_Install Logs" 
 }
-Write-Host -ForegroundColor Green "...ready"
-Write-Output ""
-# }
-
+DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
+	}
 # Stop, if no new version is available
 Else {
 Write-Host "No Update available for $Product"
