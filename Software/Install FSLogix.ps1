@@ -108,6 +108,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Install\Version.txt") {
 	}
 	DS_WriteLog "-" "" $LogFile
 	Write-Host -ForegroundColor Green "...ready"
+	Write-Host -ForegroundColor Red "Server needs to reboot after installation!"
 	Write-Output ""
 	}
 	}
