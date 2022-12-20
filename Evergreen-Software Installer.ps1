@@ -20,7 +20,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 There are no install scripts for VMWare Tools and openJDK yet!
 Run as admin!
-Version: 2.9.6
+Version: 2.9.7
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -33,6 +33,7 @@ Version: 2.9.6
 11/21: Wrong CitrixFiles Run registry key to prevent Citrix Files from lauch automtically
 11/22: Added support for PVS Admin Toolkit, no version check if you run with -noGUI parameter
 15/12: Minor changes in install scripts
+20/12: Added results at the end for documentation (e.g. PVS vDisk properties)
 #>
 
 Param (
@@ -100,7 +101,7 @@ ELSE {
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.9.6"
+	[version]$EvergreenVersion = "2.9.7"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1269,7 +1270,12 @@ $Content = Get-Content -Path $InstallLog | Select-Object -Skip 18
 Set-Content -Value $Content -Path $InstallLog
 
 Write-Output ""
-Write-Host -ForegroundColor Cyan "Finished, please check if selected software is installed!" 
+Write-Host -ForegroundColor Cyan "Finished, please check if selected software is installed!"
+$Updates = Get-Content -Path $InstallLog | Select-String -Pattern Installing
+$Updates = ($Updates -replace ("Uninstalling","") -replace ("Installing","") | Select-Object -Unique) -join ","
+$Updates = "Update" + $Updates
+Write-Host -ForegroundColor Yellow "Copy summary for your documentation:"
+$Updates
 Write-Output ""
 
 if ($noGUI -eq $False) {

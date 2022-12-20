@@ -62,6 +62,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Install\Version.txt") {
 
 	IF ($FSLogix -lt $Version) {
 
+    <#
 	# FSLogix Uninstall
 	IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft FSLogix Apps"}) {
 	Write-Host -ForegroundColor Yellow "Uninstalling $Product"
@@ -79,6 +80,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Install\Version.txt") {
 	Read-Host
 	Restart-Computer
 	}
+    #>
 
 	# FSLogix Install
 	Write-Host -ForegroundColor Yellow "Installing $Product"
@@ -96,7 +98,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Install\Version.txt") {
 
 	# Windows Search Task importieren bei Windows Server 2019 oder Windows 10
 	IF (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name ProductName | Where-Object {$_.ProductName -match "Windows Server 2019" -or $_.ProductName -like "*Windows 10*"}) {
-	IF (!(Get-ScheduledTask -TaskName "Windows Search Failure")) {
+	IF (!(Get-ScheduledTask -TaskName "Windows Search*")) {
 	Write-Host -ForegroundColor Yellow "Creating scheduled task for Windows Search error"
 	DS_WriteLog "I" "Windows Search Task wird importiert" $LogFile
 	try {
