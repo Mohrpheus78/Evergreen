@@ -74,12 +74,12 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	Write-Host -ForegroundColor Green "...ready"
 	Write-Output ""
 	}
+	Else {
+		Write-Host -ForegroundColor Red "Version file not found for $Product"
+		Write-Output ""
+		}
+	
 }
-Else {
-Write-Host -ForegroundColor Red "Version file not found for $Product"
-Write-Output ""
-}
-
 # Stop, if no new version is available
 Else {
 Write-Host "No Update available for $Product"
