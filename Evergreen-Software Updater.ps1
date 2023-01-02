@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.7.4
+Version: 2.7.5
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -31,6 +31,7 @@ Version: 2.7.4
 12/08: If -noGUI switch is used, there is no update check
 12/13: Wrong download path for Citrix WorkspaceApp CR, Added Cisco WebEx VDI
 15/12: Wrong download path for Citrix Files
+02/01: Office download error, FoxIt-Reader version not found
 #>
 
 
@@ -42,33 +43,6 @@ Param (
         [switch]$noGUI
     
 )
-
-$ProgressPreference = 'SilentlyContinue'
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
-# Do you run the script as admin?
-# ========================================================================================================================================
-$myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
-$myWindowsPrincipal=new-object System.Security.Principal.WindowsPrincipal($myWindowsID)
-$adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
-
-IF ($myWindowsPrincipal.IsInRole($adminRole))
-   {
-    # OK, runs as admin
-    Write-Host "OK, script is running with Admin rights"
-    Write-Output ""
-   }
-
-else
-   {
-    # Script doesn't run as admin, stop!
-    Write-Host -ForegroundColor Red "Error! Script is NOT running with Admin rights!"
-	Write-Host "Press any key to exit"
-	Read-Host
-    BREAK
-   }
-# ========================================================================================================================================
-
 
 # FUNCTION Check internet access
 # ========================================================================================================================================
@@ -89,103 +63,6 @@ ELSE {
     $Internet = "False"
 }
 # ========================================================================================================================================
-
-
-# Is there a newer Evergreen Script version?
-# ========================================================================================================================================
-if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.7.4"
-	$WebVersion = ""
-	[bool]$NewerVersion = $false
-	If ($Internet -eq "True") {
-		$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1"
-		If ($WebResponseVersion) {
-			[version]$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
-		}
-		If ($WebVersion -gt $EvergreenVersion) {
-			$NewerVersion = $true
-		}
-	}
-
-	ELSE {
-		Write-Host -ForegroundColor Red "Check your internet connection to get updated scripts, server can't reach the GitHub URL!"
-		Write-Output ""
-		
-		$title = ""
-		$message = "Do you want to cancel the update? The update script may be outdated!"
-		$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
-		$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
-		$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
-		$choice=$host.ui.PromptForChoice($title, $message, $options, 0)
-
-		switch ($choice) {
-			0 {
-			$answer = 'Yes'       
-			}
-			1 {
-			$answer = 'No'
-			}
-		}
-
-		if ($answer -eq 'Yes') {
-			BREAK
-		}
-	}
-}
-Clear-Host
-
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Updater (Powered by Evergreen-Module) "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed "    © D. Mohrmann - S&L Firmengruppe            "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
-Write-Output ""
-
-
-Write-Host -ForegroundColor Cyan "Setting Variables"
-Write-Output ""
-
-# Variables
-$SoftwareFolder = ("$PSScriptRoot" + "\" + "Software\")
-$ErrorActionPreference = "SilentlyContinue"
-#$WarningPreference = "Continue"
-$SoftwareToUpdate = "$SoftwareFolder\Software-to-update.xml"
-
-if ($noGUI -eq $False) {
-Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion
-Is there a newer Evergreen Script version?"
-Write-Output ""
-If ($NewerVersion -eq $false) {
-        # No new version available
-        Write-Host -Foregroundcolor Green "OK, script is newest version!"
-        Write-Output ""
-}
-Else {
-        # There is a new Evergreen Script Version
-        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Updater!"
-        Write-Output ""
-		$wshell = New-Object -ComObject Wscript.Shell
-            $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
-            If ($AnswerPending -eq "6") {
-				$update = @'
-                Remove-Item -Path "$PSScriptRoot\Evergreen-Software Updater.ps1" -Force 
-                Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Updater.ps1")
-                & "$PSScriptRoot\Evergreen-Software Updater.ps1"
-'@
-                $update > "$PSScriptRoot\UpdateUpdater.ps1"
-                & "$PSScriptRoot\UpdateUpdater.ps1"
-                BREAK
-			}
-
-}
-}
-
-# General update logfile
-$Date = $Date = Get-Date -UFormat "%d.%m.%Y"
-$UpdateLog = "$SoftwareFolder\_Update Logs\Software Updates $Date.log"
-$ModulesUpdateLog = "$SoftwareFolder\_Update Logs\Modules Updates $Date.log"
-
-# Import values (selected software) from XML file
-if (Test-Path -Path $SoftwareToUpdate) {$SoftwareSelection = Import-Clixml $SoftwareToUpdate}
 
 # FUNCTION Logging
 #========================================================================================================================================
@@ -215,7 +92,6 @@ Function DS_WriteLog {
     }
 }
 #========================================================================================================================================
-
 
 # FUNCTION Download progress
 #========================================================================================================================================
@@ -900,9 +776,9 @@ function gui_mode{
 		$MSWVDRTCServiceBox.checked = $True
 		$MSWVDBootLoaderBox.checked = $True
 		$TreeSizeFreeBox.checked = $True
-		$ZoomVDIBox.checked = $True
-		$ZoomCitrixBox.checked = $True
-		$ZoomVMWareBox.checked = $True
+		$ZoomVDIBox.checked = $False
+		$ZoomCitrixBox.checked = $False
+		$ZoomVMWareBox.checked = $False
 		$VLCPlayerBox.checked = $True
 		$FileZillaBox.checked = $True
 		$CiscoWebExVDIBox.checked = $True
@@ -1062,6 +938,130 @@ function gui_mode{
 }
 # ========================================================================================================================================
 
+# TLS settings
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# Do you run the script as admin?
+# ========================================================================================================================================
+$myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
+$myWindowsPrincipal=new-object System.Security.Principal.WindowsPrincipal($myWindowsID)
+$adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
+
+IF ($myWindowsPrincipal.IsInRole($adminRole))
+   {
+    # OK, runs as admin
+    Write-Host "OK, script is running with Admin rights"
+    Write-Output ""
+   }
+
+else
+   {
+    # Script doesn't run as admin, stop!
+    Write-Host -ForegroundColor Red "Error! Script is NOT running with Admin rights!"
+	Write-Host "Press any key to exit"
+	Read-Host
+    BREAK
+   }
+# ========================================================================================================================================
+
+
+# Is there a newer Evergreen Script version?
+# ========================================================================================================================================
+if ($noGUI -eq $False) {
+	[version]$EvergreenVersion = "2.7.5"
+	$WebVersion = ""
+	[bool]$NewerVersion = $false
+	If ($Internet -eq "True") {
+		$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1"
+		If ($WebResponseVersion) {
+			[version]$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
+		}
+		If ($WebVersion -gt $EvergreenVersion) {
+			$NewerVersion = $true
+		}
+	}
+
+	ELSE {
+		Write-Host -ForegroundColor Red "Check your internet connection to get updated scripts, server can't reach the GitHub URL!"
+		Write-Output ""
+		
+		$title = ""
+		$message = "Do you want to cancel the update? The update script may be outdated!"
+		$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
+		$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
+		$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
+		$choice=$host.ui.PromptForChoice($title, $message, $options, 0)
+
+		switch ($choice) {
+			0 {
+			$answer = 'Yes'       
+			}
+			1 {
+			$answer = 'No'
+			}
+		}
+
+		if ($answer -eq 'Yes') {
+			BREAK
+		}
+	}
+}
+Clear-Host
+
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Updater (Powered by Evergreen-Module) "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed "    © D. Mohrmann - S&L Firmengruppe            "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
+Write-Output ""
+
+
+Write-Host -ForegroundColor Cyan "Setting Variables"
+Write-Output ""
+
+# Variables
+$SoftwareFolder = ("$PSScriptRoot" + "\" + "Software\")
+$ErrorActionPreference = "SilentlyContinue"
+#$WarningPreference = "Continue"
+$SoftwareToUpdate = "$SoftwareFolder\Software-to-update.xml"
+
+if ($noGUI -eq $False) {
+Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion
+Is there a newer Evergreen Script version?"
+Write-Output ""
+If ($NewerVersion -eq $false) {
+        # No new version available
+        Write-Host -Foregroundcolor Green "OK, script is newest version!"
+        Write-Output ""
+}
+Else {
+        # There is a new Evergreen Script Version
+        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Updater!"
+        Write-Output ""
+		$wshell = New-Object -ComObject Wscript.Shell
+            $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
+            If ($AnswerPending -eq "6") {
+				$update = @'
+                Remove-Item -Path "$PSScriptRoot\Evergreen-Software Updater.ps1" -Force 
+                Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Updater.ps1")
+                & "$PSScriptRoot\Evergreen-Software Updater.ps1"
+'@
+                $update > "$PSScriptRoot\UpdateUpdater.ps1"
+                & "$PSScriptRoot\UpdateUpdater.ps1"
+                BREAK
+			}
+
+}
+}
+
+# General update logfile
+$Date = $Date = Get-Date -UFormat "%d.%m.%Y"
+$UpdateLog = "$SoftwareFolder\_Update Logs\Software Updates $Date.log"
+$ModulesUpdateLog = "$SoftwareFolder\_Update Logs\Modules Updates $Date.log"
+
+# Import values (selected software) from XML file
+if (Test-Path -Path $SoftwareToUpdate) {$SoftwareSelection = Import-Clixml $SoftwareToUpdate}
+
+
 # Call Form
 if ($noGUI -eq $False) {
 gui_mode
@@ -1075,22 +1075,31 @@ $ProgressPreference = 'SilentlyContinue'
 Start-Transcript $ModulesUpdateLog | Out-Null
 Write-Host -ForegroundColor Cyan "Installing/updating Evergreen and Nevergreen modules... please wait"
 Write-Output ""
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+#[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 IF (!(Test-Path -Path "C:\Program Files\PackageManagement\ProviderAssemblies\nuget")) {Find-PackageProvider -Name 'Nuget' -ForceBootstrap -IncludeDependencies}
 IF (!(Get-Module -ListAvailable -Name Evergreen)) {Install-Module Evergreen -Force | Import-Module Evergreen}
 IF (!(Get-Module -ListAvailable -Name Nevergreen)) {Install-Module Nevergreen -Force | Import-Module Nevergreen}
+IF (!(Get-Module -ListAvailable -Name VcRedist)) {Install-Module VcRedist -Force | Import-Module VcRedist}
 # Check for Updates
 $LocalEvergreenVersion = (Get-Module -Name Evergreen -ListAvailable | Select-Object -First 1).Version
 $CurrentEvergreenVersion = (Find-Module -Name Evergreen -Repository PSGallery).Version
-if (($LocalEvergreenVersion -lt $CurrentEvergreenVersion))
+IF (($LocalEvergreenVersion -lt $CurrentEvergreenVersion))
 {
     Update-Module Evergreen -force
 }
+
 $LocalNevergreenVersion = (Get-Module -Name Nevergreen -ListAvailable | Select-Object -First 1).Version
 $CurrentNevergreenVersion = (Find-Module -Name Nevergreen -Repository PSGallery).Version
-if (($LocalNevergreenVersion -lt $CurrentNevergreenVersion))
+IF (($LocalNevergreenVersion -lt $CurrentNevergreenVersion))
 {
     Update-Module Nevergreen -force
+}
+
+$LocalVcRedistVersion = (Get-Module -Name VcRedist -ListAvailable | Select-Object -First 1).Version
+$CurrentVcRedistVersion = (Find-Module -Name VcRedist -Repository PSGallery).Version
+IF (($LocalVcRedistVersion -lt $CurrentVcRedistVersion))
+{
+    Update-Module VcRedist -force
 }
 
 IF (!(Get-Module -ListAvailable -Name Evergreen))
@@ -1101,6 +1110,11 @@ IF (!(Get-Module -ListAvailable -Name Evergreen))
 IF (!(Get-Module -ListAvailable -Name Nevergreen))
 	{
 	Write-Host -ForegroundColor Cyan "Nevergreen module not found, check module installation!"
+	BREAK
+	}
+IF (!(Get-Module -ListAvailable -Name VcRedist))
+	{
+	Write-Host -ForegroundColor Cyan "VcRedist module not found, check module installation!"
 	BREAK
 	}
 
@@ -2242,7 +2256,7 @@ IF ($SoftwareSelection.MS365Apps_MEC -eq $true) {
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."´n
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Try {
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
@@ -2303,7 +2317,7 @@ IF ($SoftwareSelection.MSOffice2019 -eq $true) {
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Try {
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
@@ -2364,7 +2378,7 @@ IF ($SoftwareSelection.MSOffice2021 -eq $true) {
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Try {
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
@@ -3825,7 +3839,7 @@ IF ($SoftwareSelection.FoxItReader -eq $true) {
 	$Product = "FoxitReader"
 	$PackageName = "FoxIt-Reader"
 	Try {
-	$FoxItReader = Get-EvergreenApp -Name FoxItReader
+	$FoxItReader = Get-EvergreenApp -Name FoxItReader | Where-Object {$_.Language -eq "German"}
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
@@ -3838,7 +3852,7 @@ IF ($SoftwareSelection.FoxItReader -eq $true) {
 	Write-Host "Download Version: $Version"
 	Write-Host "Current Version: $CurrentVersion"
 	IF ($Version) {
-		IF (!($CurrentVersion -eq $Version)) {
+		IF ($Version -gt $CurrentVersion) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
@@ -3847,7 +3861,6 @@ IF ($SoftwareSelection.FoxItReader -eq $true) {
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Try {
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 		} catch {
@@ -3871,6 +3884,8 @@ IF ($SoftwareSelection.FoxItReader -eq $true) {
 		Write-Output ""
 	}
 }
+
+
 
 
 # Stop UpdateLog
