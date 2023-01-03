@@ -34,7 +34,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs" # [edit] add the location of your lo
 $PackageName = "$Product" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -59,16 +59,20 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	# VMWareTools Install
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
-	try	{
-		if (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft Visual C++ 2015-2019*"})) {
-			Write-Host -ForegroundColor Red "Microsoft Visual C++ 2015-2019 Redistributable missing! A reboot is required to install VMWare Tools, call VMWare installer again after reboot!"}
-			Start-Process "$PSScriptRoot\$Product\VMWareTools.exe" -ArgumentList '/S /v "/qn REBOOT=R'  –NoNewWindow -Wait
-		} catch {
-	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+	if (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft Visual C++ 2015-2019*"})) {
+		Write-Host -ForegroundColor Red "Microsoft Visual C++ 2015-2019 Redistributable missing! A reboot is required to install VMWare Tools, call VMWare installer again after reboot!"
 	}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
+	try	{
+		Start-Process "$PSScriptRoot\$Product\VMWareTools.exe" -ArgumentList '/S /v "/qn REBOOT=R'  –NoNewWindow -Wait
+		DS_WriteLog "-" "" $LogFile
+		Write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
+		} catch {
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+			Write-Output ""    
+			}
 	}
 
 	# Stop, if no new version is available

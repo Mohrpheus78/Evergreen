@@ -32,7 +32,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of y
 $PackageName = "$Product" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -55,22 +55,24 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 
 	# Adobe Reader DC Update
 	Write-Host -ForegroundColor Yellow "Installing $Product"
-	DS_WriteLog "I" "Installing $Product" $LogFile
+	DS_WriteLog "I" "Installing $Product Update" $LogFile
 	try {
 		$mspArgs = "/P `"$PSScriptRoot\$Product\Adobe_DC_MUI_Update.msp`" /quiet /qn"
 		Start-Process -FilePath msiexec.exe -ArgumentList $mspArgs -Wait
+		# Disale update service and scheduled task
+		Start-Sleep 5
+		Stop-Service AdobeARMservice
+		Set-Service AdobeARMservice -StartupType Disabled
+		Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
+		DS_WriteLog "-" "" $LogFile
+		write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
 		} catch {
-	DS_WriteLog "E" "Error installinng $Product (error: $($Error[0]))" $LogFile       
-	}
-	DS_WriteLog "-" "" $LogFile
-
-	# Disale update service and scheduled task
-	Start-Sleep 5
-	Stop-Service AdobeARMservice
-	Set-Service AdobeARMservice -StartupType Disabled
-	Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
-	write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Produc Update (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product Update (Error: $($Error[0]))"
+			Write-Output "" 
+			}
 	}
 
 	# Stop, if no new version is available

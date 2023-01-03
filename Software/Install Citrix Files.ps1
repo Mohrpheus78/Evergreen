@@ -32,7 +32,7 @@ $BaseLogDir = $ENV:Temp       				# [edit] add the location of your log director
 $PackageName = "Citrix Files" 	 # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -100,13 +100,19 @@ IF (Test-Path -Path "$PSScriptRoot\Citrix\$Product\Version.txt") {
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
 		"$PSScriptRoot\Citrix\$Product\CitrixFiles.msi" | Install-MSIFile
-		Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name CitrixFiles -Force -EA SilentlyContinue | Out-Null
+		DS_WriteLog "-" "" $LogFile
+		write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
 		} catch {
-	DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+			Write-Output ""    
+			}
 	}
-	DS_WriteLog "-" "" $LogFile
-	write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
+
+	IF ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Files*"}).DisplayVersion) {
+		Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name CitrixFiles -Force -EA SilentlyContinue | Out-Null
 	}
 
 	# Stop, if no new version is available

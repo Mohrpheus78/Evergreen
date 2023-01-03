@@ -34,7 +34,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of y
 $PackageName = "Base Image Script Framework" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -99,34 +99,42 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
 		"$PSScriptRoot\$Product\setup-BIS-F.msi" | Install-MSIFile
+		DS_WriteLog "-" "" $LogFile
+		write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
 		} catch {
-	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-	}
-	DS_WriteLog "-" "" $LogFile
-	write-Host -ForegroundColor Green "...ready"
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+			Write-Output ""    
+			}
 
-	# Anpassungen der Skripte
-	write-Host -ForegroundColor Yellow "Edit BIS-F scripts (TCP Offload, DEP, RSS)"
-	DS_WriteLog "I" "Skripte anpassen" $LogFile
-	try {
-		((Get-Content "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1" -Raw) -replace "DisableTaskOffload' -Value '1'","DisableTaskOffload' -Value '0'") | Set-Content -Path "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1"
-		((Get-Content "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1" -Raw) -replace 'nx AlwaysOff','nx OptOut') | Set-Content -Path "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1"
-		((Get-Content "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1" -Raw) -replace 'rss=disable','rss=enable') | Set-Content -Path "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1"
-		((Get-Content "$BISFDir\Preparation\10_PrepBISF_AV-TM.ps1" -Raw) -replace 'deleteTMData','# deleteTMData') | Set-Content -Path "$BISFDir\Preparation\10_PrepBISF_AV-TM.ps1"
-		((Get-Content "$BISFDir\Preparation\10_PrepBISF_AV-TM.ps1" -Raw) -replace 'function # deleteTMData','function deleteTMData') | Set-Content -Path "$BISFDir\Preparation\10_PrepBISF_AV-TM.ps1"
-		#((Get-Content "$BISFDir\Global\BISF.psm1" -Raw) -replace 'New-PSDrive -Name \$Driveletter','New-PSDrive -Name "F"') | Set-Content -Path "$BISFDir\Global\BISF.psm1"
-		#((Get-Content "$BISFDir\Global\BISF.psm1" -Raw) -replace 'Remove-PSDrive -Name \$Driveletter','Remove-PSDrive -Name "F"') | Set-Content -Path "$BISFDir\Global\BISF.psm1"
-		#copy-item -Path "$PSScriptRoot\$Product\BIS-F Personalization ready.ps1" -Destination "$BISFDir\Personalization\Custom"
-		#copy-item -Path "$PSScriptRoot\$Product\SubCall" -Destination "$BISFDir\Personalization\Custom" -Recurse -Force
-		Set-ItemProperty -Path "HKLM:\SOFTWARE\Login Consultants\BISF" -Name LIC_BISF_PersState -Value Finished
-		} catch {
-	DS_WriteLog "E" "Error beim Anpassen der Skripte (error: $($Error[0]))" $LogFile       
+	# Edit scripts
+	IF ((Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Base Image*"}).DisplayVersion | Sort-Object -Property Version -Descending | Select-Object -First 1) {
+		write-Host -ForegroundColor Yellow "Edit BIS-F scripts (TCP Offload, DEP, RSS)"
+		DS_WriteLog "I" "Skripte anpassen" $LogFile
+		try {
+			((Get-Content "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1" -Raw) -replace "DisableTaskOffload' -Value '1'","DisableTaskOffload' -Value '0'") | Set-Content -Path "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1"
+			((Get-Content "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1" -Raw) -replace 'nx AlwaysOff','nx OptOut') | Set-Content -Path "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1"
+			((Get-Content "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1" -Raw) -replace 'rss=disable','rss=enable') | Set-Content -Path "$BISFDir\Preparation\97_PrepBISF_PRE_BaseImage.ps1"
+			((Get-Content "$BISFDir\Preparation\10_PrepBISF_AV-TM.ps1" -Raw) -replace 'deleteTMData','# deleteTMData') | Set-Content -Path "$BISFDir\Preparation\10_PrepBISF_AV-TM.ps1"
+			((Get-Content "$BISFDir\Preparation\10_PrepBISF_AV-TM.ps1" -Raw) -replace 'function # deleteTMData','function deleteTMData') | Set-Content -Path "$BISFDir\Preparation\10_PrepBISF_AV-TM.ps1"
+			#((Get-Content "$BISFDir\Global\BISF.psm1" -Raw) -replace 'New-PSDrive -Name \$Driveletter','New-PSDrive -Name "F"') | Set-Content -Path "$BISFDir\Global\BISF.psm1"
+			#((Get-Content "$BISFDir\Global\BISF.psm1" -Raw) -replace 'Remove-PSDrive -Name \$Driveletter','Remove-PSDrive -Name "F"') | Set-Content -Path "$BISFDir\Global\BISF.psm1"
+			#copy-item -Path "$PSScriptRoot\$Product\BIS-F Personalization ready.ps1" -Destination "$BISFDir\Personalization\Custom"
+			#copy-item -Path "$PSScriptRoot\$Product\SubCall" -Destination "$BISFDir\Personalization\Custom" -Recurse -Force
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Login Consultants\BISF" -Name LIC_BISF_PersState -Value Finished
+			DS_WriteLog "-" "" $LogFile
+			write-Host -ForegroundColor Green "...ready"
+			write-Output ""
+			} catch {
+				DS_WriteLog "-" "" $LogFile
+				DS_WriteLog "E" "Error editing scripts (error: $($Error[0]))" $LogFile
+				Write-Host -ForegroundColor Red "Error editing scripts (error: $($Error[0]))"
+				}
+		}
 	}
-	DS_WriteLog "-" "" $LogFile
-	write-Host -ForegroundColor Green "...ready"
-	write-Output ""
-	}
-
+	
 	# Stop, if no new version is available
 	Else {
 	Write-Host "No Update available for $Product"

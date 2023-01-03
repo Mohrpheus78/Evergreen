@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs the current Zoom VDI Host on a MCS/PVS master server/client or wherever you want.
+This script installs Putty on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -32,7 +32,7 @@ $BaseLogDir = $ENV:Temp       				# [edit] add the location of your log director
 $PackageName = "Putty" 	 # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -91,25 +91,31 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 	$Putty = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Putty*"}).DisplayVersion
 	$Putty = $Putty -replace ".{4}$"
-	[version]$Putty = [string]$Putty
-	$UninstallPutty = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Putty*"}).UninstallString.replace("MsiExec.exe ","")
+	IF ([string]::ISNullOrEmpty( $Putty) -eq $False) {
+		[version]$Putty = [string]$Putty
+		$UninstallPutty = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Putty*"}).UninstallString.replace("MsiExec.exe ","")
+	}
 	IF ($Putty -lt $Version) {
 		
 	# Uninstall Putty
-	IF ($Putty -ne $null) {
-	Write-Host -ForegroundColor Yellow "Uninstalling $Product"
-	DS_WriteLog "I" "Uninstalling $Product" $LogFile
-	$args = @(
-	"$UninstallPutty"
-    "/quiet"
-	)
-	try	{
-	Start-process msiexec.exe -ArgumentList $args –NoNewWindow -Wait
-	} catch {
-	DS_WriteLog "E" "Error Uninstalling $Product (error: $($Error[0]))" $LogFile       
-	}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green "...ready"
+	IF ([string]::ISNullOrEmpty( $Putty) -eq $False) {
+		Write-Host -ForegroundColor Yellow "Uninstalling $Product"
+		DS_WriteLog "I" "Uninstalling $Product" $LogFile
+		$arguments = @(
+		"$UninstallPutty"
+		"/quiet"
+		)
+		try	{
+		Start-process msiexec.exe -ArgumentList $arguments –NoNewWindow -Wait
+		DS_WriteLog "-" "" $LogFile
+		Write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
+			} catch {
+				DS_WriteLog "-" "" $LogFile
+				DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+				Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0])))"
+				Write-Output ""    
+				}
 	}
 	
 	# Putty Installation
@@ -117,12 +123,16 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
 		"$PSScriptRoot\$Product\Putty.msi" | Install-MSIFile
+		DS_WriteLog "-" "" $LogFile
+		Write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
 		} catch {
-	DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
-	}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Rrror: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0])"
+			Write-Output ""    
+		}
+	
 	}
 
 	# Stop, if no new version is available

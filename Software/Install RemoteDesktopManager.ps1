@@ -32,7 +32,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs" # [edit] add the location of your lo
 $PackageName = "$Product" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -88,7 +88,7 @@ else {
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-	[version]$RemoteDesktopManager = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Remote Desktop Manager*"}).DisplayVersion | Select -First 1
+	[version]$RemoteDesktopManager = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Remote Desktop Manager*"}).DisplayVersion | Select-Object -First 1
 	IF ($RemoteDesktopManager -lt $Version) {
 
 	# RemoteDesktopManager
@@ -96,12 +96,15 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
 		"$PSScriptRoot\$Product\RemoteDesktopManagerFree.msi" | Install-MSIFile
+		DS_WriteLog "-" "" $LogFile
+		Write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
 		} catch {
-	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-	}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+			Write-Output ""    
+			}
 	}
 
 	# Stop, if no new version is available

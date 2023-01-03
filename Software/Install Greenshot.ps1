@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs the current Zoom VDI Host on a MCS/PVS master server/client or wherever you want.
+This script installs Greenshot on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -32,7 +32,7 @@ $BaseLogDir = $ENV:Temp       				# [edit] add the location of your log director
 $PackageName = "Greenshot" 	 # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -68,14 +68,16 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		$inst = Start-Process -FilePath "$PSScriptRoot\$Product\Greenshot.exe" -ArgumentList $Options -PassThru -ErrorAction Stop
 			If ($inst) {
 			Wait-Process -InputObject $inst
+			DS_WriteLog "-" "" $LogFile
 			Write-Host -ForegroundColor Green "...ready"
+			Write-Output ""
 			}
 		} catch {
-	DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
-	}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+			Write-Output ""    
+			}
 	}
 
 	# Stop, if no new version is available

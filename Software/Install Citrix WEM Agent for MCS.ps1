@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs TreeSizeFree on a MCS/PVS master server/client or wherever you want.
+This script installs Citrix WEM agent on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -34,7 +34,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of y
 $PackageName = "$Product" 		    # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -77,11 +77,15 @@ Write-Host ""
 		BREAK }
 		$WEMServer = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").BrokerSvcName
 		Start-Process "$InstDir\Software\Citrix\WEM\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=0 InfrastructureServer=$WEMServer' –NoNewWindow -Wait
+		DS_WriteLog "-" "" $LogFile
+		write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
 		} catch {
-		DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-		}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green " ...ready!" 
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+			Write-Output ""    
+			}
 }
 	ELSE {
 	# Installation WEM Agent Cloud
@@ -95,14 +99,15 @@ Write-Host ""
 		BREAK }
 		$CC = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").CloudConnectorList -join","
 		Start-Process "$InstDir\Software\Citrix\Cloud\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=1 CloudConnectorList=$CC' –NoNewWindow -Wait
-		} catch {
-		DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+		DS_WriteLog "-" "" $LogFile
+		write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
+	} catch {
+		DS_WriteLog "-" "" $LogFile
+		DS_WriteLog "E" "Error installing $Product (Rrror: $($Error[0]))" $LogFile
+		Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0])"
+		Write-Output ""    
 		}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green " ...ready!" 
-Write-Host ""
 }
-
-Write-Output ""
 
 

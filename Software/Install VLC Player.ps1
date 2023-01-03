@@ -33,7 +33,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of y
 $PackageName = "$Product" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -98,13 +98,19 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
 		"$PSScriptRoot\$Product\VLC-Player.msi" | Install-MSIFile
-		 If (Test-Path -Path "$env:PUBLIC\Desktop\VLC media player.lnk") {Remove-Item -Path "$env:PUBLIC\Desktop\VLC media player.lnk" -Force}
+		DS_WriteLog "-" "" $LogFile
+		write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
 		} catch {
-	DS_WriteLog "E" "Ein Fehler ist aufgetreten beim Installieren von $Product (error: $($Error[0]))" $LogFile       
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+			Write-Output ""    
+			}
 	}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green " ...ready!" 
-	Write-Output ""
+
+	If (Test-Path -Path "$env:PUBLIC\Desktop\VLC media player.lnk") {
+		Remove-Item -Path "$env:PUBLIC\Desktop\VLC media player.lnk" -Force
 	}
 
 	# Stop, if no new version is available

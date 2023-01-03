@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.7.5
+Version: 2.7.6
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -32,6 +32,7 @@ Version: 2.7.5
 12/13: Wrong download path for Citrix WorkspaceApp CR, Added Cisco WebEx VDI
 15/12: Wrong download path for Citrix Files
 02/01: Office download error, FoxIt-Reader version not found
+02/01: Added MS Visual Redistributable packages
 #>
 
 
@@ -557,15 +558,15 @@ function gui_mode{
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
 	
-	# ImageGlass Checkbox
-    $ImageGlassBox = New-Object system.Windows.Forms.CheckBox
-    $ImageGlassBox.text = "ImageGlass"
-    $ImageGlassBox.width = 95
-    $ImageGlassBox.height = 20
-    $ImageGlassBox.autosize = $true
-    $ImageGlassBox.location = New-Object System.Drawing.Point(250,345)
-    $form.Controls.Add($ImageGlassBox)
-	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
+	# MS VcRedist Checkbox
+    $VcRedistBox = New-Object system.Windows.Forms.CheckBox
+    $VcRedistBox.text = "Microsoft Visual C++ Redistributable"
+    $VcRedistBox.width = 95
+    $VcRedistBox.height = 20
+    $VcRedistBox.autosize = $true
+    $VcRedistBox.location = New-Object System.Drawing.Point(250,345)
+    $form.Controls.Add($VcRedistBox)
+	$VcRedistBox.Checked = $SoftwareSelection.VcRedist
 	
 	# Greenshot Checkbox
     $GreenshotBox = New-Object system.Windows.Forms.CheckBox
@@ -606,16 +607,6 @@ function gui_mode{
     $OpenJDKBox.location = New-Object System.Drawing.Point(250,445)
     $form.Controls.Add($OpenJDKBox)
 	$OpenJDKBox.Checked =  $SoftwareSelection.OpenJDK
-	
-	# Cisco WebEx Desktop Checkbox
-    $CiscoWebExDesktopBox = New-Object system.Windows.Forms.CheckBox
-    $CiscoWebExDesktopBox.text = "Cisco WebEx Desktop"
-    $CiscoWebExDesktopBox.width = 95
-    $CiscoWebExDesktopBox.height = 20
-    $CiscoWebExDesktopBox.autosize = $true
-    $CiscoWebExDesktopBox.location = New-Object System.Drawing.Point(250,420)
-    $form.Controls.Add($CiscoWebExDesktopBox)
-	$CiscoWebExDesktopBox.Checked =  $SoftwareSelection.CiscoWebExDesktop
 	
 	# TreeSizeFree Checkbox
     $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
@@ -687,16 +678,38 @@ function gui_mode{
     $form.Controls.Add($FoxItReaderBox)
 	$FoxItReaderBox.Checked =  $SoftwareSelection.FoxItReader
 	
+	# ImageGlass Checkbox
+    $ImageGlassBox = New-Object system.Windows.Forms.CheckBox
+    $ImageGlassBox.text = "ImageGlass"
+    $ImageGlassBox.width = 95
+    $ImageGlassBox.height = 20
+    $ImageGlassBox.autosize = $true
+    $ImageGlassBox.location = New-Object System.Drawing.Point(685,220)
+    $form.Controls.Add($ImageGlassBox)
+	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
+	
 	# Cisco WebEx VDI Plugin Checkbox
     $CiscoWebExVDIBox = New-Object system.Windows.Forms.CheckBox
     $CiscoWebExVDIBox.text = "Cisco WebEx VDI Plugin"
     $CiscoWebExVDIBox.width = 95
     $CiscoWebExVDIBox.height = 20
     $CiscoWebExVDIBox.autosize = $true
-    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(685,220)
+    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(685,245)
     $form.Controls.Add($CiscoWebExVDIBox)
 	$CiscoWebExVDIBox.Checked =  $SoftwareSelection.CiscoWebExVDI
+	<#
+	# Cisco WebEx Desktop Checkbox
+    $CiscoWebExDesktopBox = New-Object system.Windows.Forms.CheckBox
+    $CiscoWebExDesktopBox.text = "Cisco WebEx Desktop"
+    $CiscoWebExDesktopBox.width = 95
+    $CiscoWebExDesktopBox.height = 20
+    $CiscoWebExDesktopBox.autosize = $true
+    $CiscoWebExDesktopBox.location = New-Object System.Drawing.Point(250,420)
+    $form.Controls.Add($CiscoWebExDesktopBox)
+	$CiscoWebExDesktopBox.Checked =  $SoftwareSelection.CiscoWebExDesktop
+	#>
 	
+	<#
 	## Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
     $ZoomVDIBox.text = "Zoom VDI Host Installer (N/A)"
@@ -732,7 +745,7 @@ function gui_mode{
     $ZoomVMWareBox.location = New-Object System.Drawing.Point(685,295)
     $form.Controls.Add($ZoomVMWareBox)
 	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
-	
+	#>
 		
 	# Select Button
     $SelectButton = New-Object system.Windows.Forms.Button
@@ -771,6 +784,7 @@ function gui_mode{
 		$MSDotNetBox.checked = $True
 		$MSSQLManagementStudioDEBox.checked = $True
 		$MSSQLManagementStudioENBox.checked = $True
+		$VcRedistBox.checked = $True
 		$MSSysinternalsBox.checked = $True
 		$MSWVDDesktopAgentBox.checked = $True
 		$MSWVDRTCServiceBox.checked = $True
@@ -830,6 +844,7 @@ function gui_mode{
 		$MSDotNetBox.checked = $False
 		$MSSQLManagementStudioDEBox.checked = $False
 		$MSSQLManagementStudioENBox.checked = $False
+		$VcRedistBox.checked = $False
 		$MSSysinternalsBox.checked = $False
 		$MSWVDDesktopAgentBox.checked = $False
 		$MSWVDRTCServiceBox.checked = $False
@@ -886,6 +901,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSDotNetFramework" -Value $MSDotNetBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsEN" -Value $MSSQLManagementStudioENBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsDE" -Value $MSSQLManagementStudioDEBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VcRedist" -Value $VcRedistBox.checked -Force		
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSysinternals" -Value $MSSysinternalsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDDesktopAgent" -Value $MSWVDDesktopAgentBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDRTCService" -Value $MSWVDRTCServiceBox.checked -Force
@@ -968,7 +984,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.7.5"
+	[version]$EvergreenVersion = "2.7.6"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -3885,6 +3901,109 @@ IF ($SoftwareSelection.FoxItReader -eq $true) {
 	}
 }
 
+
+# Download VcRedist x64
+IF ($SoftwareSelection.VcRedist -eq $true) {
+	$Product = "Microsoft Visual C++ Redistributable packages x64"
+	$PackageName = "VC_redist_x64"
+	Try {
+	$VcRedist = Get-VcList | Where-Object {$_.Name -like "*2022*" -and $_.Architecture -eq "x64"}
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $VcRedist.Version
+	$URL = $VcRedist.Download
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF ($Version -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""	
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
+
+
+# Download VcRedist x86
+IF ($SoftwareSelection.VcRedist -eq $true) {
+	$Product = "Microsoft Visual C++ Redistributable packages x86"
+	$PackageName = "VC_redist_x86"
+	Try {
+	$VcRedist = Get-VcList | Where-Object {$_.Name -like "*2022*" -and $_.Architecture -eq "x86"}
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $VcRedist.Version
+	$URL = $VcRedist.Download
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF ($Version -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""	
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
 
 
 

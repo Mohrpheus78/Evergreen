@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs WinSCP+ on a MCS/PVS master server/client or wherever you want.
+This script installs WinSCP on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -32,7 +32,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of y
 $PackageName = "$Product" 		    # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -63,18 +63,24 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	DS_WriteLog "I" "WinSCP wird installiert" $LogFile
 	try	{
 		Start-Process "$PSScriptRoot\$Product\WinSCP.exe" –ArgumentList $arguments –NoNewWindow -Wait
+		DS_WriteLog "-" "" $LogFile
+		Write-Host -ForegroundColor Green " ...ready!" 
+		Write-Output ""
+		} catch {
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0])))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+			Write-Output ""    
+			}
+	}
+
+	IF ((Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "WinSCP*"}).DisplayVersion) {
 		$(
 		Set-ItemProperty -Path "HKCU:\Software\Martin Prikryl\WinSCP 2\Configuration\Interface\Updates" -Name 'ShowOnStartup' -Value 0
 		Set-ItemProperty -Path "HKCU:\Software\Martin Prikryl\WinSCP 2\Configuration\Interface\Updates" -Name 'Period' -Value 0
 		Set-ItemProperty -Path "HKCU:\Software\Martin Prikryl\WinSCP 2\Configuration\Interface\Updates" -Name 'BetaVersions' -Value 1
 		Set-ItemProperty -Path "HKCU:\Software\Martin Prikryl\WinSCP 2\Configuration\Interface" -Name 'CollectUsage' -Value 0
 		) | Out-Null
-		} catch {
-	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-	}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green " ...ready!" 
-	Write-Output ""
 	}
 
 	# Stop, if no new version is available

@@ -33,7 +33,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of y
 $PackageName = "$Product" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -97,19 +97,26 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
 		"$PSScriptRoot\$Product\googlechromestandaloneenterprise64.msi" | Install-MSIFile
+		DS_WriteLog "-" "" $LogFile
+		write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
 		} catch {
-	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+			Write-Output ""    
+			}
 	}
-	DS_WriteLog "-" "" $LogFile
 
+	IF ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Google Chrome"}).DisplayVersion) {
 	# Disable scheduled tasks
 	Start-Sleep -s 5
-	Disable-ScheduledTask -TaskName "GoogleUpdateTaskMachineCore" | Out-Null
-	Disable-ScheduledTask -TaskName "GoogleUpdateTaskMachineUA" | Out-Null
-	write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
+	$ChromeTasks= (Get-ScheduledTask | Where-Object {$_.TaskName -like "GoogleUpdate*"}).TaskName
+	foreach ($Task in $ChromeTasks) {
+		Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue | Out-Null
+		}
 	}
-
+	
 	# Stop, if no new version is available
 	Else {
 	Write-Host "No Update available for $Product"

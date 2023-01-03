@@ -32,7 +32,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of y
 $PackageName = "$Product" 		    # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -60,26 +60,29 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	try	{
 		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 		if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
-			Write-Host -ForegroundColor DarkRed "Achtung! Keine Configuration.xml Datei gefunden, Office kann nicht installiert werden! Bitte eine XML Datei erstellen!" }
+			Write-Host -ForegroundColor DarkRed "Attention! No Office configuration file (XML) found, Office cannot be installed! Please create a XML configuration file!"
+			}
 		else {
 			  $InstallArgs = "/Configure `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
 			  Start-Process "$SoftwareFolder\$Product\setup.exe" -ArgumentList $InstallArgs -NoNewWindow -Wait
+			  DS_WriteLog "-" "" $LogFile
+			Write-Host -ForegroundColor Green "...ready"
+			Write-Output ""
 			  }
-		} catch {
-	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+			} catch {
+				DS_WriteLog "-" "" $LogFile
+				DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+				Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+				Write-Output ""    
+				}
 	}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
+	# Stop, if no new version is available
+	Else {
+		Write-Host "No Update available for $Product"
+		Write-Output ""
+		}
 }
 Else {
-	Write-Host -ForegroundColor Red "Version file not found for $Product"
-	Write-Output ""
-	}
-
-}
-# Stop, if no new version is available
-Else {
-Write-Host "No Update available for $Product"
+Write-Host -ForegroundColor Red "Version file not found for $Product"
 Write-Output ""
 }

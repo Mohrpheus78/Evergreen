@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs TreeSizeFree on a MCS/PVS master server/client or wherever you want.
+This script installs Citrix Multisession VDA CR on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -34,7 +34,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of y
 $PackageName = "$Product" 		    # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -66,21 +66,25 @@ Write-Host ""
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
 Write-Host -ForegroundColor Yellow "Installing $Product"
-IF (!(Test-Path "$InstDir\Software\Citrix\Current")) {
-		Write-Host ""
-		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\Current'!"
-		pause
-		BREAK }
-		Start-Process "$InstDir\Software\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"",""Workspace Environment Management"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"" /includeadditional ""Citrix MCS IODriver"" /COMPONENTS VDA /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /ENABLE_REAL_TIME_TRANSPORT /enable_ss_ports /mastermcsimage" –NoNewWindow -Wait
+	IF (!(Test-Path "$InstDir\Software\Citrix\Current")) {
+			Write-Host ""
+			Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\Current'!"
+			pause
+			BREAK }
+			Start-Process "$InstDir\Software\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"",""Workspace Environment Management"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"" /includeadditional ""Citrix MCS IODriver"" /COMPONENTS VDA /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /ENABLE_REAL_TIME_TRANSPORT /enable_ss_ports /mastermcsimage" –NoNewWindow -Wait
+			DS_WriteLog "-" "" $LogFile
+			Write-Host -ForegroundColor Green " ...ready!" 
+			Write-Output ""
+			Write-Host -ForegroundColor Red "Attention, server needs to reboot! Wait for the installer to finish after reboot and reboot again!"
+			Write-Output "Hit any key to reboot server"
+			Read-Host
+			Restart-Computer
 	} catch {
-DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-}
-DS_WriteLog "-" "" $LogFile
-Write-Host -ForegroundColor Green " ...ready!" 
-Write-Output ""
-Write-Host -ForegroundColor Red "Attention, server needs to reboot! Wait for the installer to finish after reboot and reboot again!"
-Write-Output "Hit any key to reboot server"
-Read-Host
-Restart-Computer
+		DS_WriteLog "-" "" $LogFile
+		DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+		Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+		Write-Output ""    
+		}
+
 
 

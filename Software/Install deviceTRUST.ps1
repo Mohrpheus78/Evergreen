@@ -33,7 +33,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of y
 $PackageName = "$Product" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -96,15 +96,18 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
-		$msi = (Get-ChildItem -Path "$PSScriptRoot\$Product" | where Name -like "*dtagent-x64*").Name
+		$msi = (Get-ChildItem -Path "$PSScriptRoot\$Product" | Where-Object Name -like "*dtagent-x64*").Name
 		"$PSScriptRoot\$Product\$msi" | Install-MSIFile
+		DS_WriteLog "-" "" $LogFile
+		write-Host -ForegroundColor Green "...ready"
+		Write-Host -ForegroundColor Red "Server needs to reboot after installation!"
+		Write-Output ""
 		} catch {
-	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-	}
-	DS_WriteLog "-" "" $LogFile
-	write-Host -ForegroundColor Green "...ready"
-	Write-Host -ForegroundColor Red "Server needs to reboot after installation!"
-	Write-Output ""
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+			Write-Output ""    
+			}
 	}
 
 	# Stop, if no new version is available

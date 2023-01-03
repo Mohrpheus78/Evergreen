@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs the current Adobe Acrobat DC MUI on a MCS/PVS master server/client or wherever you want.
+This script installs the current Adobe Acrobat DC MUI x86 on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -32,7 +32,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of y
 $PackageName = "Adobe Reader DC" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -48,20 +48,29 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Adobe Reader Installation
-IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Adobe Acrobat Reader DC*"})) {
+IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Adobe Acrobat Reader MUI*"})) {
 Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try {
 	$msiArgs = "/I `"$PSScriptRoot\$Product\AcroRead.msi`" ALLUSERS=TRUE TRANSFORMS=`"$PSScriptRoot\$Product\XenApp.mst`" /quiet /qn"
 	Start-Process -FilePath msiexec.exe -ArgumentList $msiArgs -Wait
-	cp "$PSScriptRoot\$Product\Werkzeuge_ausblenden\Viewer.aapp" "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroApp\DEU" -Recurse -Force -EA SilentlyContinue
-	cp "$PSScriptRoot\$Product\Werkzeuge_ausblenden\Viewer.aapp" "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroApp\ENU" -Recurse -Force -EA SilentlyContinue
+	DS_WriteLog "-" "" $LogFile
+	write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
+	Copy-Item "$PSScriptRoot\$Product\Werkzeuge_ausblenden\Viewer.aapp" "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroApp\DEU" -Recurse -Force -EA SilentlyContinue
+	Copy-Item "$PSScriptRoot\$Product\Werkzeuge_ausblenden\Viewer.aapp" "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroApp\ENU" -Recurse -Force -EA SilentlyContinue
 	} catch {
-DS_WriteLog "E" "Error while installing $Product (error: $($Error[0]))" $LogFile 
+		DS_WriteLog "-" "" $LogFile
+		DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+		Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+		Write-Output "" 
+		}
 }
+ELSE {
+	DS_WriteLog "-" "" $LogFile
+	Write-Host -ForegroundColor Green "$Product already installed"
+	Write-Output ""
 }
-Write-Host -ForegroundColor Green "...ready"
-Write-Output ""
 
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
@@ -73,19 +82,24 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	DS_WriteLog "I" "Installing Adobe Reader DC Update" $LogFile
 	try {
 		$mspArgs = "/P `"$PSScriptRoot\$Product\Adobe_DC_MUI_Update.msp`" /quiet /qn"
-		Start-Process -FilePath msiexec.exe -ArgumentList $mspArgs -Wait	
+		Start-Process -FilePath msiexec.exe -ArgumentList $mspArgs -Wait
+		DS_WriteLog "-" "" $LogFile
+		write-Host -ForegroundColor Green "...ready"
+		Write-Output ""	
 		} catch {
-	DS_WriteLog "E" "Error while installing Adobe Reader DC Update (error: $($Error[0]))" $LogFile       
-	}
-	DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing Adobe Reader DC x64 Update (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing Adobe Reader DC x64 Update (Error: $($Error[0]))"
+			Write-Output "" 
+			}
 
-	# Disale update service and scheduled task
-	Start-Sleep 5
-	Stop-Service AdobeARMservice
-	Set-Service AdobeARMservice -StartupType Disabled
-	Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
-	Write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
+		IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Adobe Acrobat Reader MUI*"}) {
+		# Disale update service and scheduled task
+		Start-Sleep 5
+		Stop-Service AdobeARMservice
+		Set-Service AdobeARMservice -StartupType Disabled
+		Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
+		}
 	}
 
 	# Stop, if no new version is available

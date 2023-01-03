@@ -18,9 +18,8 @@ If you made your selection once, you can run the script with the -noGUI paramete
 
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
-There are no install scripts for VMWare Tools and openJDK yet!
 Run as admin!
-Version: 2.9.8
+Version: 2.10
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -35,6 +34,8 @@ Version: 2.9.8
 15/12: Minor changes in install scripts
 20/12: Added results at the end for documentation (e.g. PVS vDisk properties)
 22/12: Syntax error Office scripts
+02/01: Addec MS VcRedist packages
+03/01: Improved error logging for all scripts, various aother improvements
 #>
 
 Param (
@@ -50,162 +51,6 @@ Param (
 		$SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername.xml"
     
 )
-
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
-
-# Do you run the script as admin?
-# ========================================================================================================================================
-$myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
-$myWindowsPrincipal=new-object System.Security.Principal.WindowsPrincipal($myWindowsID)
-$adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
-
-if ($myWindowsPrincipal.IsInRole($adminRole))
-   {
-    # OK, runs as admin
-    Write-Host "OK, script is running with Admin rights"
-    Write-Output ""
-   }
-
-else
-   {
-    # Script doesn't run as admin, stop!
-    Write-Host -ForegroundColor Red "Error! Script is NOT running with Admin rights!"
-	Write-Host "Press any key to exit"
-	Read-Host
-    BREAK
-   }
-# ========================================================================================================================================
-
-
-# FUNCTION Check internet access
-# ========================================================================================================================================
-Function Get-StatusCodeFromWebsite {
-	param($Website)
-	Try {
-    (Invoke-WebRequest -Uri $Website -TimeoutSec 1 -UseBasicParsing).StatusCode
-	}
-	Catch {
-    }
-}
-$Result = Get-StatusCodeFromWebsite -Website github.com
-
-IF($Result -eq 200) {
-	$Internet = "True"
-}
-ELSE {
-    $Internet = "False"
-}
-# ========================================================================================================================================
-
-
-# Is there a newer Evergreen Script version?
-# ========================================================================================================================================
-if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.9.8"
-	$WebVersion = ""
-	[bool]$NewerVersion = $false
-	If ($Internet -eq "True") {
-		$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1"
-		If ($WebResponseVersion) {
-			[version]$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
-		}
-		If ($WebVersion -gt $EvergreenVersion) {
-			$NewerVersion = $true
-		}
-	}
-	ELSE {
-		Write-Host -ForegroundColor Red "Check your internet connection to get updated scripts, server can't reach the GitHub URL!"
-		Write-Output ""
-		
-		$title = ""
-		$message = "Do you want to cancel the update? The installer scripts may be outdated!"
-		$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
-		$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
-		$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
-		$choice=$host.ui.PromptForChoice($title, $message, $options, 0)
-
-		switch ($choice) {
-			0 {
-			$answer = 'Yes'       
-			}
-			1 {
-			$answer = 'No'
-			}
-		}
-
-		if ($answer -eq 'Yes') {
-			BREAK
-		}
-	}
-}
-
-Clear-Host
-
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Installer (Powered by Evergreen-Module) "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                 "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
-Write-Output ""
-
-
-# Variables
-Write-Host -ForegroundColor Cyan "Setting Variables"
-Write-Output ""
-$SoftwareFolder = ("$PSScriptRoot" + "\" + "Software\")
-$ErrorActionPreference = "Continue"
-$SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername.xml"
-
-# Check version
-if ($noGUI -eq $False) {
-Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion"`n
-Write-Output ""
-Write-Host -Foregroundcolor Cyan "Is there a newer Evergreen Script version?"
-
-If ($NewerVersion -eq $false) {
-        # No new version available
-        Write-Host -Foregroundcolor Green "OK, script is newest version!"
-        Write-Output ""
-}
-Else {
-        # There is a new Evergreen Script Version
-        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer!"
-        Write-Output ""
-		$wshell = New-Object -ComObject Wscript.Shell
-            $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
-            If ($AnswerPending -eq "6") {
-				$update = @'
-                Remove-Item -Path "$PSScriptRoot\Evergreen-Software Installer.ps1" -Force 
-                Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Installer.ps1")
-				$TempFolder = "$PSScriptRoot\SoftwareTemp"
-				IF (!(Test-Path $TempFolder)) {
-					New-Item -Path $TempFolder -ItemType Directory -EA SilentlyContinue | Out-Null
-					}
-				Invoke-WebRequest -Uri https://github.com/Mohrpheus78/Evergreen/archive/refs/heads/main.zip -OutFile "$TempFolder\Evergreen.zip"
-				Expand-Archive -Path "$TempFolder\Evergreen.zip" -DestinationPath $TempFolder
-
-				Get-ChildItem "$TempFolder\Evergreen-main\Software\*.ps1" | Move-Item -Destination $TempFolder -Force
-				Get-ChildItem "$TempFolder\*.ps1" | Copy-Item -Destination "$SoftwareFolder" -Force
-				Remove-Item -Path $TempFolder -Recurse -Force
-                & "$PSScriptRoot\Evergreen-Software Installer.ps1"
-'@
-                $update > "$PSScriptRoot\UpdateInstaller.ps1"
-                & "$PSScriptRoot\UpdateInstaller.ps1"
-                BREAK
-			}
-
-}
-}
-
-# General install logfile
-$Date = $Date = Get-Date -UFormat "%d.%m.%Y"
-$InstallLog = "$SoftwareFolder\_Install Logs\General Install $ENV:Computername $Date.log"
-
-# Import values (selected software) from XML file
-if (Test-Path -Path $SoftwareToInstall) {$SoftwareSelection = Import-Clixml $SoftwareToInstall}
-
-#Remove-Item $InstallLog*
-Start-Transcript $InstallLog | Out-Null
 
 
 # FUNCTION Logging
@@ -236,6 +81,7 @@ Function DS_WriteLog {
     }
 }
 #========================================================================================================================================
+
 
 # FUNCTION GUI
 # ========================================================================================================================================
@@ -565,15 +411,17 @@ function gui_mode{
     $form.Controls.Add($MSOffice2021Box)
 	$MSOffice2021Box.Checked = $SoftwareSelection.MSOffice2021
 	
-	# KeePass Checkbox
-    $KeePassBox = New-Object system.Windows.Forms.CheckBox
-    $KeePassBox.text = "KeePass"
-    $KeePassBox.width = 95
-    $KeePassBox.height = 20
-    $KeePassBox.autosize = $true
-    $KeePassBox.location = New-Object System.Drawing.Point(390,220)
-    $form.Controls.Add($KeePassBox)
-	$KeePassBox.Checked =  $SoftwareSelection.KeePass
+	# MS VcRedist Checkbox
+    $VcRedistBox = New-Object system.Windows.Forms.CheckBox
+    $VcRedistBox.text = "Microsoft Visual C++ Redistributable"
+    $VcRedistBox.width = 95
+    $VcRedistBox.height = 20
+    $VcRedistBox.autosize = $true
+    $VcRedistBox.location = New-Object System.Drawing.Point(390,220)
+    $form.Controls.Add($VcRedistBox)
+	$VcRedistBox.Checked = $SoftwareSelection.VcRedist
+	
+	
 <#	
 	# Zoom VMWare client Checkbox
     $ZoomVMWareBox = New-Object system.Windows.Forms.CheckBox
@@ -729,6 +577,17 @@ function gui_mode{
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 	
+	# KeePass Checkbox
+    $KeePassBox = New-Object system.Windows.Forms.CheckBox
+    $KeePassBox.text = "KeePass"
+    $KeePassBox.width = 95
+    $KeePassBox.height = 20
+    $KeePassBox.autosize = $true
+    $KeePassBox.location = New-Object System.Drawing.Point(390,570)
+    $form.Controls.Add($KeePassBox)
+	$KeePassBox.Checked =  $SoftwareSelection.KeePass
+	
+	<#
 	# Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
     $ZoomVDIBox.text = "Zoom VDI Host Installer (N/A)"
@@ -752,7 +611,7 @@ function gui_mode{
     $ZoomCitrixBox.location = New-Object System.Drawing.Point(390,595)
     $form.Controls.Add($ZoomCitrixBox)
 	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
-
+	#>
 	
 	# Select Button
     $SelectButton = New-Object system.Windows.Forms.Button
@@ -785,6 +644,7 @@ function gui_mode{
 		$MS365AppsBox_MEC.checked = $True
 		$MSOffice2019Box.checked = $True
 		$MSOffice2021Box.checked = $True
+		$VcRedistBox.checked = $True
 		$OracleJava8Box.checked = $True
 		$OracleJava8_32Box.checked = $True
 		$TreeSizeFreeBox.checked = $True
@@ -843,6 +703,7 @@ function gui_mode{
 		$MS365AppsBox_MEC.checked = $False
 		$MSOffice2019Box.checked = $False
 		$MSOffice2021Box.checked = $False
+		$VcRedistBox.checked = $False
 		$OracleJava8Box.checked = $False
 		$OracleJava8_32Box.checked = $False
 		$TreeSizeFreeBox.checked = $False
@@ -903,6 +764,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_MEC" -Value $MS365AppsBox_MEC.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2019" -Value $MSOffice2019Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2021" -Value $MSOffice2021Box.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VcRedist" -Value $VcRedistBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8" -Value $OracleJava8Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8_32" -Value $OracleJava8_32Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "TreeSizeFree" -Value $TreeSizeFreeBox.checked -Force
@@ -954,11 +816,167 @@ function gui_mode{
 }
 # ========================================================================================================================================
 
+
+# FUNCTION Check internet access
+# ========================================================================================================================================
+Function Get-StatusCodeFromWebsite {
+	param($Website)
+	Try {
+    (Invoke-WebRequest -Uri $Website -TimeoutSec 1 -UseBasicParsing).StatusCode
+	}
+	Catch {
+    }
+}
+$Result = Get-StatusCodeFromWebsite -Website github.com
+
+IF($Result -eq 200) {
+	$Internet = "True"
+}
+ELSE {
+    $Internet = "False"
+}
+# ========================================================================================================================================
+
+
+# TLS settings
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# Do you run the script as admin?
+# ========================================================================================================================================
+$myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
+$myWindowsPrincipal=new-object System.Security.Principal.WindowsPrincipal($myWindowsID)
+$adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
+
+if ($myWindowsPrincipal.IsInRole($adminRole))
+   {
+    # OK, runs as admin
+    Write-Host "OK, script is running with Admin rights"
+    Write-Output ""
+   }
+
+else
+   {
+    # Script doesn't run as admin, stop!
+    Write-Host -ForegroundColor Red "Error! Script is NOT running with Admin rights!"
+	Write-Host "Press any key to exit"
+	Read-Host
+    BREAK
+   }
+# ========================================================================================================================================
+
+
+# Is there a newer Evergreen Script version?
+# ========================================================================================================================================
+if ($noGUI -eq $False) {
+	[version]$EvergreenVersion = "2.10"
+	$WebVersion = ""
+	[bool]$NewerVersion = $false
+	If ($Internet -eq "True") {
+		$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1"
+		If ($WebResponseVersion) {
+			[version]$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
+		}
+		If ($WebVersion -gt $EvergreenVersion) {
+			$NewerVersion = $true
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Check your internet connection to get updated scripts, server can't reach the GitHub URL!"
+		Write-Output ""
+		
+		$title = ""
+		$message = "Do you want to cancel the update? The installer scripts may be outdated!"
+		$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
+		$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
+		$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
+		$choice=$host.ui.PromptForChoice($title, $message, $options, 0)
+
+		switch ($choice) {
+			0 {
+			$answer = 'Yes'       
+			}
+			1 {
+			$answer = 'No'
+			}
+		}
+
+		if ($answer -eq 'Yes') {
+			BREAK
+		}
+	}
+}
+
+Clear-Host
+
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Installer (Powered by Evergreen-Module) "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                 "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
+Write-Output ""
+
+
+# Variables
+Write-Host -ForegroundColor Cyan "Setting Variables"
+Write-Output ""
+$SoftwareFolder = ("$PSScriptRoot" + "\" + "Software\")
+$ErrorActionPreference = "Continue"
+$SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername.xml"
+
+# Check version
+if ($noGUI -eq $False) {
+Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion"`n
+Write-Output ""
+Write-Host -Foregroundcolor Cyan "Is there a newer Evergreen Script version?"
+
+If ($NewerVersion -eq $false) {
+        # No new version available
+        Write-Host -Foregroundcolor Green "OK, script is newest version!"
+        Write-Output ""
+}
+Else {
+        # There is a new Evergreen Script Version
+        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer!"
+        Write-Output ""
+		$wshell = New-Object -ComObject Wscript.Shell
+            $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
+            If ($AnswerPending -eq "6") {
+				$update = @'
+                Remove-Item -Path "$PSScriptRoot\Evergreen-Software Installer.ps1" -Force 
+                Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Installer.ps1")
+				$TempFolder = "$PSScriptRoot\SoftwareTemp"
+				IF (!(Test-Path $TempFolder)) {
+					New-Item -Path $TempFolder -ItemType Directory -EA SilentlyContinue | Out-Null
+					}
+				Invoke-WebRequest -Uri https://github.com/Mohrpheus78/Evergreen/archive/refs/heads/main.zip -OutFile "$TempFolder\Evergreen.zip"
+				Expand-Archive -Path "$TempFolder\Evergreen.zip" -DestinationPath $TempFolder
+
+				Get-ChildItem "$TempFolder\Evergreen-main\Software\*.ps1" | Move-Item -Destination $TempFolder -Force
+				Get-ChildItem "$TempFolder\*.ps1" | Copy-Item -Destination "$SoftwareFolder" -Force
+				Remove-Item -Path $TempFolder -Recurse -Force
+                & "$PSScriptRoot\Evergreen-Software Installer.ps1"
+'@
+                $update > "$PSScriptRoot\UpdateInstaller.ps1"
+                & "$PSScriptRoot\UpdateInstaller.ps1"
+                BREAK
+			}
+
+}
+}
+
+# General install logfile
+$Date = $Date = Get-Date -UFormat "%d.%m.%Y"
+$InstallLog = "$SoftwareFolder\_Install Logs\General Install $ENV:Computername $Date.log"
+
+# Import values (selected software) from XML file
+if (Test-Path -Path $SoftwareToInstall) {$SoftwareSelection = Import-Clixml $SoftwareToInstall}
+
+#Remove-Item $InstallLog*
+Start-Transcript $InstallLog | Out-Null
+
 # Call Form
 if ($noGUI -eq $False) {
 gui_mode
 }
-
 
 # Import selection
 $SoftwareSelection = Import-Clixml $SoftwareToInstall
@@ -1109,6 +1127,13 @@ IF ($SoftwareSelection.MSOffice2019 -eq $true)
 IF ($SoftwareSelection.MSOffice2021 -eq $true)
 	{
 		& "$SoftwareFolder\Install MS Office 2021.ps1"
+	}
+	
+# Install MS VcRedist
+IF ($SoftwareSelection.VcRedist -eq $true)
+	{
+		& "$SoftwareFolder\Install MS VcRedist x86.ps1"
+		& "$SoftwareFolder\Install MS VcRedist x64.ps1"
 	}
 
 # Install Oracle Java 8

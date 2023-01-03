@@ -32,7 +32,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of y
 $PackageName = "$Product" 		    # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -58,16 +58,27 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try	{
 		$null = Start-Process "$PSScriptRoot\$Product\OneDriveSetup.exe" –ArgumentList '/allusers' –NoNewWindow -PassThru
-		while (Get-Process -Name "OneDriveSetup" -ErrorAction SilentlyContinue) { Start-Sleep -Seconds 10 }
-		# onedrive starts automatically after setup. kill!
+		while (Get-Process -Name "OneDriveSetup" -ErrorAction SilentlyContinue) {
+			Start-Sleep -Seconds 10
+			}
+		# OneDrive starts automatically after setup. kill!
 		Stop-Process -Name "OneDrive" -Force
-		Disable-ScheduledTask -TaskName 'OneDrive Per-Machine Standalone Update Task' -EA SilentlyContinue | Out-Null
+		DS_WriteLog "-" "" $LogFile
+		Write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
 		} catch {
-	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+			Write-Output ""    
+			}
 	}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
+
+	IF ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*OneDrive*"}).DisplayVersion) {
+		$OneDriveTasks= (Get-ScheduledTask | Where-Object {$_.TaskName -like "OneDrive*"}).TaskName
+		foreach ($Task in $OneDriveTasks) {
+			Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue | Out-Null
+			}
 	}
 
 	# Stop, if no new version is available

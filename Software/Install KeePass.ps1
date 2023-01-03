@@ -33,7 +33,7 @@ $BaseLogDir = "$PSScriptRoot\_Install Logs"       # [edit] add the location of y
 $PackageName = "$Product" 		            # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
-$StartDir = $PSScriptRoot # the directory path of the script currently being executed
+# $StartDir = $PSScriptRoot # the directory path of the script currently being executed
 $LogDir = (Join-Path $BaseLogDir $PackageName)
 $LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
 $LogFile = Join-path $LogDir $LogFileName
@@ -60,13 +60,16 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
 		Start-Process "$PSScriptRoot\$Product\KeePass.exe" -ArgumentList '/COMPONENTS="KeePass core files" /VERYSILENT /NORESTART' -Wait
-		Copy-Item -Path "$PSScriptRoot\$Product\KeePass.config.enforced.xml" -Destination "$env:ProgramFiles\KeePass Password Safe 2" -Force -EA SilentlyContinue | Out-Null
-		} catch {
-	DS_WriteLog "E" "Error installing $Product (error: $($Error[0]))" $LogFile       
-	}
-	DS_WriteLog "-" "" $LogFile
-	Write-Host -ForegroundColor Green "...ready"
-	Write-Output ""
+		DS_WriteLog "-" "" $LogFile
+		Write-Host -ForegroundColor Green "...ready"
+		Write-Output ""
+		Copy-Item -Path "$PSScriptRoot\$Product\KeePass.config.enforced.xml" -Destination "$env:ProgramFiles\KeePass Password Safe 2" -Force -EA SilentlyContinue
+	} catch {
+		DS_WriteLog "-" "" $LogFile
+		DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+		Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+		Write-Output ""    
+		}
 	}
 
 	# Stop, if no new version is available
