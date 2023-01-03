@@ -113,8 +113,6 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		Stop-Service AdobeARMservice
 		Set-Service AdobeARMservice -StartupType Disabled
 		Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
-		Write-Host -ForegroundColor Green "...ready"
-		Write-Output ""
 	}
 }
 
