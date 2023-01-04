@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.12
+Version: 2.11
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -53,8 +53,10 @@ Param (
     
 )
 
+
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
 
 # ======================
 # Beginning Splashscreen
@@ -63,18 +65,16 @@ Param (
 copy-item "$PSScriptRoot\Software\_SplashScreen\" "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen" -Recurse -Force | Out-Null
 if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
 
-# =======================================================================
-#                        Add shared_assemblies                          #
-# =======================================================================
+# Add shared_assemblies #
+# ===================== #
 
 [System.Reflection.Assembly]::LoadWithPartialName('presentationframework') | out-null
 # Mahapps Library
 [System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\MahApps.Metro.dll")       | out-null
 [System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\System.Windows.Interactivity.dll") | out-null
 
-# =======================================================================
-#                            Splash Screen                              #
-# =======================================================================
+# Splash Screen #
+# ============= #
 function close-SplashScreen (){
     $hash.window.Dispatcher.Invoke("Normal",[action]{ $hash.window.close() })
     $Pwshell.EndInvoke($handle) | Out-Null
@@ -909,8 +909,8 @@ if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") 
 	if ($noGUI -eq $False) {
 		Start-SplashScreen
 	}
-#                     Load Main Panel                                #
-# =======================================================================
+# Load Main Panel #
+# =============== #
 
 $Global:pathPanel= split-path -parent $MyInvocation.MyCommand.Definition
 
@@ -924,8 +924,8 @@ function LoadXaml ($filename){
 $XamlMainWindow=LoadXaml($pathPanel+"\Software\_SplashScreen\form.xaml")
 $reader = (New-Object System.Xml.XmlNodeReader $XamlMainWindow)
 $Form = [Windows.Markup.XamlReader]::Load($reader)
-#                       Main Pannel Event                               #
-# =======================================================================
+# Main Pannel Event #
+# ================= #
 }
 
 
@@ -948,6 +948,7 @@ ELSE {
     $Internet = "False"
 }
 # ========================================================================================================================================
+
 
 # Do you run the script as admin?
 # ========================================================================================================================================

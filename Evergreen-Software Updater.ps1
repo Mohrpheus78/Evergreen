@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.7.6
+Version: 2.8
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -33,6 +33,7 @@ Version: 2.7.6
 15/12: Wrong download path for Citrix Files
 02/01: Office download error, FoxIt-Reader version not found
 02/01: Added MS Visual Redistributable packages
+04/01: Added SplashScreen
 #>
 
 
@@ -45,25 +46,94 @@ Param (
     
 )
 
-# FUNCTION Check internet access
-# ========================================================================================================================================
-Function Get-StatusCodeFromWebsite {
-	param($Website)
-	Try {
-    (Invoke-WebRequest -Uri $Website -TimeoutSec 1 -UseBasicParsing).StatusCode
-	}
-	Catch {
-    }
-}
-$Result = Get-StatusCodeFromWebsite -Website github.com
+# TLS settings
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-IF($Result -eq 200) {
-	$Internet = "True"
+
+# ======================
+# Beginning Splashscreen
+# ======================
+
+copy-item "$PSScriptRoot\Software\_SplashScreen\" "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen" -Recurse -Force | Out-Null
+if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
+
+# =======================================================================
+#                        Add shared_assemblies                          #
+# =======================================================================
+
+[System.Reflection.Assembly]::LoadWithPartialName('presentationframework') | out-null
+# Mahapps Library
+[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\MahApps.Metro.dll")       | out-null
+[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\System.Windows.Interactivity.dll") | out-null
+
+# =======================================================================
+#                            Splash Screen                              #
+# =======================================================================
+function close-SplashScreen (){
+    $hash.window.Dispatcher.Invoke("Normal",[action]{ $hash.window.close() })
+    $Pwshell.EndInvoke($handle) | Out-Null
+    #$runspace.Close() | Out-Null
+    
 }
-ELSE {
-    $Internet = "False"
+
+function Start-SplashScreen{
+    $Pwshell.Runspace = $runspace
+    $script:handle = $Pwshell.BeginInvoke() 
 }
-# ========================================================================================================================================
+
+
+    $hash = [hashtable]::Synchronized(@{})
+    $runspace = [runspacefactory]::CreateRunspace()
+    $runspace.ApartmentState = "STA"
+    $Runspace.ThreadOptions = "ReuseThread"
+    $runspace.Open()
+    $runspace.SessionStateProxy.SetVariable("hash",$hash) 
+    $Pwshell = [PowerShell]::Create()
+
+    $Pwshell.AddScript({
+    $xml = [xml]@"
+     <Window
+	xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	x:Name="WindowSplash" Title="SplashScreen" WindowStyle="None" WindowStartupLocation="CenterScreen"
+	Background="DarkRed" ShowInTaskbar ="true" 
+	Width="650" Height="350" ResizeMode = "NoResize" >
+	
+	<Grid>
+		<Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+		
+		<Grid Grid.Row="0" x:Name="Header" >	
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="20,10,0,0">       
+				<Label Content="Software-Updater (Powered by Evergreen-Module)" Margin="5,0,0,0" Foreground="White" Height="50"  FontSize="25"/>
+			</StackPanel> 
+		</Grid>
+        <Grid Grid.Row="1" >
+		 	<StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,5,5,5">
+				<Label x:Name = "LoadingLabel"  Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" Margin = "0,0,0,0"/>
+				<Controls:MetroProgressBar IsIndeterminate="True" Foreground="White" HorizontalAlignment="Center" Width="350" Height="20"/>
+			</StackPanel>	
+        </Grid>
+	</Grid>
+		
+</Window> 
+"@
+ 
+ 
+    $reader = New-Object System.Xml.XmlNodeReader $xml
+    $hash.window = [Windows.Markup.XamlReader]::Load($reader)
+    $hash.LoadingLabel = $hash.window.FindName("LoadingLabel")
+    $hash.Logo = $hash.window.FindName("Logo")
+    $hash.Logo.Source="$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\form\resources\sul-cai-icon.png"
+    $hash.LoadingLabel.Content= "© D. Mohrmann - @mohrpheus78"  
+    $hash.window.ShowDialog() 
+    
+}) | Out-Null
+}
+
 
 # FUNCTION Logging
 #========================================================================================================================================
@@ -954,8 +1024,53 @@ function gui_mode{
 }
 # ========================================================================================================================================
 
-# TLS settings
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# We open our splash-screen
+if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
+	if ($noGUI -eq $False) {
+		Start-SplashScreen
+	}
+# Load Main Panel #
+# =============== #
+
+$Global:pathPanel= split-path -parent $MyInvocation.MyCommand.Definition
+
+function LoadXaml ($filename){
+    $XamlLoader=(New-Object System.Xml.XmlDocument)
+    $XamlLoader.Load($filename)
+    return $XamlLoader
+}
+
+
+$XamlMainWindow=LoadXaml($pathPanel+"\Software\_SplashScreen\form.xaml")
+$reader = (New-Object System.Xml.XmlNodeReader $XamlMainWindow)
+$Form = [Windows.Markup.XamlReader]::Load($reader)
+# Main Pannel Event #
+# ================= #
+}
+
+
+# FUNCTION Check internet access
+# ========================================================================================================================================
+Function Get-StatusCodeFromWebsite {
+	param($Website)
+	Try {
+    (Invoke-WebRequest -Uri $Website -TimeoutSec 1 -UseBasicParsing).StatusCode
+	}
+	Catch {
+    }
+}
+$Result = Get-StatusCodeFromWebsite -Website github.com
+
+IF($Result -eq 200) {
+	$Internet = "True"
+}
+ELSE {
+    $Internet = "False"
+}
+# ========================================================================================================================================
+
+
 
 # Do you run the script as admin?
 # ========================================================================================================================================
@@ -984,7 +1099,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.7.6"
+	[version]$EvergreenVersion = "2.8"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1022,6 +1137,14 @@ if ($noGUI -eq $False) {
 		}
 	}
 }
+
+# Everything is loaded so we close the splash-screen
+if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
+	if ($noGUI -eq $False) {
+		close-SplashScreen
+	}
+}
+
 Clear-Host
 
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
