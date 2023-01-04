@@ -899,7 +899,9 @@ function gui_mode{
 # ========================================================================================================================================
 
 # We open our splash-screen
-Start-SplashScreen
+if ($noGUI -eq $False) {
+	Start-SplashScreen
+}
 
 # =======================================================================
 #                        Load Main Panel                                #
@@ -1012,7 +1014,9 @@ if ($noGUI -eq $False) {
 }
 
 # Everything is loaded so we close the splash-screen
-close-SplashScreen
+if ($noGUI -eq $False) {
+	close-SplashScreen
+}
 
 # ===================
 # Ending Splashscreen
