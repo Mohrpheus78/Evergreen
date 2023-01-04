@@ -935,7 +935,7 @@ function LoadXaml ($filename){
 }
 
 
-$XamlMainWindow=LoadXaml($pathPanel+"$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\form.xaml")
+$XamlMainWindow=LoadXaml("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\form.xaml")
 $reader = (New-Object System.Xml.XmlNodeReader $XamlMainWindow)
 $Form = [Windows.Markup.XamlReader]::Load($reader)
 # Main Pannel Event #
