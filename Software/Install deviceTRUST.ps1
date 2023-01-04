@@ -70,6 +70,7 @@ $arguments = @(
     "/i"
     "`"$msiFile`""
     "/qn"
+	"/noreboot"
 )
 if ($targetDir){
     if (!(Test-Path $targetDir)){

@@ -1,0 +1,73 @@
+﻿<Controls:MetroWindow
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        UseNoneWindowStyle="True" WindowStyle="None" Name="MainPanel" MaxHeight="768" MaxWidth="1024" WindowStartupLocation="CenterScreen" >  
+    <Window.Background>
+        <ImageBrush ImageSource=".\form\resources\background.png"></ImageBrush>
+    </Window.Background>
+	
+	<Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="form\resources\Icons.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>	
+	
+	
+    <Grid x:Name="Container">
+	
+        <Grid.RowDefinitions>
+            <RowDefinition Height="150"/>
+            <RowDefinition/>
+            <RowDefinition Height="75"/>
+        </Grid.RowDefinitions>
+		
+        <!-- #Begin Header Region -->
+        <Grid Grid.Row="0" x:Name="Header" >		
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid x:Name="columnTop1" Grid.Column="0"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+                <Label Content=" " Margin="25,0,0,0" Foreground="White" HorizontalAlignment="Center" Height="60"  VerticalAlignment="Bottom" FontSize="40"/>
+            </Grid>
+        </Grid>
+        <!-- #End Header Region -->
+        <!-- #Begin Content Region -->
+        <Grid Grid.Row="1" >
+			
+
+		<!-- you can put your content here -->
+		 	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="5,5,5,5">
+				<Image HorizontalAlignment="Left" Source=".\form\resources\dev4Sys.png" Margin="0,0,0,0" Width="256" Height="256" VerticalAlignment="Top" />
+			</StackPanel>	
+			
+        </Grid>
+        <!-- #End Content Region -->
+        <!-- #Begin Footer region -->
+        <Grid Grid.Row="2">
+			<Grid.Background>
+				<RadialGradientBrush RadiusY="0.573" RadiusX="0.667" GradientOrigin="1.01,1.035" Opacity="0.3">
+					<GradientStop Color="#FF06183C" Offset="0.75"/>
+					<GradientStop Color="#FF0D60A3"/>
+				</RadialGradientBrush>
+			</Grid.Background>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="0.75*"/>
+            </Grid.ColumnDefinitions>
+		
+            <Grid x:Name="Action3Button" Grid.Column="1" Margin="0,0,0,15" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+				<Button x:Name="CloseWindow" Width="50" HorizontalAlignment="Right" VerticalAlignment="Bottom" BorderThickness="0" Background="Transparent" Height="50" Margin="0,0,50,5" Style="{DynamicResource MetroCircleButtonStyle}" >
+					<Rectangle Width="30" Height="30" Fill="White" >
+						<Rectangle.OpacityMask>
+							<VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_power}"/>
+						</Rectangle.OpacityMask>
+					</Rectangle>
+				</Button>	
+            </Grid>
+        </Grid>		
+	</Grid>
+</Controls:MetroWindow>
+
