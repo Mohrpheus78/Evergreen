@@ -1068,9 +1068,9 @@ Else {
 
 				Get-ChildItem "$TempFolder\Evergreen-main\Software\*.ps1" | Move-Item -Destination $TempFolder -Force
 				Get-ChildItem "$TempFolder\*.ps1" | Copy-Item -Destination "$SoftwareFolder" -Force
-				#IF (!(Test-Path $SoftwareFolder\_SplashScreen)) {
+				IF (!(Test-Path $SoftwareFolder\_SplashScreen)) {
 					Move-Item -Path "$TempFolder\Evergreen-main\Software\_SplashScreen" "$SoftwareFolder" -Force
-				#}	
+				}	
 				Remove-Item -Path $TempFolder -Recurse -Force
                 & "$PSScriptRoot\Evergreen-Software Installer.ps1"
 '@
