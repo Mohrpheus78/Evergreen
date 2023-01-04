@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.11
+Version: 2.12.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -36,7 +36,7 @@ Version: 2.11
 22/12: Syntax error Office scripts
 02/01: Addec MS VcRedist packages
 03/01: Improved error logging for all scripts, various aother improvements, added SplashScreen
-04/01: Load SplashScreen only if available
+04/01: Load SplashScreen only if available, check for SplashScreen Powershell module and load from GitHub of not present
 #>
 
 Param (
@@ -62,7 +62,21 @@ Param (
 # Beginning Splashscreen
 # ======================
 
-copy-item "$PSScriptRoot\Software\_SplashScreen\" "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen" -Recurse -Force | Out-Null
+IF (!(Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly")) {
+	try {
+		Invoke-WebRequest -Uri https://github.com/Mohrpheus78/Evergreen/raw/main/Software/_SplashScreen.zip -OutFile "\\simdfhctxbed001\cai$\Software\SplashScreen.zip"
+	}
+	catch {
+		Write-Host -ForegroundColor Red "Error downloading SplashScreen (Error: $($Error[0]))"
+    }
+}
+
+IF (Test-Path -Path "$PSScriptRoot\Software\SplashScreen.zip") {
+	Expand-Archive -Path "$PSScriptRoot\Software\SplashScreen.zip" -DestinationPath "$ENV:ProgramFiles\WindowsPowershell\Modules"
+	Rename-Item -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\_SplashScreen" -NewName "SplashScreen"
+}
+
+#copy-item "$PSScriptRoot\Software\_SplashScreen\" "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen" -Recurse -Force | Out-Null
 if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
 
 # Add shared_assemblies #
@@ -977,7 +991,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12"
+	[version]$EvergreenVersion = "2.12.1"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {

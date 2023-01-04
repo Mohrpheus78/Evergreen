@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8
+Version: 2.8.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -33,7 +33,7 @@ Version: 2.8
 15/12: Wrong download path for Citrix Files
 02/01: Office download error, FoxIt-Reader version not found
 02/01: Added MS Visual Redistributable packages
-04/01: Added SplashScreen
+04/01: Added SplashScreen, check for SplashScreen Powershell module and load from GitHub of not present
 #>
 
 
@@ -54,7 +54,21 @@ Param (
 # Beginning Splashscreen
 # ======================
 
-copy-item "$PSScriptRoot\Software\_SplashScreen\" "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen" -Recurse -Force | Out-Null
+IF (!(Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly")) {
+	try {
+		Invoke-WebRequest -Uri https://github.com/Mohrpheus78/Evergreen/raw/main/Software/_SplashScreen.zip -OutFile "\\simdfhctxbed001\cai$\Software\SplashScreen.zip"
+	}
+	catch {
+		Write-Host -ForegroundColor Red "Error downloading SplashScreen (Error: $($Error[0]))"
+    }
+}
+
+IF (Test-Path -Path "$PSScriptRoot\Software\SplashScreen.zip") {
+	Expand-Archive -Path "$PSScriptRoot\Software\SplashScreen.zip" -DestinationPath "$ENV:ProgramFiles\WindowsPowershell\Modules"
+	Rename-Item -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\_SplashScreen" -NewName "SplashScreen"
+}
+
+#copy-item "$PSScriptRoot\Software\_SplashScreen\" "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen" -Recurse -Force | Out-Null
 if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
 
 # =======================================================================
@@ -1099,7 +1113,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8"
+	[version]$EvergreenVersion = "2.8.1"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
