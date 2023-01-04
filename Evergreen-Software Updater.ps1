@@ -56,7 +56,7 @@ Param (
 
 IF (!(Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly")) {
 	try {
-		Invoke-WebRequest -Uri https://github.com/Mohrpheus78/Evergreen/raw/main/Software/_SplashScreen.zip -OutFile "\\simdfhctxbed001\cai$\Software\SplashScreen.zip"
+		Invoke-WebRequest -Uri https://github.com/Mohrpheus78/Evergreen/raw/main/Software/_SplashScreen.zip -OutFile "$PSScriptRoot\Software\SplashScreen.zip"
 	}
 	catch {
 		Write-Host -ForegroundColor Red "Error downloading SplashScreen (Error: $($Error[0]))"
