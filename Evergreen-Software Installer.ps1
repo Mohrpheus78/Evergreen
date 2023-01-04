@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.11
+Version: 2.12
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -51,6 +51,9 @@ Param (
 		$SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername.xml"
     
 )
+
+# TLS settings
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 # ======================
 # Beginning Splashscreen
@@ -945,9 +948,6 @@ ELSE {
 }
 # ========================================================================================================================================
 
-# TLS settings
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
 # Do you run the script as admin?
 # ========================================================================================================================================
 $myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
@@ -975,7 +975,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.11"
+	[version]$EvergreenVersion = "2.12"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
