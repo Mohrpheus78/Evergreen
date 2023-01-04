@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.12
+Version: 2.11
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -36,6 +36,7 @@ Version: 2.12
 22/12: Syntax error Office scripts
 02/01: Addec MS VcRedist packages
 03/01: Improved error logging for all scripts, various aother improvements, added SplashScreen
+04/01: Load SplashScreen only if available
 #>
 
 Param (
@@ -52,14 +53,12 @@ Param (
     
 )
 
-# TLS settings
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
 # ======================
 # Beginning Splashscreen
 # ======================
 
-cp "$PSScriptRoot\Software\_SplashScreen\" "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen" -Recurse -Force | Out-Null
+copy-item "$PSScriptRoot\Software\_SplashScreen\" "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen" -Recurse -Force | Out-Null
+if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
 
 # =======================================================================
 #                        Add shared_assemblies                          #
@@ -136,6 +135,7 @@ function Start-SplashScreen{
     $hash.window.ShowDialog() 
     
 }) | Out-Null
+}
 
 
 # FUNCTION Logging
@@ -902,12 +902,11 @@ function gui_mode{
 # ========================================================================================================================================
 
 # We open our splash-screen
-if ($noGUI -eq $False) {
-	Start-SplashScreen
-}
-
-# =======================================================================
-#                        Load Main Panel                                #
+if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
+	if ($noGUI -eq $False) {
+		Start-SplashScreen
+	}
+#                     Load Main Panel                                #
 # =======================================================================
 
 $Global:pathPanel= split-path -parent $MyInvocation.MyCommand.Definition
@@ -922,10 +921,9 @@ function LoadXaml ($filename){
 $XamlMainWindow=LoadXaml($pathPanel+"\Software\_SplashScreen\form.xaml")
 $reader = (New-Object System.Xml.XmlNodeReader $XamlMainWindow)
 $Form = [Windows.Markup.XamlReader]::Load($reader)
-
-# =======================================================================
 #                       Main Pannel Event                               #
 # =======================================================================
+}
 
 
 # FUNCTION Check internet access
@@ -947,6 +945,9 @@ ELSE {
     $Internet = "False"
 }
 # ========================================================================================================================================
+
+# TLS settings
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 # Do you run the script as admin?
 # ========================================================================================================================================
@@ -1014,13 +1015,11 @@ if ($noGUI -eq $False) {
 }
 
 # Everything is loaded so we close the splash-screen
-if ($noGUI -eq $False) {
-	close-SplashScreen
+if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
+	if ($noGUI -eq $False) {
+		close-SplashScreen
+	}
 }
-
-# ===================
-# Ending Splashscreen
-# ===================
 
 Clear-Host
 
