@@ -69,11 +69,11 @@ IF (!(Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\
 	catch {
 		Write-Host -ForegroundColor Red "Error downloading SplashScreen (Error: $($Error[0]))"
     }
-}
 
-IF (Test-Path -Path "$PSScriptRoot\Software\SplashScreen.zip") {
-	Expand-Archive -Path "$PSScriptRoot\Software\SplashScreen.zip" -DestinationPath "$ENV:ProgramFiles\WindowsPowershell\Modules"
-	Rename-Item -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\_SplashScreen" -NewName "SplashScreen"
+    IF (Test-Path -Path "$PSScriptRoot\Software\SplashScreen.zip") {
+        Expand-Archive -Path "$PSScriptRoot\Software\SplashScreen.zip" -DestinationPath "$ENV:ProgramFiles\WindowsPowershell\Modules"
+        Rename-Item -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\_SplashScreen" -NewName "SplashScreen"
+        }
 }
 
 #copy-item "$PSScriptRoot\Software\_SplashScreen\" "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen" -Recurse -Force | Out-Null
