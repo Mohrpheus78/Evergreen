@@ -53,6 +53,9 @@ Param (
     
 )
 
+# TLS settings
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
 # ======================
 # Beginning Splashscreen
 # ======================
@@ -945,9 +948,6 @@ ELSE {
     $Internet = "False"
 }
 # ========================================================================================================================================
-
-# TLS settings
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 # Do you run the script as admin?
 # ========================================================================================================================================
