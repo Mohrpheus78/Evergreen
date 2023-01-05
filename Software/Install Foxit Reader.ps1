@@ -5,11 +5,11 @@
 
 <#
 .SYNOPSIS
-This script installs deviceTRUST on a MCS/PVS master server/client or wherever you want.
+This script installs Foxit Reader on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
-package it gets installed. 
+package it will be installed. 
 The script compares the software version and will install or update the software. A log file will be created in the 'Install Logs' folder. 
 
 .EXAMPLE
@@ -18,14 +18,13 @@ The script compares the software version and will install or update the software
 Always call this script with the Software Installer script!
 #>
 
-
 # define Error handling
 # note: do not change these values
 $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "deviceTRUST"
+$Product = "FoxitReader"
 
 #========================================================================================================================================
 # Logging
@@ -70,7 +69,8 @@ $arguments = @(
     "/i"
     "`"$msiFile`""
     "/qn"
-	"/norestart"
+    "/NORESTART"
+    "AUTO_UPDATE=0 LAUNCHCHECKDEFAULT=0 DESKTOP_SHORTCUT=0 LAUNCHCHECKDEFAULT=0 DISABLE_UNINSTALL_SURVEY=1 LAUNCHCHECKDEFAULT=0"
 )
 if ($targetDir){
     if (!(Test-Path $targetDir)){
@@ -90,18 +90,17 @@ else {
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-	[version]$deviceTRUST = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*deviceTrust*"}).DisplayVersion
-	IF ($deviceTRUST -lt $Version) {
+	[version]$FoxitReader = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Foxit Reader*"}).DisplayVersion 
 
-	# deviceTRUST
-	write-Host -ForegroundColor Yellow "Installing $Product"
+	IF ($FoxitReader -lt $Version) {
+
+	# FoxitReader
+	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
-		$msi = (Get-ChildItem -Path "$PSScriptRoot\$Product" | Where-Object Name -like "*dtagent-x64*").Name
-		"$PSScriptRoot\$Product\$msi" | Install-MSIFile
+		"$PSScriptRoot\$Product\FoxIt-Reader.msi" | Install-MSIFile
 		DS_WriteLog "-" "" $LogFile
-		write-Host -ForegroundColor Green "...ready"
-		Write-Host -ForegroundColor Red "Server needs to reboot after installation!"
+		Write-Host -ForegroundColor Green "...ready"
 		Write-Output ""
 		} catch {
 			DS_WriteLog "-" "" $LogFile

@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.1
+Version: 2.8.2
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -34,6 +34,7 @@ Version: 2.8.1
 02/01: Office download error, FoxIt-Reader version not found
 02/01: Added MS Visual Redistributable packages
 04/01: Added SplashScreen, check for SplashScreen Powershell module and load from GitHub of not present
+05/01: Foxit Reader had wrong file extensionm changed to msi
 #>
 
 
@@ -1113,7 +1114,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.1"
+	[version]$EvergreenVersion = "2.8.2"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -3998,7 +3999,7 @@ IF ($SoftwareSelection.FoxItReader -eq $true) {
 		}
 	$Version = $FoxItReader.Version
 	$URL = $FoxItReader.uri
-	$InstallerType = "exe"
+	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"

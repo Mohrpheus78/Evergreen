@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.12.1
+Version: 2.12.2
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -37,6 +37,7 @@ Version: 2.12.1
 02/01: Addec MS VcRedist packages
 03/01: Improved error logging for all scripts, various aother improvements, added SplashScreen
 04/01: Load SplashScreen only if available, check for SplashScreen Powershell module and load from GitHub of not present
+05/01: Added Foxit Reader, MS SQL MGMT Studio EN and DE, OneDrive Auto Update disabled
 #>
 
 Param (
@@ -70,10 +71,10 @@ IF (!(Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\
 		Write-Host -ForegroundColor Red "Error downloading SplashScreen (Error: $($Error[0]))"
     }
 
-    IF (Test-Path -Path "$PSScriptRoot\Software\SplashScreen.zip") {
-        Expand-Archive -Path "$PSScriptRoot\Software\SplashScreen.zip" -DestinationPath "$ENV:ProgramFiles\WindowsPowershell\Modules"
-        Rename-Item -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\_SplashScreen" -NewName "SplashScreen"
-        }
+	IF (Test-Path -Path "$PSScriptRoot\Software\SplashScreen.zip") {
+		Expand-Archive -Path "$PSScriptRoot\Software\SplashScreen.zip" -DestinationPath "$ENV:ProgramFiles\WindowsPowershell\Modules"
+		Rename-Item -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\_SplashScreen" -NewName "SplashScreen"
+	}
 }
 
 #copy-item "$PSScriptRoot\Software\_SplashScreen\" "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen" -Recurse -Force | Out-Null
@@ -128,7 +129,7 @@ function Start-SplashScreen{
 		
 		<Grid Grid.Row="0" x:Name="Header" >	
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="20,10,0,0">       
-				<Label Content="Software-Installer (Powered by Evergreen-Module)" Margin="5,0,0,0" Foreground="White" Height="50"  FontSize="25"/>
+				<Label Content="Software-Installer (Powered by Evergreen-Module)Test" Margin="5,0,0,0" Foreground="White" Height="50"  FontSize="25"/>
 			</StackPanel> 
 		</Grid>
         <Grid Grid.Row="1" >
@@ -194,7 +195,7 @@ function gui_mode{
 	# Set the size of your form
     $Form = New-Object system.Windows.Forms.Form
     #$Form.ClientSize = New-Object System.Drawing.Point(820,650)
-	$Form.ClientSize = New-Object System.Drawing.Point(710,660)
+	$Form.ClientSize = New-Object System.Drawing.Point(1100,670)
     $Form.text = "Software-Installer"
     $Form.TopMost = $false
     $Form.AutoSize = $true
@@ -521,9 +522,27 @@ function gui_mode{
     $VcRedistBox.autosize = $true
     $VcRedistBox.location = New-Object System.Drawing.Point(390,220)
     $form.Controls.Add($VcRedistBox)
-	$VcRedistBox.Checked = $SoftwareSelection.VcRedist
-	
-	
+	$VcRedistBox.Checked = $SoftwareSelection.DE
+
+    # MS SQL Management Studio EN Checkbox
+    $MSSQLManagementStudioENBox = New-Object system.Windows.Forms.CheckBox
+    $MSSQLManagementStudioENBox.text = "Microsoft SQL Management Studio EN"
+    $MSSQLManagementStudioENBox.width = 95
+    $MSSQLManagementStudioENBox.height = 20
+    $MSSQLManagementStudioENBox.autosize = $true
+    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(390,245)
+    $form.Controls.Add($MSSQLManagementStudioENBox)
+	$MSSQLManagementStudioENBox.Checked = $SoftwareSelection.MSSsmsEN
+
+    # MS SQL Management Studio DE Checkbox
+    $MSSQLManagementStudioDEBox = New-Object system.Windows.Forms.CheckBox
+    $MSSQLManagementStudioDEBox.text = "Microsoft SQL Management Studio DE"
+    $MSSQLManagementStudioDEBox.width = 95
+    $MSSQLManagementStudioDEBox.height = 20
+    $MSSQLManagementStudioDEBox.autosize = $true
+    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(390,270)
+    $form.Controls.Add($MSSQLManagementStudioDEBox)
+	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
 <#	
 	# Zoom VMWare client Checkbox
     $ZoomVMWareBox = New-Object system.Windows.Forms.CheckBox
@@ -535,24 +554,13 @@ function gui_mode{
     $form.Controls.Add($ZoomVMWareBox)
 	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
 #>
-
-    # TreeSizeFree Checkbox
-    $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
-    $TreeSizeFreeBox.text = "TreeSize Free"
-    $TreeSizeFreeBox.width = 95
-    $TreeSizeFreeBox.height = 20
-    $TreeSizeFreeBox.autosize = $true
-    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(390,245)
-    $form.Controls.Add($TreeSizeFreeBox)
-	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
-	
 	# OracleJava8 Checkbox
     $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
     $OracleJava8Box.text = "Oracle Java 8/x64"
     $OracleJava8Box.width = 95
     $OracleJava8Box.height = 20
     $OracleJava8Box.autosize = $true
-    $OracleJava8Box.location = New-Object System.Drawing.Point(390,270)
+    $OracleJava8Box.location = New-Object System.Drawing.Point(390,295)
     $form.Controls.Add($OracleJava8Box)
 	$OracleJava8Box.Checked =  $SoftwareSelection.OracleJava8
 	
@@ -562,7 +570,7 @@ function gui_mode{
     $OracleJava8_32Box.width = 95
     $OracleJava8_32Box.height = 20
     $OracleJava8_32Box.autosize = $true
-    $OracleJava8_32Box.location = New-Object System.Drawing.Point(390,295)
+    $OracleJava8_32Box.location = New-Object System.Drawing.Point(390,320)
     $form.Controls.Add($OracleJava8_32Box)
 	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
 	
@@ -572,7 +580,7 @@ function gui_mode{
     $deviceTRUSTBox.width = 95
     $deviceTRUSTBox.height = 20
     $deviceTRUSTBox.autosize = $true
-    $deviceTRUSTBox.location = New-Object System.Drawing.Point(390,320)
+    $deviceTRUSTBox.location = New-Object System.Drawing.Point(390,345)
     $form.Controls.Add($deviceTRUSTBox)
 	$deviceTRUSTBox.Checked =  $SoftwareSelection.deviceTRUST
 	
@@ -582,7 +590,7 @@ function gui_mode{
     $PuttyBox.width = 95
     $PuttyBox.height = 20
     $PuttyBox.autosize = $true
-    $PuttyBox.location = New-Object System.Drawing.Point(390,345)
+    $PuttyBox.location = New-Object System.Drawing.Point(390,370)
 	# $PuttyBox.location = New-Object System.Drawing.Point(770,45)
     $form.Controls.Add($PuttyBox)
     $PuttyBox.Checked =  $SoftwareSelection.Putty
@@ -593,7 +601,7 @@ function gui_mode{
     $WinSCPBox.width = 95
     $WinSCPBox.height = 20
     $WinSCPBox.autosize = $true
-    $WinSCPBox.location = New-Object System.Drawing.Point(390,370)
+    $WinSCPBox.location = New-Object System.Drawing.Point(390,395)
     $form.Controls.Add($WinSCPBox)
     $WinSCPBox.Checked =  $SoftwareSelection.WinSCP
 	
@@ -615,7 +623,7 @@ function gui_mode{
     $mRemoteNGBox.width = 95
     $mRemoteNGBox.height = 20
     $mRemoteNGBox.autosize = $true
-    $mRemoteNGBox.location = New-Object System.Drawing.Point(390,395)
+    $mRemoteNGBox.location = New-Object System.Drawing.Point(390,420)
     $form.Controls.Add($mRemoteNGBox)
 	$mRemoteNGBox.Checked =  $SoftwareSelection.mRemoteNG
 	
@@ -625,7 +633,7 @@ function gui_mode{
     $RemoteDesktopManagerBox.width = 95
     $RemoteDesktopManagerBox.height = 20
     $RemoteDesktopManagerBox.autosize = $true
-    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(390,420)
+    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(390,445)
     $form.Controls.Add($RemoteDesktopManagerBox)
 	$RemoteDesktopManagerBox.Checked =  $SoftwareSelection.RemoteDesktopManager
 	
@@ -635,7 +643,7 @@ function gui_mode{
     $VLCPlayerBox.width = 95
     $VLCPlayerBox.height = 20
     $VLCPlayerBox.autosize = $true
-    $VLCPlayerBox.location = New-Object System.Drawing.Point(390,445)
+    $VLCPlayerBox.location = New-Object System.Drawing.Point(390,470)
     $form.Controls.Add($VLCPlayerBox)
 	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
 	
@@ -645,7 +653,7 @@ function gui_mode{
     $FileZillaBox.width = 95
     $FileZillaBox.height = 20
     $FileZillaBox.autosize = $true
-    $FileZillaBox.location = New-Object System.Drawing.Point(390,470)
+    $FileZillaBox.location = New-Object System.Drawing.Point(390,495)
     $form.Controls.Add($FileZillaBox)
 	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
 	
@@ -655,7 +663,7 @@ function gui_mode{
     $ImageGlassBox.width = 95
     $ImageGlassBox.height = 20
     $ImageGlassBox.autosize = $true
-    $ImageGlassBox.location = New-Object System.Drawing.Point(390,495)
+    $ImageGlassBox.location = New-Object System.Drawing.Point(390,520)
     $form.Controls.Add($ImageGlassBox)
 	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
 	
@@ -665,7 +673,7 @@ function gui_mode{
     $GreenshotBox.width = 95
     $GreenshotBox.height = 20
     $GreenshotBox.autosize = $true
-    $GreenshotBox.location = New-Object System.Drawing.Point(390,520)
+    $GreenshotBox.location = New-Object System.Drawing.Point(390,545)
     $form.Controls.Add($GreenshotBox)
 	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
 	
@@ -675,9 +683,19 @@ function gui_mode{
     $pdf24CreatorBox.width = 95
     $pdf24CreatorBox.height = 20
     $pdf24CreatorBox.autosize = $true
-    $pdf24CreatorBox.location = New-Object System.Drawing.Point(390,545)
+    $pdf24CreatorBox.location = New-Object System.Drawing.Point(390,570)
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
+
+    # FoxitReader Checkbox
+    $FoxitReaderBox = New-Object system.Windows.Forms.CheckBox
+    $FoxitReaderBox.text = "Foxit Reader"
+    $FoxitReaderBox.width = 95
+    $FoxitReaderBox.height = 20
+    $FoxitReaderBox.autosize = $true
+    $FoxitReaderBox.location = New-Object System.Drawing.Point(390,595)
+    $form.Controls.Add($FoxitReaderBox)
+	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
 	
 	# KeePass Checkbox
     $KeePassBox = New-Object system.Windows.Forms.CheckBox
@@ -685,9 +703,19 @@ function gui_mode{
     $KeePassBox.width = 95
     $KeePassBox.height = 20
     $KeePassBox.autosize = $true
-    $KeePassBox.location = New-Object System.Drawing.Point(390,570)
+    $KeePassBox.location = New-Object System.Drawing.Point(780,45)
     $form.Controls.Add($KeePassBox)
 	$KeePassBox.Checked =  $SoftwareSelection.KeePass
+
+    # TreeSizeFree Checkbox
+    $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
+    $TreeSizeFreeBox.text = "TreeSize Free"
+    $TreeSizeFreeBox.width = 95
+    $TreeSizeFreeBox.height = 20
+    $TreeSizeFreeBox.autosize = $true
+    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(780,70)
+    $form.Controls.Add($TreeSizeFreeBox)
+	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
 	
 	<#
 	# Zoom Host Checkbox
@@ -747,6 +775,8 @@ function gui_mode{
 		$MSOffice2019Box.checked = $True
 		$MSOffice2021Box.checked = $True
 		$VcRedistBox.checked = $True
+        $MSSQLManagementStudioENBox.checked = $True
+        $MSSQLManagementStudioDEBox.checked = $True
 		$OracleJava8Box.checked = $True
 		$OracleJava8_32Box.checked = $True
 		$TreeSizeFreeBox.checked = $True
@@ -755,6 +785,7 @@ function gui_mode{
 		$ImageGlassBox.checked = $True
 		$GreenshotBox.checked = $True
 		$pdf24CreatorBox.checked = $True
+        $FoxitReaderBox.checked = $True
 		$deviceTRUSTBox.checked = $True
 		$RemoteDesktopManagerBox.checked = $True
 		#$ZoomVDIBox.checked = $True
@@ -806,6 +837,8 @@ function gui_mode{
 		$MSOffice2019Box.checked = $False
 		$MSOffice2021Box.checked = $False
 		$VcRedistBox.checked = $False
+        $MSSQLManagementStudioENBox.checked = $False
+        $MSSQLManagementStudioENBox.checked = $False
 		$OracleJava8Box.checked = $False
 		$OracleJava8_32Box.checked = $False
 		$TreeSizeFreeBox.checked = $False
@@ -814,6 +847,7 @@ function gui_mode{
 		$ImageGlassBox.checked = $False
 		$GreenshotBox.checked = $False
 		$pdf24CreatorBox.checked = $False
+        $FoxitReaderBox.checked = $False
 		$deviceTRUSTBox.checked = $False
 		$RemoteDesktopManagerBox.checked = $False
 		#$ZoomVDIBox.checked = $False
@@ -867,6 +901,8 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2019" -Value $MSOffice2019Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2021" -Value $MSOffice2021Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VcRedist" -Value $VcRedistBox.checked -Force
+        Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsEN" -Value $MSSQLManagementStudioENBox.checked -Force
+        Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsDE" -Value $MSSQLManagementStudioDEBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8" -Value $OracleJava8Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8_32" -Value $OracleJava8_32Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "TreeSizeFree" -Value $TreeSizeFreeBox.checked -Force
@@ -875,6 +911,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ImageGlass" -Value $ImageGlassBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Greenshot" -Value $GreenshotBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "pdf24Creator" -Value $pdf24CreatorBox.checked -Force
+        Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FoxitReader" -Value $FoxitReaderBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "deviceTRUST" -Value $deviceTRUSTBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "RemoteDesktopManager" -Value $RemoteDesktopManagerBox.checked -Force
 		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVDI" -Value $ZoomVDIBox.checked -Force
@@ -991,7 +1028,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.1"
+	[version]$EvergreenVersion = "2.12.2"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1269,6 +1306,18 @@ IF ($SoftwareSelection.VcRedist -eq $true)
 		& "$SoftwareFolder\Install MS VcRedist x64.ps1"
 	}
 
+# Install MS MS SQL Management Studio EN
+IF ($SoftwareSelection.MSSsmsEN -eq $true)
+	{
+		& "$SoftwareFolder\Install MS SQL MGMT Studio EN.ps1"
+	}
+
+# Install MS MS SQL Management Studio DE
+IF ($SoftwareSelection.MSSsmsDE -eq $true)
+	{
+		& "$SoftwareFolder\Install MS SQL MGMT Studio DE.ps1"
+	}
+
 # Install Oracle Java 8
 IF ($SoftwareSelection.OracleJava8 -eq $true)
 	{
@@ -1315,6 +1364,12 @@ IF ($SoftwareSelection.Greenshot -eq $true)
 IF ($SoftwareSelection.pdf24Creator -eq $true)
 	{
 		& "$SoftwareFolder\Install pdf24Creator.ps1"
+	}
+
+# Install FoxitReader
+IF ($SoftwareSelection.FoxitReader -eq $true)
+	{
+		& "$SoftwareFolder\Install Foxit Reader.ps1"
 	}
 	
 # Install deviceTRUST

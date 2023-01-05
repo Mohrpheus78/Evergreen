@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs MS SQL Management Studio DE on a MCS/PVS master server/client or wherever you want.
+This script installs MS SQL Management Studio DE  on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -17,7 +17,6 @@ The script compares the software version and will install or update the software
 .NOTES
 Always call this script with the Software Installer script!
 #>
-
 
 # define Error handling
 # note: do not change these values
@@ -50,11 +49,14 @@ DS_WriteLog "-" "" $LogFile
 
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
-	$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-	$SQLMGMT = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "**Microsoft SQL Server Management**"}).DisplayVersion
-	IF ($SQLMGMT -ne $Version) {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	$MSSsmsDE = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft SQL Server Management Studio*"}).DisplayName
+	$MSSsmsDE = $MSSsmsDE -replace '[a-zA-Z]','' -replace '\s','' -replace '-',''
+	[version]$MSSsmsDE = [string]$MSSsmsDE
+	
+	IF ($MSSsmsDE -lt $Version) {
 
-	# Installation Tree Size Free
+	# Installation MSSsmsDE++
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try	{

@@ -78,8 +78,15 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		$OneDriveTasks= (Get-ScheduledTask | Where-Object {$_.TaskName -like "OneDrive*"}).TaskName
 		foreach ($Task in $OneDriveTasks) {
 			Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue | Out-Null
+			Unregister-ScheduledTask -TaskName $Task -Confirm:$False | Out-Null
 			}
-	}
+		If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\OneDrive")) {
+			New-Item "HKLM:\SOFTWARE\Policies\Microsoft" -Name "OneDrive" -Force | Out-Null
+			}
+		New-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\OneDrive\" -Name "GPOSetUpdateRing" -Value 0 -PropertyType "DWORD" -Force | Out-Null
+		Set-Service -Name "OneDrive Updater Service" -StartupType Disabled
+		Stop-Service -Name "OneDrive Updater Service" -Force		
+		}
 
 	# Stop, if no new version is available
 	Else {
