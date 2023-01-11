@@ -34,8 +34,8 @@ $PackageName = "$Product" 		            	# [edit] enter the display name of the 
 
 # Global variables
 # $StartDir = $PSScriptRoot # the directory path of the script currently being executed
-$LogDir = (Join-Path $BaseLogDir $PackageName)
-$LogFileName = ("$ENV:COMPUTERNAME - $PackageName.log")
+$LogDir = (Join-Path $BaseLogDir "Microsoft Visual C++ Redistributable")
+$LogFileName = ("$ENV:COMPUTERNAME - Visual C++ Redistributable_x86.log")
 $LogFile = Join-path $LogDir $LogFileName
 
 # Create the log directory if it does not exist

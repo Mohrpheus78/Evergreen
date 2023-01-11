@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.12.2
+Version: 2.12.3
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -38,6 +38,7 @@ Version: 2.12.2
 03/01: Improved error logging for all scripts, various aother improvements, added SplashScreen
 04/01: Load SplashScreen only if available, check for SplashScreen Powershell module and load from GitHub of not present
 05/01: Added Foxit Reader, MS SQL MGMT Studio EN and DE, OneDrive Auto Update disabled
+11/01: Better error handling if one install script fails
 #>
 
 Param (
@@ -522,7 +523,7 @@ function gui_mode{
     $VcRedistBox.autosize = $true
     $VcRedistBox.location = New-Object System.Drawing.Point(390,220)
     $form.Controls.Add($VcRedistBox)
-	$VcRedistBox.Checked = $SoftwareSelection.DE
+	$VcRedistBox.Checked = $SoftwareSelection.VcRedist
 
     # MS SQL Management Studio EN Checkbox
     $MSSQLManagementStudioENBox = New-Object system.Windows.Forms.CheckBox
@@ -1028,7 +1029,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.2"
+	[version]$EvergreenVersion = "2.12.3"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1158,115 +1159,248 @@ Write-Output ""
 # Install Notepad ++
 IF ($SoftwareSelection.NotePadPlusPlus -eq $true)
 	{
-		& "$SoftwareFolder\Install NotepadPlusPlus.ps1"
+		try {
+			& "$SoftwareFolder\Install NotepadPlusPlus.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing NotePadPlusPlus"
+			Write-Host -ForegroundColor Red "Error launching script 'Install NotepadPlusPlus': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install 7-ZIP
 IF ($SoftwareSelection.SevenZip -eq $true)
 	{
-		& "$SoftwareFolder\Install 7-Zip.ps1"
+		try {
+			& "$SoftwareFolder\Install 7-Zip.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing 7-Zip"
+			Write-Host -ForegroundColor Red "Error launching script 'Install 7-Zip': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install Adobe Reader DC MUI
 IF ($SoftwareSelection.AdobeReaderDC -eq $true)
 	{
-		& "$SoftwareFolder\Install Adobe Reader DC.ps1"
+		try {
+			& "$SoftwareFolder\Install Adobe Reader DC.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Adobe Reader DC"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Adobe Reader DC': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install Adobe Reader DC MUI Update
 IF ($SoftwareSelection.AdobeReaderDCUpdate -eq $true)
 	{
-		& "$SoftwareFolder\Install Adobe Reader DC Update.ps1"
+		try {
+			& "$SoftwareFolder\Install Adobe Reader DC Update.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Adobe Reader DC Update"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Adobe Reader DC Update': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install Adobe Reader DC x64 MUI
 IF ($SoftwareSelection.AdobeReaderDCx64 -eq $true)
 	{
-		& "$SoftwareFolder\Install Adobe Reader DC 64 Bit.ps1"
+		try {
+			& "$SoftwareFolder\Install Adobe Reader DC 64 Bit.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Adobe Reader DC 64 Bit"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Adobe Reader DC 64 Bit': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install Adobe Reader DC x64 MUI Update
 IF ($SoftwareSelection.AdobeReaderDCx64Update -eq $true)
 	{
-		& "$SoftwareFolder\Install Adobe Reader DC 64 Bit Update.ps1"
+		try {
+			& "$SoftwareFolder\Install Adobe Reader DC 64 Bit Update.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Adobe Reader DC 64 Bit Update"
+			Write-Host -ForegroundColor Red "Error in launching script 'Install Adobe Reader DC 64 Bit Update': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install BIS-F
 IF ($SoftwareSelection.BISF -eq $true)
 	{
-		& "$SoftwareFolder\Install BIS-F.ps1"
+		try {
+			& "$SoftwareFolder\Install BIS-F.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing BIS-F"
+			Write-Host -ForegroundColor Red "Error launching script 'Install BIS-F': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install FSLogix
 IF ($SoftwareSelection.FSLogix -eq $true)
 	{
-		& "$SoftwareFolder\Install FSLogix.ps1"
+		try {
+			& "$SoftwareFolder\Install FSLogix.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing FSLogix"
+			Write-Host -ForegroundColor Red "Error launching script 'Install FSLogix': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install Chrome
 IF ($SoftwareSelection.GoogleChrome -eq $true)
 	{
-		& "$SoftwareFolder\Install Google Chrome.ps1"
+		try {
+			& "$SoftwareFolder\Install Google Chrome.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Google Chrome"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Google Chrome': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install WorkspaceApp Current
 IF ($SoftwareSelection.WorkspaceApp_CR -eq $true)
 	{
-		& "$SoftwareFolder\Install WorkspaceApp Current.ps1"
+		try {
+			& "$SoftwareFolder\Install WorkspaceApp Current.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing WorkspaceApp Current Release"
+			Write-Host -ForegroundColor Red "Error launching script 'Install WorkspaceApp Current': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install WorkspaceApp LTSR
 IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true)
 	{
-		& "$SoftwareFolder\Install WorkspaceApp LTSR.ps1"
+		try {
+			& "$SoftwareFolder\Install WorkspaceApp LTSR.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing WorkspaceApp LTSR"
+			Write-Host -ForegroundColor Red "Error launching script 'Install WorkspaceApp LTSR': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install WorkspaceApp Current Web
 IF ($SoftwareSelection.WorkspaceApp_CR_Web -eq $true)
 	{
-		& "$SoftwareFolder\Install WorkspaceApp Current Web.ps1"
+		try {
+			& "$SoftwareFolder\Install WorkspaceApp Current Web.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing WorkspaceApp Current Release Web"
+			Write-Host -ForegroundColor Red "Error launching script 'Install WorkspaceApp Current Web': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install WorkspaceApp LTSR Web
 IF ($SoftwareSelection.WorkspaceApp_LTSR_Web -eq $true)
 	{
-		& "$SoftwareFolder\Install WorkspaceApp LTSR Web.ps1"
+		try {
+			& "$SoftwareFolder\Install WorkspaceApp LTSR Web.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing WorkspaceApp LTSR Web"
+			Write-Host -ForegroundColor Red "Error launching script 'Install WorkspaceApp LTSR Web': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install Citrix Hypervisor Tools
 IF ($SoftwareSelection.CitrixHypervisorTools -eq $true)
 	{
-		& "$SoftwareFolder\Install Citrix Hypervisor Tools.ps1"
+		try {
+			& "$SoftwareFolder\Install Citrix Hypervisor Tools.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix Hypervisor Tools"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Hypervisor Tools': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install KeePass
 IF ($SoftwareSelection.KeePass -eq $true)
 	{
-		& "$SoftwareFolder\Install KeePass.ps1"
+		try {
+			& "$SoftwareFolder\Install KeePass.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing KeePass"
+			Write-Host -ForegroundColor Red "Error launching script 'Install KeePass': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install mRemoteNG
 IF ($SoftwareSelection.mRemoteNG -eq $true)
 	{
-		& "$SoftwareFolder\Install mRemoteNG.ps1"
+		try {
+			& "$SoftwareFolder\Install mRemoteNG.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing mRemoteNG"
+			Write-Host -ForegroundColor Red "Error launching script 'Install mRemoteNG ': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install MS Edge
 IF ($SoftwareSelection.MSEdge -eq $true)
 	{
-		& "$SoftwareFolder\Install MS Edge.ps1"
+		try {
+			& "$SoftwareFolder\Install MS Edge.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS Edge"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS Edge': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install MS OneDrive
 IF ($SoftwareSelection.MSOneDrive -eq $true)
 	{
-		& "$SoftwareFolder\Install MS OneDrive.ps1"
+		try {
+			& "$SoftwareFolder\Install MS OneDrive.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS OneDrive"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS OneDrive': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install MS Teams
 IF ($SoftwareSelection.MSTeams -eq $true)
 	{
-		& "$SoftwareFolder\Install MS Teams.ps1"
+		try {
+			& "$SoftwareFolder\Install MS Teams.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS Teams"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS Teams': $($Error[0])"
+			Write-Output ""
+			}
 	}
 <#
 # Install MS Teams Preview
@@ -1278,110 +1412,243 @@ IF ($SoftwareSelection.MSTeamsPrev -eq $true)
 # Install MS 365Apps
 IF ($SoftwareSelection.MS365Apps_SAC -eq $true)
 	{
-		& "$SoftwareFolder\Install MS 365 Apps SAC.ps1"
+		try {
+			& "$SoftwareFolder\Install MS 365 Apps SAC.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS 365 Apps-Semi Annual Channel"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS 365 Apps SAC': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install MS 365Apps
 IF ($SoftwareSelection.MS365Apps_MEC -eq $true)
 	{
-		& "$SoftwareFolder\Install MS 365 Apps MEC.ps1"
+		try {
+			& "$SoftwareFolder\Install MS 365 Apps MEC.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS 365 Apps-Monthly Enterprise Channel"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS 365 Apps MEC': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install MS Office 2019
 IF ($SoftwareSelection.MSOffice2019 -eq $true)
 	{
-		& "$SoftwareFolder\Install MS Office 2019.ps1"
+		try {
+			& "$SoftwareFolder\Install MS Office 2019.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS Office 2019"
+			Write-Host -ForegroundColor Red "Error in launching script 'Install MS Office 2019': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install MS Office 2021
 IF ($SoftwareSelection.MSOffice2021 -eq $true)
 	{
-		& "$SoftwareFolder\Install MS Office 2021.ps1"
+		try {
+			& "$SoftwareFolder\Install MS Office 2021.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS Office 2021"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS Office 2021': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install MS VcRedist
 IF ($SoftwareSelection.VcRedist -eq $true)
 	{
-		& "$SoftwareFolder\Install MS VcRedist x86.ps1"
-		& "$SoftwareFolder\Install MS VcRedist x64.ps1"
+		try {
+			& "$SoftwareFolder\Install MS VcRedist x86.ps1"
+		}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Microsoft Visual C++ Redistributable packages x86"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS VcRedist x86': $($Error[0])"
+			Write-Output ""
+		}
+		try {
+			& "$SoftwareFolder\Install MS VcRedist x64.ps1"
+		}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Microsoft Visual C++ Redistributable packages x64"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS VcRedist x64': $($Error[0])"
+			Write-Output ""
+		}
 	}
 
 # Install MS MS SQL Management Studio EN
 IF ($SoftwareSelection.MSSsmsEN -eq $true)
 	{
-		& "$SoftwareFolder\Install MS SQL MGMT Studio EN.ps1"
+		try {
+			& "$SoftwareFolder\Install MS SQL MGMT Studio EN.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS SQL MGMT Studio EN"
+			Write-Host -ForegroundColor Red "Error  launching script 'Install MS SQL MGMT Studio EN': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install MS MS SQL Management Studio DE
 IF ($SoftwareSelection.MSSsmsDE -eq $true)
 	{
-		& "$SoftwareFolder\Install MS SQL MGMT Studio DE.ps1"
+		try {
+			& "$SoftwareFolder\Install MS SQL MGMT Studio DE.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS SQL MGMT Studio DE"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS SQL MGMT Studio DE': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install Oracle Java 8
 IF ($SoftwareSelection.OracleJava8 -eq $true)
 	{
-		& "$SoftwareFolder\Install Oracle Java 8 - 64 Bit.ps1"
+		try {
+			& "$SoftwareFolder\Install Oracle Java 8 - 64 Bit.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Oracle Java 8 x64"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Oracle Java 8 - 64 Bit': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install Oracle Java 8 32 Bit
 IF ($SoftwareSelection.OracleJava8_32 -eq $true)
 	{
-		& "$SoftwareFolder\Install Oracle Java 8 - 32 Bit.ps1"
+		try {
+			& "$SoftwareFolder\Install Oracle Java 8 - 32 Bit.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Oracle Java 8 x86"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Oracle Java 8 - 32 Bit': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install TreeSizeFree
 IF ($SoftwareSelection.TreeSizeFree -eq $true)
 	{
-		& "$SoftwareFolder\Install TreeSizeFree.ps1"
+		try {
+			& "$SoftwareFolder\Install TreeSizeFree.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing TreeSize Free"
+			Write-Host -ForegroundColor Red "Error launching script 'Install TreeSizeFree': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install VLC Player
 IF ($SoftwareSelection.VLCPlayer -eq $true)
 	{
-		& "$SoftwareFolder\Install VLC Player.ps1"
+		try {
+			& "$SoftwareFolder\Install VLC Player.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing VLC Player"
+			Write-Host -ForegroundColor Red "Error launching script 'Install VLC Player': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install FileZilla
 IF ($SoftwareSelection.FileZilla -eq $true)
 	{
-		& "$SoftwareFolder\Install FileZilla.ps1"
+		try {
+			& "$SoftwareFolder\Install FileZilla.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing FileZilla"
+			Write-Host -ForegroundColor Red "Error launching script 'Install FileZilla': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install ImageGlass
 IF ($SoftwareSelection.ImageGlass -eq $true)
 	{
-		& "$SoftwareFolder\Install ImageGlass.ps1"
+		try {
+			& "$SoftwareFolder\Install ImageGlass.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing ImageGlass"
+			Write-Host -ForegroundColor Red "Error launching script 'Install ImageGlass': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install Greenshot
 IF ($SoftwareSelection.Greenshot -eq $true)
 	{
-		& "$SoftwareFolder\Install Greenshot.ps1"
+		try {
+			& "$SoftwareFolder\Install Greenshot.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Greenshot"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Greenshot': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install pdf24Creator
 IF ($SoftwareSelection.pdf24Creator -eq $true)
 	{
-		& "$SoftwareFolder\Install pdf24Creator.ps1"
+		try {
+			& "$SoftwareFolder\Install pdf24Creator.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing pdf24Creator"
+			Write-Host -ForegroundColor Red "Error launching script 'Install pdf24Creator': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install FoxitReader
 IF ($SoftwareSelection.FoxitReader -eq $true)
 	{
-		& "$SoftwareFolder\Install Foxit Reader.ps1"
+		try {
+			& "$SoftwareFolder\Install Foxit Reader.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Foxit Reader"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Foxit Reader': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install deviceTRUST
 IF ($SoftwareSelection.deviceTRUST -eq $true)
 	{
-		& "$SoftwareFolder\Install deviceTRUST.ps1"
+		try {
+			& "$SoftwareFolder\Install deviceTRUST.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing deviceTRUST"
+			Write-Host -ForegroundColor Red "Error launching script 'Install deviceTRUST': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install RemoteDesktopManager
 IF ($SoftwareSelection.RemoteDesktopManager -eq $true)
 	{
-		& "$SoftwareFolder\Install RemoteDesktopManager.ps1"
+		try {
+			& "$SoftwareFolder\Install RemoteDesktopManager.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing RemoteDesktopManager"
+			Write-Host -ForegroundColor Red "Error launching script 'Install RemoteDesktopManager': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 <#
@@ -1413,67 +1680,144 @@ IF ($SoftwareSelection.CiscoWebExDesktop -eq $true)
 # Install Citrix PVS Target Device Client
 IF ($SoftwareSelection.CitrixPVSTargetDevice_LTSR -eq $true)
 	{
-		& "$SoftwareFolder\Install Citrix PVS Target Device LTSR.ps1"
+		try {
+			& "$SoftwareFolder\Install Citrix PVS Target Device LTSR.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix PVS Target Device LTSR"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix PVS Target Device LTSR': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install Citrix PVS Target Device Client
 IF ($SoftwareSelection.CitrixPVSTargetDevice_CR -eq $true)
 	{
-		& "$SoftwareFolder\Install Citrix PVS Target Device CR.ps1"
+		try {
+			& "$SoftwareFolder\Install Citrix PVS Target Device CR.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix PVS Target Device CR"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix PVS Target Device CR ': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install Citrix Server VDA PVS LTSR
 IF ($SoftwareSelection.CitrixServerVDA_PVS_LTSR -eq $true)
 	{
-		& "$SoftwareFolder\Install Citrix Server VDA for PVS LTSR.ps1"
+		try {
+			& "$SoftwareFolder\Install Citrix Server VDA for PVS LTSR.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix Server VDA for PVS LTSR"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA for PVS LTSR': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install Citrix Server VDA PVS CR
 IF ($SoftwareSelection.CitrixServerVDA_PVS_CR -eq $true)
 	{
-		& "$SoftwareFolder\Install Citrix Server VDA for PVS CR.ps1"
+		try {
+			& "$SoftwareFolder\Install Citrix Server VDA for PVS CR.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix Server VDA for PVS CR"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA for PVS CR': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install Citrix Server VDA MCS LTSR
 IF ($SoftwareSelection.CitrixServerVDA_MCS_LTSR -eq $true)
 	{
-		& "$SoftwareFolder\Install Citrix Server VDA for MCS LTSR.ps1"
+		try {
+			& "$SoftwareFolder\Install Citrix Server VDA for MCS LTSR.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix Server VDA for MCS LTSR"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA for MCS LTSR': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install Citrix Server VDA MCS CR
 IF ($SoftwareSelection.CitrixServerVDA_MCS_CR -eq $true)
 	{
-		& "$SoftwareFolder\Install Citrix Server VDA for MCS CR.ps1"
+		try {
+			& "$SoftwareFolder\Install Citrix Server VDA for MCS CR.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix Server VDA for MCS CR"
+			Write-Host -ForegroundColor Red "Error in launching script 'Install Citrix Server VDA for MCS CR': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install Citrix WEM Agent PVS
 IF ($SoftwareSelection.CitrixWEM_Agent_PVS -eq $true)
 	{
-		& "$SoftwareFolder\Install Citrix WEM Agent for PVS.ps1"
+		try {
+			& "$SoftwareFolder\Install Citrix WEM Agent for PVS.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix WEM Agent for PVS"
+			Write-Host -ForegroundColor Red "Error in launching script 'Install Citrix WEM Agent for PVS': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Install Citrix WEM Agent MCS
 IF ($SoftwareSelection.CitrixWEM_Agent_MCS -eq $true)
 	{
-		& "$SoftwareFolder\Install Citrix WEM Agent for MCS.ps1"
+		try {
+			& "$SoftwareFolder\Install Citrix WEM Agent for MCS.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix WEM Agent for MCS"
+			Write-Host -ForegroundColor Red "Error in launching script 'Install Citrix WEM Agent for MCS': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install Citrix Files
 IF ($SoftwareSelection.CitrixCitrixFiles -eq $true)
 	{
-		& "$SoftwareFolder\Install Citrix Files.ps1"
+		try {
+			& "$SoftwareFolder\Install Citrix Files.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix Files"
+			Write-Host -ForegroundColor Red "Error in launching script 'Install Citrix Files': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install Putty
 IF ($SoftwareSelection.Putty -eq $true)
 	{
-		& "$SoftwareFolder\Install Putty.ps1"
+		try {
+			& "$SoftwareFolder\Install Putty.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Putty"
+			Write-Host -ForegroundColor Red "Error in launching script 'Install Putty': $($Error[0])"
+			Write-Output ""
+			}
 	}
 
 # Install WinSCP
 IF ($SoftwareSelection.WinSCP -eq $true)
 	{
-		& "$SoftwareFolder\Install WinSCP.ps1"
+		try {
+			& "$SoftwareFolder\Install WinSCP.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing WinSCP"
+			Write-Host -ForegroundColor Red "Error in launching script 'Install WinSCP': $($Error[0])"
+			Write-Output ""
+			}
 	}
 	
 # Stop install log
