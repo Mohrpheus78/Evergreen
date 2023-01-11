@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.2
+Version: 2.8.3
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -35,6 +35,7 @@ Version: 2.8.2
 02/01: Added MS Visual Redistributable packages
 04/01: Added SplashScreen, check for SplashScreen Powershell module and load from GitHub of not present
 05/01: Foxit Reader had wrong file extensionm changed to msi
+11/01: Changed MS Visual Redistributable download url
 #>
 
 
@@ -1114,7 +1115,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.2"
+	[version]$EvergreenVersion = "2.8.3"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -4050,7 +4051,7 @@ IF ($SoftwareSelection.VcRedist -eq $true) {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
 	$Version = $VcRedist.Version
-	$URL = $VcRedist.Download
+	$URL = $VcRedist.URI
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -4102,7 +4103,7 @@ IF ($SoftwareSelection.VcRedist -eq $true) {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
 	$Version = $VcRedist.Version
-	$URL = $VcRedist.Download
+	$URL = $VcRedist.URI
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue

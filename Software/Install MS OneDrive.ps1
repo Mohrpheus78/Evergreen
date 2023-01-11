@@ -61,17 +61,19 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		while (Get-Process -Name "OneDriveSetup" -ErrorAction SilentlyContinue) {
 			Start-Sleep -Seconds 10
 			}
-		# OneDrive starts automatically after setup. kill!
-		Stop-Process -Name "OneDrive" -Force
-		DS_WriteLog "-" "" $LogFile
-		Write-Host -ForegroundColor Green "...ready"
-		Write-Output ""
-		} catch {
+		# OneDrive starts automatically after setup. Kill process!
+		if (Get-Process -Name "OneDrive" -EA SilentlyContinue) {
+			Stop-Process -Name "OneDrive" -Force
+		}
 			DS_WriteLog "-" "" $LogFile
-			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
-			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
-			Write-Output ""    
-			}
+			Write-Host -ForegroundColor Green "...ready"
+			Write-Output ""
+			} catch {
+				DS_WriteLog "-" "" $LogFile
+				DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+				Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+				Write-Output ""    
+				}
 	}
 
 	IF ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*OneDrive*"}).DisplayVersion) {
