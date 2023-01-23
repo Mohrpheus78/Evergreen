@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.12.3
+Version: 2.12.4
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -130,7 +130,7 @@ function Start-SplashScreen{
 		
 		<Grid Grid.Row="0" x:Name="Header" >	
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="20,10,0,0">       
-				<Label Content="Software-Installer (Powered by Evergreen-Module)Test" Margin="5,0,0,0" Foreground="White" Height="50"  FontSize="25"/>
+				<Label Content="Software-Installer (Powered by Evergreen-Module)" Margin="5,0,0,0" Foreground="White" Height="50"  FontSize="25"/>
 			</StackPanel> 
 		</Grid>
         <Grid Grid.Row="1" >
@@ -431,7 +431,7 @@ function gui_mode{
     $WEM_Agent_MCSBox.width = 95
     $WEM_Agent_MCSBox.height = 20
     $WEM_Agent_MCSBox.autosize = $true
-    $WEM_Agent_MCSBox.location = New-Object System.Drawing.Point(11,595)
+    $WEM_Agent_MCSBox.location = New-Object System.Drawing.Point(11,570)
     $form.Controls.Add($WEM_Agent_MCSBox)
 	$WEM_Agent_MCSBox.Checked =  $SoftwareSelection.CitrixWEM_Agent_MCS
 	
@@ -441,7 +441,7 @@ function gui_mode{
     $CitrixFilesBox.width = 95
     $CitrixFilesBox.height = 20
     $CitrixFilesBox.autosize = $true
-    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,570)
+    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,595)
     $form.Controls.Add($CitrixFilesBox)
 	$CitrixFilesBox.Checked =  $SoftwareSelection.CitrixCitrixFiles
 
@@ -1029,7 +1029,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.3"
+	[version]$EvergreenVersion = "2.12.4"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
