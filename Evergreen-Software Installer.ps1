@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.12.4
+Version: 2.12.5
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -39,6 +39,7 @@ Version: 2.12.4
 04/01: Load SplashScreen only if available, check for SplashScreen Powershell module and load from GitHub of not present
 05/01: Added Foxit Reader, MS SQL MGMT Studio EN and DE, OneDrive Auto Update disabled
 11/01: Better error handling if one install script fails
+08/02: Improvements for MS Edge, Google Chrome
 #>
 
 Param (
@@ -1029,7 +1030,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.4"
+	[version]$EvergreenVersion = "2.12.5"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {

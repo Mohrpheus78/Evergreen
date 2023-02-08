@@ -111,9 +111,15 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	IF ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Google Chrome"}).DisplayVersion) {
 	# Disable scheduled tasks
 	Start-Sleep -s 5
-	$ChromeTasks= (Get-ScheduledTask | Where-Object {$_.TaskName -like "GoogleUpdate*"}).TaskName
-	foreach ($Task in $ChromeTasks) {
-		Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue | Out-Null
+	try {
+		$ChromeTasks = (Get-ScheduledTask | Where-Object {$_.TaskName -like "GoogleUpdate*"} -EA SilentlyContinue).TaskName
+		foreach ($Task in $ChromeTasks) {
+			Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue | Out-Null
+			}
+		}
+	catch {
+		DS_WriteLog "E" "Error disabling scheduled tasks for $Product, Error: $($Error[0])" $LogFile
+		Write-Host -ForegroundColor Red "Error disabling scheduled tasks for $Product, Error: $($Error[0])"
 		}
 	}
 	
