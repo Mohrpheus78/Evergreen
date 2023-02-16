@@ -108,6 +108,12 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 			Write-Output ""    
 			}
 	}
+	
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
 
 	IF ((Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Edge"} | Select-Object -First 1).DisplayVersion) {
 		# Disable scheduled tasks
@@ -136,12 +142,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		}
 		) | Out-Null
 	}
-
-	# Stop, if no new version is available
-	Else {
-	Write-Host "No Update available for $Product"
-	Write-Output ""
-	}
+		
 }
 Else {
 Write-Host -ForegroundColor Red "Version file not found for $Product"

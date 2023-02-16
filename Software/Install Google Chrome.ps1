@@ -107,6 +107,12 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 			Write-Output ""    
 			}
 	}
+	
+	# Stop, if no new version is available
+	Else {
+	Write-Host "No Update available for $Product"
+	Write-Output ""
+	}
 
 	IF ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Google Chrome"}).DisplayVersion) {
 	# Disable scheduled tasks
@@ -123,11 +129,6 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		}
 	}
 	
-	# Stop, if no new version is available
-	Else {
-	Write-Host "No Update available for $Product"
-	Write-Output ""
-	}
 }
 Else {
 Write-Host -ForegroundColor Red "Version file not found for $Product"

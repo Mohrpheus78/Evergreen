@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.12.5
+Version: 2.12.6
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -40,6 +40,7 @@ Version: 2.12.5
 05/01: Added Foxit Reader, MS SQL MGMT Studio EN and DE, OneDrive Auto Update disabled
 11/01: Better error handling if one install script fails
 08/02: Improvements for MS Edge, Google Chrome
+02/16: No error message if Splashscreen cannot be loaded, improvements for MS Edge, Google Chrome (check scheduled taks even if there is no update)
 #>
 
 Param (
@@ -84,14 +85,19 @@ if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") 
 
 # Add shared_assemblies #
 # ===================== #
-
-[System.Reflection.Assembly]::LoadWithPartialName('presentationframework') | out-null
-# Mahapps Library
-[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\MahApps.Metro.dll")       | out-null
-[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\System.Windows.Interactivity.dll") | out-null
+try {
+	[System.Reflection.Assembly]::LoadWithPartialName('presentationframework') | out-null
+	# Mahapps Library
+	[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\MahApps.Metro.dll")       | out-null
+	[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\System.Windows.Interactivity.dll") | out-null
+	}
+catch {
+	$SplashScreen = $False
+}
 
 # Splash Screen #
 # ============= #
+if ($Splashscreen -ne $False) {
 function close-SplashScreen (){
     $hash.window.Dispatcher.Invoke("Normal",[action]{ $hash.window.close() })
     $Pwshell.EndInvoke($handle) | Out-Null
@@ -155,6 +161,7 @@ function Start-SplashScreen{
     $hash.window.ShowDialog() 
     
 }) | Out-Null
+}
 }
 
 
@@ -958,10 +965,12 @@ function gui_mode{
 # ========================================================================================================================================
 
 # We open our splash-screen
-if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
-	if ($noGUI -eq $False) {
-		Start-SplashScreen
-	}
+if ($SplashScreen -ne $False) {
+	if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
+		if ($noGUI -eq $False) {
+			Start-SplashScreen
+		}
+}
 # Load Main Panel #
 # =============== #
 
@@ -1030,7 +1039,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.5"
+	[version]$EvergreenVersion = "2.12.6"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1069,9 +1078,11 @@ if ($noGUI -eq $False) {
 }
 
 # Everything is loaded so we close the splash-screen
-if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
-	if ($noGUI -eq $False) {
-		close-SplashScreen
+if ($Splashscreen -ne $False) {
+	if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
+		if ($noGUI -eq $False) {
+			close-SplashScreen
+		}
 	}
 }
 

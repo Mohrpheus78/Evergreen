@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.3
+Version: 2.8.4
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -36,6 +36,7 @@ Version: 2.8.3
 04/01: Added SplashScreen, check for SplashScreen Powershell module and load from GitHub of not present
 05/01: Foxit Reader had wrong file extensionm changed to msi
 11/01: Changed MS Visual Redistributable download url
+02/16: No error message if Splashscreen cannot be loaded
 #>
 
 
@@ -77,14 +78,20 @@ if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") 
 #                        Add shared_assemblies                          #
 # =======================================================================
 
-[System.Reflection.Assembly]::LoadWithPartialName('presentationframework') | out-null
-# Mahapps Library
-[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\MahApps.Metro.dll")       | out-null
-[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\System.Windows.Interactivity.dll") | out-null
+try {
+	[System.Reflection.Assembly]::LoadWithPartialName('presentationframework') | out-null
+	# Mahapps Library
+	[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\MahApps.Metro.dll")       | out-null
+	[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\System.Windows.Interactivity.dll") | out-null
+	}
+catch {
+	$SplashScreen = $False
+}
 
 # =======================================================================
 #                            Splash Screen                              #
 # =======================================================================
+if ($Splashscreen -ne $False) {
 function close-SplashScreen (){
     $hash.window.Dispatcher.Invoke("Normal",[action]{ $hash.window.close() })
     $Pwshell.EndInvoke($handle) | Out-Null
@@ -148,6 +155,7 @@ function Start-SplashScreen{
     $hash.window.ShowDialog() 
     
 }) | Out-Null
+}
 }
 
 
@@ -1042,10 +1050,12 @@ function gui_mode{
 
 
 # We open our splash-screen
-if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
-	if ($noGUI -eq $False) {
-		Start-SplashScreen
-	}
+if ($SplashScreen -ne $False) {
+	if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
+		if ($noGUI -eq $False) {
+			Start-SplashScreen
+		}
+}
 # Load Main Panel #
 # =============== #
 
@@ -1115,7 +1125,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.3"
+	[version]$EvergreenVersion = "2.8.4"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1155,9 +1165,11 @@ if ($noGUI -eq $False) {
 }
 
 # Everything is loaded so we close the splash-screen
-if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
-	if ($noGUI -eq $False) {
-		close-SplashScreen
+if ($Splashscreen -ne $False) {
+	if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
+		if ($noGUI -eq $False) {
+			close-SplashScreen
+		}
 	}
 }
 
