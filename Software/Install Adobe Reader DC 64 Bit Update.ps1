@@ -54,7 +54,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	IF ($Adobe -lt $Version) {
 
 	# Adobe Reader DC Update
-	Write-Host -ForegroundColor Yellow "Installing $Product"
+	Write-Host -ForegroundColor Yellow "Installing $Product Update"
 	DS_WriteLog "I" "Installing $Product Update" $LogFile
 	try {
 		$mspArgs = "/P `"$PSScriptRoot\$Product\Adobe_DC_MUI_x64_Update.msp`" /quiet /qn"
