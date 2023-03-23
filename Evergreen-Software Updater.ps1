@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.4
+Version: 2.8.5
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -37,6 +37,7 @@ Version: 2.8.4
 05/01: Foxit Reader had wrong file extensionm changed to msi
 11/01: Changed MS Visual Redistributable download url
 02/16: No error message if Splashscreen cannot be loaded
+03/23: Added ShareX
 #>
 
 
@@ -782,15 +783,26 @@ function gui_mode{
     $form.Controls.Add($ImageGlassBox)
 	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
 	
+	# ShareX Checkbox
+    $ShareXBox = New-Object system.Windows.Forms.CheckBox
+    $ShareXBox.text = "ShareX"
+    $ShareXBox.width = 95
+    $ShareXBox.height = 20
+    $ShareXBox.autosize = $true
+    $ShareXBox.location = New-Object System.Drawing.Point(685,245)
+    $form.Controls.Add($ShareXBox)
+	$ShareXBox.Checked =  $SoftwareSelection.ShareX
+	
 	# Cisco WebEx VDI Plugin Checkbox
     $CiscoWebExVDIBox = New-Object system.Windows.Forms.CheckBox
     $CiscoWebExVDIBox.text = "Cisco WebEx VDI Plugin"
     $CiscoWebExVDIBox.width = 95
     $CiscoWebExVDIBox.height = 20
     $CiscoWebExVDIBox.autosize = $true
-    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(685,245)
+    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(685,270)
     $form.Controls.Add($CiscoWebExVDIBox)
 	$CiscoWebExVDIBox.Checked =  $SoftwareSelection.CiscoWebExVDI
+	
 	<#
 	# Cisco WebEx Desktop Checkbox
     $CiscoWebExDesktopBox = New-Object system.Windows.Forms.CheckBox
@@ -896,6 +908,7 @@ function gui_mode{
 		$OracleJava8Box.checked = $True
 		$OracleJava8_32Box.checked = $True
 		$ImageGlassBox.checked = $True
+		$ShareXBox.checked = $True
 		$pdf24CreatorBox.checked = $True	
 		$FoxItReaderBox.checked = $True
 		})
@@ -956,6 +969,7 @@ function gui_mode{
 		$OracleJava8Box.checked = $False
 		$OracleJava8_32Box.checked = $False
 		$ImageGlassBox.checked = $False
+		$ShareXBox.checked = $False
 		$pdf24CreatorBox.checked = $False
 		$FoxItReaderBox.checked = $False
 		})
@@ -1018,6 +1032,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinSCP" -Value $WinSCPBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Putty" -Value $PuttyBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ImageGlass" -Value $ImageGlassBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ShareX" -Value $ShareXBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "pdf24Creator" -Value $pdf24CreatorBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FoxItReader" -Value $FoxItReaderBox.checked -Force
 	
@@ -1125,7 +1140,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.4"
+	[version]$EvergreenVersion = "2.8.5"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1447,7 +1462,7 @@ IF ($SoftwareSelection.NotePadPlusPlus -eq $true) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-		Get-ChildItem "$SoftwareFolder\$Product\" -Exclude lang | Remove-Item -Recurse
+		Get-ChildItem "$SoftwareFolder\$Product\" -Include *.exe, Version.txt, Download* -Recurse | Remove-Item -Recurse
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
@@ -1461,7 +1476,7 @@ IF ($SoftwareSelection.NotePadPlusPlus -eq $true) {
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
-        Get-ChildItem "$SoftwareFolder\$Product\" -Exclude lang | Remove-Item -Recurse
+        Get-ChildItem "$SoftwareFolder\$Product\" -Include *.exe, Version.txt, Download* -Recurse | Remove-Item -Recurse
         }
 		Stop-Transcript | Out-Null
 		Write-Output ""
@@ -3932,6 +3947,58 @@ IF ($SoftwareSelection.ImageGlass -eq $true) {
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
         Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
+
+
+# Download ShareX
+IF ($SoftwareSelection.ShareX -eq $true) {
+	$Product = "ShareX"
+	$PackageName = "ShareX"
+	Try {
+	$ShareX = Get-EvergreenApp -Name ShareX | Where-Object {$_.Type -eq "exe"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $ShareX.Version
+	$URL = $ShareX.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, Version.txt, Download* -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, Version.txt, Download* -Recurse
         }
 		Stop-Transcript | Out-Null
 		Write-Output ""

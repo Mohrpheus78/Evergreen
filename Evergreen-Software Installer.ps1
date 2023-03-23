@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.12.6
+Version: 2.12.7
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -41,6 +41,7 @@ Version: 2.12.6
 11/01: Better error handling if one install script fails
 08/02: Improvements for MS Edge, Google Chrome
 02/16: No error message if Splashscreen cannot be loaded, improvements for MS Edge, Google Chrome (check scheduled taks even if there is no update)
+03/23: Added ShareX
 #>
 
 Param (
@@ -726,6 +727,16 @@ function gui_mode{
     $form.Controls.Add($TreeSizeFreeBox)
 	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
 	
+	# ShareX Checkbox
+    $ShareXBox = New-Object system.Windows.Forms.CheckBox
+    $ShareXBox.text = "ShareX"
+    $ShareXBox.width = 95
+    $ShareXBox.height = 20
+    $ShareXBox.autosize = $true
+    $ShareXBox.location = New-Object System.Drawing.Point(780,95)
+    $form.Controls.Add($ShareXBox)
+	$ShareXBox.Checked =  $SoftwareSelection.ShareX
+	
 	<#
 	# Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
@@ -789,6 +800,7 @@ function gui_mode{
 		$OracleJava8Box.checked = $True
 		$OracleJava8_32Box.checked = $True
 		$TreeSizeFreeBox.checked = $True
+		$ShareXBox.checked = $True
 		$VLCPlayerBox.checked = $True
 		$FileZillaBox.checked = $True
 		$ImageGlassBox.checked = $True
@@ -851,6 +863,7 @@ function gui_mode{
 		$OracleJava8Box.checked = $False
 		$OracleJava8_32Box.checked = $False
 		$TreeSizeFreeBox.checked = $False
+		$ShareXBox.checked = $False
 		$VLCPlayerBox.checked = $False
 		$FileZillaBox.checked = $False
 		$ImageGlassBox.checked = $False
@@ -915,6 +928,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8" -Value $OracleJava8Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8_32" -Value $OracleJava8_32Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "TreeSizeFree" -Value $TreeSizeFreeBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ShareX" -Value $ShareXBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VLCPlayer" -Value $VLCPlayerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FileZilla" -Value $FileZillaBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ImageGlass" -Value $ImageGlassBox.checked -Force
@@ -1039,7 +1053,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.6"
+	[version]$EvergreenVersion = "2.12.7"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1555,6 +1569,19 @@ IF ($SoftwareSelection.TreeSizeFree -eq $true)
 		catch {
 			Write-Host -ForegroundColor Red "Installing TreeSize Free"
 			Write-Host -ForegroundColor Red "Error launching script 'Install TreeSizeFree': $($Error[0])"
+			Write-Output ""
+			}
+	}
+	
+# Install ShareX
+IF ($SoftwareSelection.ShareX -eq $true)
+	{
+		try {
+			& "$SoftwareFolder\Install ShareX.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing ShareX"
+			Write-Host -ForegroundColor Red "Error launching script 'Install ShareX': $($Error[0])"
 			Write-Output ""
 			}
 	}
