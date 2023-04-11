@@ -26,7 +26,7 @@ if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
 $Product = "PVS Target Device CR-Cloud"
-$InstDir = Split-Path $PSScriptRoot -Parent
+#$InstDir = Split-Path $PSScriptRoot -Parent
 
 #========================================================================================================================================
 # Logging
@@ -50,28 +50,29 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Ask again
-Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix PVS Client, otherwise please uncheck in the selection!"
-Write-Host ""
-    $Frage = Read-Host "( y / n )"
-	IF ($Frage -eq 'n') {
+if ($noGUI -eq $False) {
+	Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix PVS Client, otherwise please uncheck in the selection!"
 	Write-Host ""
-	Write-host -ForegroundColor Red "Update canceled!"
+		$Frage = Read-Host "( y / n )"
+		IF ($Frage -eq 'n') {
+		Write-Host ""
+		Write-host -ForegroundColor Red "Update canceled!"
+		Write-Host ""
+		BREAK
+		}
 	Write-Host ""
-	BREAK
-	}
-Write-Host ""
 
 # Installation PVS Target Device CR/Cloud
 Write-Host -ForegroundColor Yellow "Installing $Product"
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
-	IF (!(Test-Path "$InstDir\Software\Citrix\Current\PVS")) {
+	IF (!(Test-Path "$PSScriptRoot\Citrix\Current\PVS")) {
 			Write-Host ""
-			Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\Current\PVS'!"
+			Write-host -ForegroundColor Red "Installation path not valid, please check '$PSScriptRoot\Citrix\Current\PVS'!"
 			pause
 			BREAK
 	}
-	Start-Process "$InstDir\Software\Citrix\Current\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
+	Start-Process "$PSScriptRoot\Citrix\Current\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
 	# Remove Status Tray from autostart
 	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name StatusTray -Force -EA SilentlyContinue
 	Write-Host -ForegroundColor Green " ...ready!" 
@@ -86,9 +87,7 @@ try	{
 		Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
 		Write-Output ""    
 		}
-
-
-
+}
 
 
 

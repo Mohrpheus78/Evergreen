@@ -90,15 +90,16 @@ Write-Host ""
 	ELSE {
 	# Installation WEM Agent Cloud
 	DS_WriteLog "I" "Installing $Product" $LogFile
-	try	{
 	Write-Host -ForegroundColor Yellow "Installing $Product for WEM Cloud service"
-	IF (!(Test-Path "$InstDir\Software\Citrix\Cloud")) {
+	IF (!(Test-Path "$InstDir\Software\Citrix\WEM")) {
 		Write-Host ""
 		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\Cloud'!"
 		pause
-		BREAK }
+		BREAK
+	}
+	try	{
 		$CC = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").CloudConnectorList -join","
-		Start-Process "$InstDir\Software\Citrix\Cloud\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=1 AgentCacheLocation=D:\WEMCache CloudConnectorList=$CC' –NoNewWindow -Wait
+		Start-Process "$InstDir\Software\Citrix\WEM\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=1 AgentCacheLocation=D:\WEMCache CloudConnectorList=$CC' –NoNewWindow -Wait
 		DS_WriteLog "-" "" $LogFile
 		write-Host -ForegroundColor Green "...ready"
 		Write-Output ""

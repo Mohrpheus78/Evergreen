@@ -50,17 +50,17 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Ask again
-Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix VDA, otherwise please uncheck in the selection!"
-Write-Host ""
-    $Frage = Read-Host "( y / n )"
-	IF ($Frage -eq 'n') {
+if ($noGUI -eq $False) {
+	Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix VDA, otherwise please uncheck in the selection!"
 	Write-Host ""
-	Write-host -ForegroundColor Red "Update canceled!"
+		$Frage = Read-Host "( y / n )"
+		IF ($Frage -eq 'n') {
+		Write-Host ""
+		Write-host -ForegroundColor Red "Update canceled!"
+		Write-Host ""
+		BREAK
+		}
 	Write-Host ""
-	BREAK
-	}
-Write-Host ""
-
 
 # Installation Server VDA
 DS_WriteLog "I" "Installing $Product" $LogFile
@@ -85,6 +85,6 @@ Write-Host -ForegroundColor Yellow "Installing $Product"
 		Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
 		Write-Output ""    
 		}
-
+}
 
 
