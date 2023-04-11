@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.12.7
+Version: 2.12.8
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -42,6 +42,7 @@ Version: 2.12.7
 08/02: Improvements for MS Edge, Google Chrome
 02/16: No error message if Splashscreen cannot be loaded, improvements for MS Edge, Google Chrome (check scheduled taks even if there is no update)
 03/23: Added ShareX
+04/11: Added KeePassXC
 #>
 
 Param (
@@ -716,6 +717,16 @@ function gui_mode{
     $KeePassBox.location = New-Object System.Drawing.Point(780,45)
     $form.Controls.Add($KeePassBox)
 	$KeePassBox.Checked =  $SoftwareSelection.KeePass
+	
+	# KeePassXC Checkbox
+    $KeePassXCBox = New-Object system.Windows.Forms.CheckBox
+    $KeePassXCBox.text = "KeePassXC"
+    $KeePassXCBox.width = 95
+    $KeePassXCBox.height = 20
+    $KeePassXCBox.autosize = $true
+    $KeePassXCBox.location = New-Object System.Drawing.Point(780,70)
+    $form.Controls.Add($KeePassXCBox)
+	$KeePassXCBox.Checked =  $SoftwareSelection.KeePassXC
 
     # TreeSizeFree Checkbox
     $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
@@ -723,7 +734,7 @@ function gui_mode{
     $TreeSizeFreeBox.width = 95
     $TreeSizeFreeBox.height = 20
     $TreeSizeFreeBox.autosize = $true
-    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(780,70)
+    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(780,95)
     $form.Controls.Add($TreeSizeFreeBox)
 	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
 	
@@ -733,7 +744,7 @@ function gui_mode{
     $ShareXBox.width = 95
     $ShareXBox.height = 20
     $ShareXBox.autosize = $true
-    $ShareXBox.location = New-Object System.Drawing.Point(780,95)
+    $ShareXBox.location = New-Object System.Drawing.Point(780,120)
     $form.Controls.Add($ShareXBox)
 	$ShareXBox.Checked =  $SoftwareSelection.ShareX
 	
@@ -785,6 +796,7 @@ function gui_mode{
 		$WorkspaceApp_LTSR_WebBox.checked = $True
 		$Citrix_HypervisorToolsBox.checked = $False
 		$KeePassBox.checked = $True
+		$KeePassXCBox.checked = $True
 		$mRemoteNGBox.checked = $True
 		$MSEdgeBox.checked = $True
 		$MSOneDriveBox.checked = $True
@@ -849,6 +861,7 @@ function gui_mode{
 		$WorkspaceApp_LTSR_WebBox.checked = $False
 		$Citrix_HypervisorToolsBox.checked = $False
 		$KeePassBox.checked = $False
+		$KeePassXCBox.checked = $False
 		$mRemoteNGBox.checked = $False
 		$MSEdgeBox.checked = $False
 		$MSOneDriveBox.checked = $False
@@ -914,6 +927,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_LTSR_Web" -Value $WorkspaceApp_LTSR_WebBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixHypervisorTools" -Value $Citrix_HypervisorToolsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePass" -Value $KeePassBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePassXC" -Value $KeePassXCBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "mRemoteNG" -Value $mRemoteNGBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSEdge" -Value $MSEdgeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOneDrive" -Value $MSOneDriveBox.checked -Force
@@ -1053,7 +1067,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.7"
+	[version]$EvergreenVersion = "2.12.8"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1373,6 +1387,19 @@ IF ($SoftwareSelection.KeePass -eq $true)
 		catch {
 			Write-Host -ForegroundColor Red "Installing KeePass"
 			Write-Host -ForegroundColor Red "Error launching script 'Install KeePass': $($Error[0])"
+			Write-Output ""
+			}
+	}
+	
+# Install KeePassXC
+IF ($SoftwareSelection.KeePassXC -eq $true)
+	{
+		try {
+			& "$SoftwareFolder\Install KeePassXC.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing KeePassXC"
+			Write-Host -ForegroundColor Red "Error launching script 'Install KeePassXC': $($Error[0])"
 			Write-Output ""
 			}
 	}
