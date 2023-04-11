@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.5
+Version: 2.8.6
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -38,6 +38,7 @@ Version: 2.8.5
 11/01: Changed MS Visual Redistributable download url
 02/16: No error message if Splashscreen cannot be loaded
 03/23: Added ShareX
+04/11: Added KeepassXC
 #>
 
 
@@ -743,13 +744,23 @@ function gui_mode{
     $form.Controls.Add($KeePassBox)
 	$KeePassBox.Checked = $SoftwareSelection.KeePass
 	
+	# KeePassXC Checkbox
+    $KeePassXCBox = New-Object system.Windows.Forms.CheckBox
+    $KeePassXCBox.text = "KeePassXC"
+    $KeePassXCBox.width = 95
+    $KeePassXCBox.height = 20
+    $KeePassXCBox.autosize = $true
+    $KeePassXCBox.location = New-Object System.Drawing.Point(685,145)
+    $form.Controls.Add($KeePassXCBox)
+	$KeePassXCBox.Checked = $SoftwareSelection.KeePassXC
+	
 	# IGEL Universal Management Suite Checkbox
     $IGELUniversalManagementSuiteBox = New-Object system.Windows.Forms.CheckBox
     $IGELUniversalManagementSuiteBox.text = "IGEL Universal Management Suite"
     $IGELUniversalManagementSuiteBox.width = 95
     $IGELUniversalManagementSuiteBox.height = 20
     $IGELUniversalManagementSuiteBox.autosize = $true
-    $IGELUniversalManagementSuiteBox.location = New-Object System.Drawing.Point(685,145)
+    $IGELUniversalManagementSuiteBox.location = New-Object System.Drawing.Point(685,170)
     $form.Controls.Add($IGELUniversalManagementSuiteBox)
 	$IGELUniversalManagementSuiteBox.Checked = $SoftwareSelection.IGELUniversalManagementSuite
 	
@@ -759,7 +770,7 @@ function gui_mode{
     $pdf24CreatorBox.width = 95
     $pdf24CreatorBox.height = 20
     $pdf24CreatorBox.autosize = $true
-    $pdf24CreatorBox.location = New-Object System.Drawing.Point(685,170)
+    $pdf24CreatorBox.location = New-Object System.Drawing.Point(685,195)
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 	
@@ -769,7 +780,7 @@ function gui_mode{
     $FoxItReaderBox.width = 95
     $FoxItReaderBox.height = 20
     $FoxItReaderBox.autosize = $true
-    $FoxItReaderBox.location = New-Object System.Drawing.Point(685,195)
+    $FoxItReaderBox.location = New-Object System.Drawing.Point(685,220)
     $form.Controls.Add($FoxItReaderBox)
 	$FoxItReaderBox.Checked =  $SoftwareSelection.FoxItReader
 	
@@ -779,7 +790,7 @@ function gui_mode{
     $ImageGlassBox.width = 95
     $ImageGlassBox.height = 20
     $ImageGlassBox.autosize = $true
-    $ImageGlassBox.location = New-Object System.Drawing.Point(685,220)
+    $ImageGlassBox.location = New-Object System.Drawing.Point(685,245)
     $form.Controls.Add($ImageGlassBox)
 	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
 	
@@ -789,7 +800,7 @@ function gui_mode{
     $ShareXBox.width = 95
     $ShareXBox.height = 20
     $ShareXBox.autosize = $true
-    $ShareXBox.location = New-Object System.Drawing.Point(685,245)
+    $ShareXBox.location = New-Object System.Drawing.Point(685,270)
     $form.Controls.Add($ShareXBox)
 	$ShareXBox.Checked =  $SoftwareSelection.ShareX
 	
@@ -799,7 +810,7 @@ function gui_mode{
     $CiscoWebExVDIBox.width = 95
     $CiscoWebExVDIBox.height = 20
     $CiscoWebExVDIBox.autosize = $true
-    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(685,270)
+    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(685,295)
     $form.Controls.Add($CiscoWebExVDIBox)
 	$CiscoWebExVDIBox.Checked =  $SoftwareSelection.CiscoWebExVDI
 	
@@ -875,6 +886,7 @@ function gui_mode{
 		$RemoteDesktopManagerBox.checked = $True
 		$deviceTRUSTBox.checked = $True
 		$KeePassBox.checked = $True
+		$KeePassBoxXC.checked = $True
 		$IGELUniversalManagementSuiteBox.checked = $True
 		$mRemoteNGBox.checked = $True
 		$WinSCPBox.checked = $True
@@ -936,6 +948,7 @@ function gui_mode{
 		$RemoteDesktopManagerBox.checked = $False
 		$deviceTRUSTBox.checked = $False
 		$KeePassBox.checked = $False
+		$KeePassXCBox.checked = $False
 		$IGELUniversalManagementSuiteBox.checked = $False
 		$mRemoteNGBox.checked = $False
 		$WinSCPBox.checked = $False
@@ -1000,6 +1013,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2019" -Value $MSOffice2019Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2021" -Value $MSOffice2021Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePass" -Value $KeePassBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePassXC" -Value $KeePassXCBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "IGELUniversalManagementSuite" -Value $IGELUniversalManagementSuiteBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "mRemoteNG" -Value $mRemoteNGBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSEdge" -Value $MSEdgeBox.checked -Force
@@ -1140,7 +1154,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.5"
+	[version]$EvergreenVersion = "2.8.6"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -3370,7 +3384,58 @@ IF ($SoftwareSelection.KeePass -eq $true) {
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
+
+
+# Download KeePassXC
+IF ($SoftwareSelection.KeePassXC -eq $true) {
+	$Product = "KeePassXC"
+	$PackageName = "KeePassXC"
+	Try {
+	$KeePassXC = Get-EvergreenApp -Name KeePassXCTeamKeePassXC | Select-Object -First 1 -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $KeePassXC.Version
+	$URL = $KeePassXC.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, Version.txt, Download* -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 		Try {
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 		} catch {
