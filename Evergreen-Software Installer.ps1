@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.12.9
+Version: 2.12.10
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -43,6 +43,7 @@ Version: 2.12.9
 02/16: No error message if Splashscreen cannot be loaded, improvements for MS Edge, Google Chrome (check scheduled taks even if there is no update)
 03/23: Added ShareX
 04/11: Added KeePassXC, modified Citrix components scripts
+04/21: Added Citrix scripts for VDA and WEM standalone
 #>
 
 Param (
@@ -284,36 +285,26 @@ function gui_mode{
     $AdobeReaderDCx64BoxUpdate.location = New-Object System.Drawing.Point(11,170)
     $form.Controls.Add($AdobeReaderDCx64BoxUpdate)
 	$AdobeReaderDCx64BoxUpdate.Checked =  $SoftwareSelection.AdobeReaderDCx64Update
-
-    # BISF Checkbox
-    $BISFBox = New-Object system.Windows.Forms.CheckBox
-    $BISFBox.text = "BIS-F"
-    $BISFBox.width = 95
-    $BISFBox.height = 20
-    $BISFBox.autosize = $true
-    $BISFBox.location = New-Object System.Drawing.Point(11,195)
-    $form.Controls.Add($BISFBox)
-	$BISFBox.Checked =  $SoftwareSelection.BISF
 	
-	# FSLogix Checkbox
-    $FSLogixBox = New-Object system.Windows.Forms.CheckBox
-    $FSLogixBox.text = "FSLogix"
-    $FSLogixBox.width = 95
-    $FSLogixBox.height = 20
-    $FSLogixBox.autosize = $true
-    $FSLogixBox.location = New-Object System.Drawing.Point(11,220)
-    $form.Controls.Add($FSLogixBox)
-	$FSLogixBox.Checked =  $SoftwareSelection.FSLogix
-
-    # GoogleChrome Checkbox
-    $GoogleChromeBox = New-Object system.Windows.Forms.CheckBox
-    $GoogleChromeBox.text = "Google Chrome"
-    $GoogleChromeBox.width = 95
-    $GoogleChromeBox.height = 20
-    $GoogleChromeBox.autosize = $true
-    $GoogleChromeBox.location = New-Object System.Drawing.Point(11,245)
-    $form.Controls.Add($GoogleChromeBox)
-	$GoogleChromeBox.Checked =  $SoftwareSelection.GoogleChrome
+	# Citrix Files Checkbox
+    $CitrixFilesBox = New-Object system.Windows.Forms.CheckBox
+    $CitrixFilesBox.text = "Citrix Files (Autostart disabled)"
+    $CitrixFilesBox.width = 95
+    $CitrixFilesBox.height = 20
+    $CitrixFilesBox.autosize = $true
+    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,195)
+    $form.Controls.Add($CitrixFilesBox)
+	$CitrixFilesBox.Checked =  $SoftwareSelection.CitrixCitrixFiles
+	
+	# Citrix Hypervisor Tools Checkbox
+    $Citrix_HypervisorToolsBox = New-Object system.Windows.Forms.CheckBox
+    $Citrix_HypervisorToolsBox.text = "Citrix Hypervisor Tools (Auto Update disabled)"
+    $Citrix_HypervisorToolsBox.width = 95
+    $Citrix_HypervisorToolsBox.height = 20
+    $Citrix_HypervisorToolsBox.autosize = $true
+    $Citrix_HypervisorToolsBox.location = New-Object System.Drawing.Point(11,220)
+    $form.Controls.Add($Citrix_HypervisorToolsBox)
+	$Citrix_HypervisorToolsBox.Checked = $SoftwareSelection.CitrixHypervisorTools
 
     # Citrix WorkspaceApp_Current_Release Checkbox
     $WorkspaceApp_CRBox = New-Object system.Windows.Forms.CheckBox
@@ -321,7 +312,7 @@ function gui_mode{
     $WorkspaceApp_CRBox.width = 95
     $WorkspaceApp_CRBox.height = 20
     $WorkspaceApp_CRBox.autosize = $true
-    $WorkspaceApp_CRBox.location = New-Object System.Drawing.Point(11,270)
+    $WorkspaceApp_CRBox.location = New-Object System.Drawing.Point(11,245)
     $form.Controls.Add($WorkspaceApp_CRBox)
 	$WorkspaceApp_CRBox.Checked =  $SoftwareSelection.WorkspaceApp_CR
 
@@ -331,7 +322,7 @@ function gui_mode{
     $WorkspaceApp_LTSRBox.width = 95
     $WorkspaceApp_LTSRBox.height = 20
     $WorkspaceApp_LTSRBox.autosize = $true
-    $WorkspaceApp_LTSRBox.location = New-Object System.Drawing.Point(11,295)
+    $WorkspaceApp_LTSRBox.location = New-Object System.Drawing.Point(11,270)
     $form.Controls.Add($WorkspaceApp_LTSRBox)
 	$WorkspaceApp_LTSRBox.Checked =  $SoftwareSelection.WorkspaceApp_LTSR
 	
@@ -341,7 +332,7 @@ function gui_mode{
     $WorkspaceApp_CR_WebBox.width = 95
     $WorkspaceApp_CR_WebBox.height = 20
     $WorkspaceApp_CR_WebBox.autosize = $true
-    $WorkspaceApp_CR_WebBox.location = New-Object System.Drawing.Point(11,320)
+    $WorkspaceApp_CR_WebBox.location = New-Object System.Drawing.Point(11,295)
     $form.Controls.Add($WorkspaceApp_CR_WebBox)
 	$WorkspaceApp_CR_WebBox.Checked =  $SoftwareSelection.WorkspaceApp_CR_Web
 
@@ -351,19 +342,9 @@ function gui_mode{
     $WorkspaceApp_LTSR_WebBox.width = 95
     $WorkspaceApp_LTSR_WebBox.height = 20
     $WorkspaceApp_LTSR_WebBox.autosize = $true
-    $WorkspaceApp_LTSR_WebBox.location = New-Object System.Drawing.Point(11,345)
+    $WorkspaceApp_LTSR_WebBox.location = New-Object System.Drawing.Point(11,320)
     $form.Controls.Add($WorkspaceApp_LTSR_WebBox)
 	$WorkspaceApp_LTSR_WebBox.Checked =  $SoftwareSelection.WorkspaceApp_LTSR_Web
-	
-	# Citrix Hypervisor Tools Checkbox
-    $Citrix_HypervisorToolsBox = New-Object system.Windows.Forms.CheckBox
-    $Citrix_HypervisorToolsBox.text = "Citrix Hypervisor Tools (Auto Update disabled)"
-    $Citrix_HypervisorToolsBox.width = 95
-    $Citrix_HypervisorToolsBox.height = 20
-    $Citrix_HypervisorToolsBox.autosize = $true
-    $Citrix_HypervisorToolsBox.location = New-Object System.Drawing.Point(11,370)
-    $form.Controls.Add($Citrix_HypervisorToolsBox)
-	$Citrix_HypervisorToolsBox.Checked = $SoftwareSelection.CitrixHypervisorTools
 	
 	# Citrix PVS Target Device LTSR Checkbox
     $PVSTargetDevice_LTSRBox = New-Object system.Windows.Forms.CheckBox
@@ -371,7 +352,7 @@ function gui_mode{
     $PVSTargetDevice_LTSRBox.width = 95
     $PVSTargetDevice_LTSRBox.height = 20
     $PVSTargetDevice_LTSRBox.autosize = $true
-    $PVSTargetDevice_LTSRBox.location = New-Object System.Drawing.Point(11,395)
+    $PVSTargetDevice_LTSRBox.location = New-Object System.Drawing.Point(11,345)
     $form.Controls.Add($PVSTargetDevice_LTSRBox)
 	$PVSTargetDevice_LTSRBox.Checked =  $SoftwareSelection.CitrixPVSTargetDevice_LTSR
 	
@@ -381,9 +362,29 @@ function gui_mode{
     $PVSTargetDevice_CRBox.width = 95
     $PVSTargetDevice_CRBox.height = 20
     $PVSTargetDevice_CRBox.autosize = $true
-    $PVSTargetDevice_CRBox.location = New-Object System.Drawing.Point(11,420)
+    $PVSTargetDevice_CRBox.location = New-Object System.Drawing.Point(11,370)
     $form.Controls.Add($PVSTargetDevice_CRBox)
 	$PVSTargetDevice_CRBox.Checked =  $SoftwareSelection.CitrixPVSTargetDevice_CR
+	
+	# Citrix VDA LTSR Checkbox
+    $ServerVDA_LTSRBox = New-Object system.Windows.Forms.CheckBox
+    $ServerVDA_LTSRBox.text = "Citrix Server VDA LTSR"
+    $ServerVDA_LTSRBox.width = 95
+    $ServerVDA_LTSRBox.height = 20
+    $ServerVDA_LTSRBox.autosize = $true
+    $ServerVDA_LTSRBox.location = New-Object System.Drawing.Point(11,395)
+    $form.Controls.Add($ServerVDA_LTSRBox)
+	$ServerVDA_LTSRBox.Checked =  $SoftwareSelection.CitrixServerVDA_LTSR
+	
+	# Citrix VDA CR/Cloud Checkbox
+    $ServerVDA_CRBox = New-Object system.Windows.Forms.CheckBox
+    $ServerVDA_CRBox.text = "Citrix Server VDA CR/Cloud"
+    $ServerVDA_CRBox.width = 95
+    $ServerVDA_CRBox.height = 20
+    $ServerVDA_CRBox.autosize = $true
+    $ServerVDA_CRBox.location = New-Object System.Drawing.Point(11,420)
+    $form.Controls.Add($ServerVDA_CRBox)
+	$ServerVDA_CRBox.Checked =  $SoftwareSelection.CitrixServerVDA_CR
 	
 	# Citrix VDA PVS LTSR Checkbox
     $ServerVDA_PVS_LTSRBox = New-Object system.Windows.Forms.CheckBox
@@ -425,36 +426,36 @@ function gui_mode{
     $form.Controls.Add($ServerVDA_MCS_CRBox)
 	$ServerVDA_MCS_CRBox.Checked =  $SoftwareSelection.CitrixServerVDA_MCS_CR
 	
+	# Citrix WEM Agent Checkbox
+    $WEM_Agent_Box = New-Object system.Windows.Forms.CheckBox
+    $WEM_Agent_Box.text = "Citrix WEM Agent for VDA"
+    $WEM_Agent_Box.width = 95
+    $WEM_Agent_Box.height = 20
+    $WEM_Agent_Box.autosize = $true
+    $WEM_Agent_Box.location = New-Object System.Drawing.Point(11,545)
+    $form.Controls.Add($WEM_Agent_Box)
+	$WEM_Agent_Box.Checked =  $SoftwareSelection.CitrixWEM_Agent
+	
 	# Citrix WEM Agent PVS Checkbox
     $WEM_Agent_PVSBox = New-Object system.Windows.Forms.CheckBox
-    $WEM_Agent_PVSBox.text = "Citrix WEM Agent for PVS"
+    $WEM_Agent_PVSBox.text = "Citrix WEM Agent for PVS VDA"
     $WEM_Agent_PVSBox.width = 95
     $WEM_Agent_PVSBox.height = 20
     $WEM_Agent_PVSBox.autosize = $true
-    $WEM_Agent_PVSBox.location = New-Object System.Drawing.Point(11,545)
+    $WEM_Agent_PVSBox.location = New-Object System.Drawing.Point(11,570)
     $form.Controls.Add($WEM_Agent_PVSBox)
 	$WEM_Agent_PVSBox.Checked =  $SoftwareSelection.CitrixWEM_Agent_PVS
 	
 	# Citrix WEM Agent MCS Checkbox
     $WEM_Agent_MCSBox = New-Object system.Windows.Forms.CheckBox
-    $WEM_Agent_MCSBox.text = "Citrix WEM Agent for MCS"
+    $WEM_Agent_MCSBox.text = "Citrix WEM Agent for MCS VDA"
     $WEM_Agent_MCSBox.width = 95
     $WEM_Agent_MCSBox.height = 20
     $WEM_Agent_MCSBox.autosize = $true
-    $WEM_Agent_MCSBox.location = New-Object System.Drawing.Point(11,570)
+    $WEM_Agent_MCSBox.location = New-Object System.Drawing.Point(11,595)
     $form.Controls.Add($WEM_Agent_MCSBox)
 	$WEM_Agent_MCSBox.Checked =  $SoftwareSelection.CitrixWEM_Agent_MCS
 	
-	# Citrix Files Checkbox
-    $CitrixFilesBox = New-Object system.Windows.Forms.CheckBox
-    $CitrixFilesBox.text = "Citrix Files (Autostart disabled)"
-    $CitrixFilesBox.width = 95
-    $CitrixFilesBox.height = 20
-    $CitrixFilesBox.autosize = $true
-    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,595)
-    $form.Controls.Add($CitrixFilesBox)
-	$CitrixFilesBox.Checked =  $SoftwareSelection.CitrixCitrixFiles
-
 	# MSEdge Checkbox
     $MSEdgeBox = New-Object system.Windows.Forms.CheckBox
     $MSEdgeBox.text = "Microsoft Edge (Stable Channel)"
@@ -554,6 +555,36 @@ function gui_mode{
     $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(390,270)
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
+	
+	# BISF Checkbox
+    $BISFBox = New-Object system.Windows.Forms.CheckBox
+    $BISFBox.text = "BIS-F"
+    $BISFBox.width = 95
+    $BISFBox.height = 20
+    $BISFBox.autosize = $true
+    $BISFBox.location = New-Object System.Drawing.Point(390,295)
+    $form.Controls.Add($BISFBox)
+	$BISFBox.Checked =  $SoftwareSelection.BISF
+	
+	# FSLogix Checkbox
+    $FSLogixBox = New-Object system.Windows.Forms.CheckBox
+    $FSLogixBox.text = "FSLogix"
+    $FSLogixBox.width = 95
+    $FSLogixBox.height = 20
+    $FSLogixBox.autosize = $true
+    $FSLogixBox.location = New-Object System.Drawing.Point(390,320)
+    $form.Controls.Add($FSLogixBox)
+	$FSLogixBox.Checked =  $SoftwareSelection.FSLogix
+	
+	# GoogleChrome Checkbox
+    $GoogleChromeBox = New-Object system.Windows.Forms.CheckBox
+    $GoogleChromeBox.text = "Google Chrome"
+    $GoogleChromeBox.width = 95
+    $GoogleChromeBox.height = 20
+    $GoogleChromeBox.autosize = $true
+    $GoogleChromeBox.location = New-Object System.Drawing.Point(390,345)
+    $form.Controls.Add($GoogleChromeBox)
+	$GoogleChromeBox.Checked =  $SoftwareSelection.GoogleChrome
 <#	
 	# Zoom VMWare client Checkbox
     $ZoomVMWareBox = New-Object system.Windows.Forms.CheckBox
@@ -565,36 +596,6 @@ function gui_mode{
     $form.Controls.Add($ZoomVMWareBox)
 	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
 #>
-	# OracleJava8 Checkbox
-    $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
-    $OracleJava8Box.text = "Oracle Java 8/x64"
-    $OracleJava8Box.width = 95
-    $OracleJava8Box.height = 20
-    $OracleJava8Box.autosize = $true
-    $OracleJava8Box.location = New-Object System.Drawing.Point(390,295)
-    $form.Controls.Add($OracleJava8Box)
-	$OracleJava8Box.Checked =  $SoftwareSelection.OracleJava8
-	
-	# OracleJava8-32Bit Checkbox
-    $OracleJava8_32Box = New-Object system.Windows.Forms.CheckBox
-    $OracleJava8_32Box.text = "Oracle Java 8/x86"
-    $OracleJava8_32Box.width = 95
-    $OracleJava8_32Box.height = 20
-    $OracleJava8_32Box.autosize = $true
-    $OracleJava8_32Box.location = New-Object System.Drawing.Point(390,320)
-    $form.Controls.Add($OracleJava8_32Box)
-	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
-	
-	# deviceTRUST Checkbox
-    $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
-    $deviceTRUSTBox.text = "deviceTRUST"
-    $deviceTRUSTBox.width = 95
-    $deviceTRUSTBox.height = 20
-    $deviceTRUSTBox.autosize = $true
-    $deviceTRUSTBox.location = New-Object System.Drawing.Point(390,345)
-    $form.Controls.Add($deviceTRUSTBox)
-	$deviceTRUSTBox.Checked =  $SoftwareSelection.deviceTRUST
-	
 	# Putty Checkbox
     $PuttyBox = New-Object system.Windows.Forms.CheckBox
     $PuttyBox.text = "Putty"
@@ -658,25 +659,25 @@ function gui_mode{
     $form.Controls.Add($VLCPlayerBox)
 	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
 	
-	# FileZilla Checkbox
-    $FileZillaBox = New-Object system.Windows.Forms.CheckBox
-    $FileZillaBox.text = "FileZilla Client"
-    $FileZillaBox.width = 95
-    $FileZillaBox.height = 20
-    $FileZillaBox.autosize = $true
-    $FileZillaBox.location = New-Object System.Drawing.Point(390,495)
-    $form.Controls.Add($FileZillaBox)
-	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
+	# OracleJava8 Checkbox
+    $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
+    $OracleJava8Box.text = "Oracle Java 8/x64"
+    $OracleJava8Box.width = 95
+    $OracleJava8Box.height = 20
+    $OracleJava8Box.autosize = $true
+    $OracleJava8Box.location = New-Object System.Drawing.Point(390,495)
+    $form.Controls.Add($OracleJava8Box)
+	$OracleJava8Box.Checked =  $SoftwareSelection.OracleJava8
 	
-	# ImageGlass Checkbox
-    $ImageGlassBox = New-Object system.Windows.Forms.CheckBox
-    $ImageGlassBox.text = "ImageGlass"
-    $ImageGlassBox.width = 95
-    $ImageGlassBox.height = 20
-    $ImageGlassBox.autosize = $true
-    $ImageGlassBox.location = New-Object System.Drawing.Point(390,520)
-    $form.Controls.Add($ImageGlassBox)
-	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
+	# OracleJava8-32Bit Checkbox
+    $OracleJava8_32Box = New-Object system.Windows.Forms.CheckBox
+    $OracleJava8_32Box.text = "Oracle Java 8/x86"
+    $OracleJava8_32Box.width = 95
+    $OracleJava8_32Box.height = 20
+    $OracleJava8_32Box.autosize = $true
+    $OracleJava8_32Box.location = New-Object System.Drawing.Point(390,520)
+    $form.Controls.Add($OracleJava8_32Box)
+	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
 	
 	# Greenshot Checkbox
     $GreenshotBox = New-Object system.Windows.Forms.CheckBox
@@ -708,13 +709,23 @@ function gui_mode{
     $form.Controls.Add($FoxitReaderBox)
 	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
 	
+	# deviceTRUST Checkbox
+    $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
+    $deviceTRUSTBox.text = "deviceTRUST"
+    $deviceTRUSTBox.width = 95
+    $deviceTRUSTBox.height = 20
+    $deviceTRUSTBox.autosize = $true
+    $deviceTRUSTBox.location = New-Object System.Drawing.Point(780,45)
+    $form.Controls.Add($deviceTRUSTBox)
+	$deviceTRUSTBox.Checked =  $SoftwareSelection.deviceTRUST
+	
 	# KeePass Checkbox
     $KeePassBox = New-Object system.Windows.Forms.CheckBox
     $KeePassBox.text = "KeePass"
     $KeePassBox.width = 95
     $KeePassBox.height = 20
     $KeePassBox.autosize = $true
-    $KeePassBox.location = New-Object System.Drawing.Point(780,45)
+    $KeePassBox.location = New-Object System.Drawing.Point(780,70)
     $form.Controls.Add($KeePassBox)
 	$KeePassBox.Checked =  $SoftwareSelection.KeePass
 	
@@ -724,7 +735,7 @@ function gui_mode{
     $KeePassXCBox.width = 95
     $KeePassXCBox.height = 20
     $KeePassXCBox.autosize = $true
-    $KeePassXCBox.location = New-Object System.Drawing.Point(780,70)
+    $KeePassXCBox.location = New-Object System.Drawing.Point(780,95)
     $form.Controls.Add($KeePassXCBox)
 	$KeePassXCBox.Checked =  $SoftwareSelection.KeePassXC
 
@@ -734,7 +745,7 @@ function gui_mode{
     $TreeSizeFreeBox.width = 95
     $TreeSizeFreeBox.height = 20
     $TreeSizeFreeBox.autosize = $true
-    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(780,95)
+    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(780,120)
     $form.Controls.Add($TreeSizeFreeBox)
 	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
 	
@@ -744,9 +755,29 @@ function gui_mode{
     $ShareXBox.width = 95
     $ShareXBox.height = 20
     $ShareXBox.autosize = $true
-    $ShareXBox.location = New-Object System.Drawing.Point(780,120)
+    $ShareXBox.location = New-Object System.Drawing.Point(780,145)
     $form.Controls.Add($ShareXBox)
 	$ShareXBox.Checked =  $SoftwareSelection.ShareX
+	
+	# ImageGlass Checkbox
+    $ImageGlassBox = New-Object system.Windows.Forms.CheckBox
+    $ImageGlassBox.text = "ImageGlass"
+    $ImageGlassBox.width = 95
+    $ImageGlassBox.height = 20
+    $ImageGlassBox.autosize = $true
+    $ImageGlassBox.location = New-Object System.Drawing.Point(780,170)
+    $form.Controls.Add($ImageGlassBox)
+	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
+	
+	# FileZilla Checkbox
+    $FileZillaBox = New-Object system.Windows.Forms.CheckBox
+    $FileZillaBox.text = "FileZilla Client"
+    $FileZillaBox.width = 95
+    $FileZillaBox.height = 20
+    $FileZillaBox.autosize = $true
+    $FileZillaBox.location = New-Object System.Drawing.Point(780,195)
+    $form.Controls.Add($FileZillaBox)
+	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
 	
 	<#
 	# Zoom Host Checkbox
@@ -827,10 +858,13 @@ function gui_mode{
 		#$CiscoWebExDesktopBox.checked = $True
 		$PVSTargetDevice_LTSRBox.checked = $True
 		$PVSTargetDevice_CRBox.checked = $True
+		$ServerVDA_LTSRBox.checked = $True
 		$ServerVDA_PVS_LTSRBox.checked = $True
+		$ServerVDA_CRBox.checked = $True
 		$ServerVDA_PVS_CRBox.checked = $True
 		$ServerVDA_MCS_LTSRBox.checked = $True
 		$ServerVDA_MCS_CRBox.checked = $True
+		$WEM_Agent_Box.checked = $True
 		$WEM_Agent_PVSBox.checked = $True
 		$WEM_Agent_MCSBox.checked = $True
 		$CitrixFilesBox.checked = $True
@@ -891,10 +925,13 @@ function gui_mode{
 		#$CiscoWebExDesktopBox.checked = $False
 		$PVSTargetDevice_LTSRBox.checked = $False
 		$PVSTargetDevice_CRBox.checked = $False
+		$ServerVDA_LTSRBox.checked = $False
 		$ServerVDA_PVS_LTSRBox.checked = $False
+		$ServerVDA_CRBox.checked = $False
 		$ServerVDA_PVS_CRBox.checked = $False
 		$ServerVDA_MCS_LTSRBox.checked = $False
 		$ServerVDA_MCS_CRBox.checked = $False
+		$WEM_Agent_Box.checked = $False
 		$WEM_Agent_PVSBox.checked = $False
 		$WEM_Agent_MCSBox.checked = $False
 		$CitrixFilesBox.checked = $False
@@ -957,10 +994,13 @@ function gui_mode{
 		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExDesktop" -Value $CiscoWebExDesktopBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixPVSTargetDevice_LTSR" -Value $PVSTargetDevice_LTSRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixPVSTargetDevice_CR" -Value $PVSTargetDevice_CRBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixServerVDA_LTSR" -Value $ServerVDA_LTSRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixServerVDA_PVS_LTSR" -Value $ServerVDA_PVS_LTSRBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixServerVDA_CR" -Value $ServerVDA_CRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixServerVDA_PVS_CR" -Value $ServerVDA_PVS_CRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixServerVDA_MCS_LTSR" -Value $ServerVDA_MCS_LTSRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixServerVDA_MCS_CR" -Value $ServerVDA_MCS_CRBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixWEM_Agent" -Value $WEM_Agent_Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixWEM_Agent_PVS" -Value $WEM_Agent_PVSBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixWEM_Agent_MCS" -Value $WEM_Agent_MCSBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixCitrixFiles" -Value $CitrixFilesBox.checked -Force
@@ -1067,7 +1107,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.9"
+	[version]$EvergreenVersion = "2.12.10"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1769,6 +1809,19 @@ IF ($SoftwareSelection.CitrixPVSTargetDevice_CR -eq $true)
 			}
 	}
 
+# Install Citrix Server VDA LTSR
+IF ($SoftwareSelection.CitrixServerVDA_LTSR -eq $true)
+	{
+		try {
+			& "$SoftwareFolder\Install Citrix Server VDA LTSR.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix Server VDA LTSR"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA LTSR': $($Error[0])"
+			Write-Output ""
+			}
+	}
+
 # Install Citrix Server VDA PVS LTSR
 IF ($SoftwareSelection.CitrixServerVDA_PVS_LTSR -eq $true)
 	{
@@ -1782,7 +1835,20 @@ IF ($SoftwareSelection.CitrixServerVDA_PVS_LTSR -eq $true)
 			}
 	}
 	
-# Install Citrix Server VDA PVS CR
+# Install Citrix Server VDA CR/Cloud
+IF ($SoftwareSelection.CitrixServerVDA_CR -eq $true)
+	{
+		try {
+			& "$SoftwareFolder\Install Citrix Server VDA CR.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix Server VDA CR"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA CR': $($Error[0])"
+			Write-Output ""
+			}
+	}
+	
+# Install Citrix Server VDA PVS CR/Cloud
 IF ($SoftwareSelection.CitrixServerVDA_PVS_CR -eq $true)
 	{
 		try {
@@ -1817,6 +1883,19 @@ IF ($SoftwareSelection.CitrixServerVDA_MCS_CR -eq $true)
 		catch {
 			Write-Host -ForegroundColor Red "Installing Citrix Server VDA for MCS CR"
 			Write-Host -ForegroundColor Red "Error in launching script 'Install Citrix Server VDA for MCS CR': $($Error[0])"
+			Write-Output ""
+			}
+	}
+	
+# Install Citrix WEM Agent
+IF ($SoftwareSelection.CitrixWEM_Agent -eq $true)
+	{
+		try {
+			& "$SoftwareFolder\Install Citrix WEM Agent.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Citrix WEM Agent"
+			Write-Host -ForegroundColor Red "Error in launching script 'Install Citrix WEM Agent': $($Error[0])"
 			Write-Output ""
 			}
 	}

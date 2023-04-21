@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs Citrix Multisession VDA LTSR on a MCS/PVS master server/client or wherever you want.
+This script installs Citrix Multisession VDA LTSR on a VDA server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -25,7 +25,7 @@ $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "Citrix VDA for PVS LTSR"
+$Product = "Citrix VDA Standalone LTSR"
 $InstDir = Split-Path $PSScriptRoot -Parent
 
 #========================================================================================================================================
@@ -66,12 +66,12 @@ if ($noGUI -eq $False) {
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
 Write-Host -ForegroundColor Yellow "Installing $Product"
-	IF (!(Test-Path "$InstDir\Software\Citrix\LTSR\CVAD")) {
+	IF (!(Test-Path "$InstDir\Software\Citrix\LTSR")) {
 			Write-Host ""
-			Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\LTSR\CVAD'!"
+			Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\LTSR'!"
 			pause
 			BREAK }
-			Start-Process "$InstDir\Software\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"",""Citrix MCS IODriver"",""Citrix WEM Agent"" /COMPONENTS VDA /disableexperiencemetrics /enable_remote_assistance /enable_hdx_ports /enable_hdx_udp_ports /enable_real_time_transport /enable_ss_ports /masterpvsimage" –NoNewWindow -Wait
+			Start-Process "$InstDir\Software\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"",""Citrix MCS IODriver"",""Citrix WEM Agent"" /COMPONENTS VDA /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /ENABLE_REAL_TIME_TRANSPORT /enable_ss_ports" –NoNewWindow -Wait
 			DS_WriteLog "-" "" $LogFile
 			Write-Host -ForegroundColor Green " ...ready!" 
 			Write-Output ""
@@ -86,6 +86,5 @@ Write-Host -ForegroundColor Yellow "Installing $Product"
 		Write-Output ""    
 		}
 }
-
 
 

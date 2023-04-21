@@ -51,7 +51,7 @@ DS_WriteLog "-" "" $LogFile
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 	[version]$OneDrive = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*OneDrive*"}).DisplayVersion
-	IF ($OneDrive -lt $Version) {
+	IF ($OneDrive -ne $Version) {
 
 	# Installation OneDrive
 	Write-Host -ForegroundColor Yellow "Installing $Product"
