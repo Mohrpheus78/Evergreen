@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.6
+Version: 2.8.7
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -39,6 +39,7 @@ Version: 2.8.6
 02/16: No error message if Splashscreen cannot be loaded
 03/23: Added ShareX
 04/11: Added KeepassXC
+04/24: Changed Oracle Java version check
 #>
 
 
@@ -1154,7 +1155,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.6"
+	[version]$EvergreenVersion = "2.8.7"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -3258,6 +3259,7 @@ IF ($SoftwareSelection.OracleJava8 -eq $true) {
 		}
 	$VersionOracle8_x64 = $OracleJava8.Version
 	$VersionOracle8_x64 = $VersionOracle8_x64 -replace ".{4}$"
+	#$VersionOracle8_x64 = $VersionOracle8_x64.Substring(2)
 	[Version]$VersionOracle8_x64 = $VersionOracle8_x64 -replace "_","."
 	$URL = $OracleJava8.uri
 	$InstallerType = "exe"
