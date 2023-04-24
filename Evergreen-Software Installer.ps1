@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.12.10
+Version: 2.12.11
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -44,6 +44,7 @@ Version: 2.12.10
 03/23: Added ShareX
 04/11: Added KeePassXC, modified Citrix components scripts
 04/21: Added Citrix scripts for VDA and WEM standalone
+04/24: Changed Oracle Java version check
 #>
 
 Param (
@@ -1107,7 +1108,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.10"
+	[version]$EvergreenVersion = "2.12.11"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {

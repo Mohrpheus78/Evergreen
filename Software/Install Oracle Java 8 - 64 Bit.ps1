@@ -50,11 +50,13 @@ DS_WriteLog "-" "" $LogFile
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-	$Java = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Java*Update* (64-bit)"}).InstallLocation
+	$Java = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Java*Update* (64-bit)"}).DisplayVersion
 	IF ([string]::ISNullOrEmpty( $Java) -eq $False) {
-	$Java = $Java.Substring(25).TrimEnd('\')
-	$Java = $Java -replace "_","."
-	[version]$Java = [string]$Java
+	$Java = Get-Content -Path "C:\Program Files\Java\jre-1.8\release" -TotalCount 1
+	$Java = $Java -replace ("JAVA_VERSION=","")
+	$Java = $Java.TrimEnd('"')
+	$Java = $Java.Substring(1)
+	[version]$Java = $Java -replace "_","."
 	}
 	# Install Oracle Java 8 if new version or not installed
 	IF ($Java -lt $Version) {

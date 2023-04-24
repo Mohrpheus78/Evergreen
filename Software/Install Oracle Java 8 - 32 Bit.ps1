@@ -50,11 +50,14 @@ DS_WriteLog "-" "" $LogFile
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-	$Java32 = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Java 8*Update*"}).InstallLocation
+	$Java32 = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Java 8*Update*"}).DisplayName
 	IF ([string]::ISNullOrEmpty( $Java32) -eq $False) {
-	$Java32 = $Java32.TrimEnd('\') -replace "C:\\Program Files \(x86\)\\Java\\jre",""
-	$Java32 = $Java32 -replace "_","."
-	[version]$Java32 = [string]$Java32
+	$Java32 = Get-Content -Path "C:\Program Files (x86)\Java\jre-1.8\release" -TotalCount 1
+	$Java32 = $Java32 -replace ("JAVA_VERSION=","")
+	$Java32 = $Java32.TrimEnd('"')
+	$Java32 = $Java32.Substring(1)
+	[version]$Java32 = $Java32 -replace "_","."
+	#[version]$Java32 = [string]$Java32
 	}
 	IF ($Java32 -lt $Version) {
 	Write-Host -ForegroundColor Yellow "Installing $Product"
