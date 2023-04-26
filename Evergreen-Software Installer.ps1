@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.12.11
+Version: 2.13
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -45,6 +45,7 @@ Version: 2.12.11
 04/11: Added KeePassXC, modified Citrix components scripts
 04/21: Added Citrix scripts for VDA and WEM standalone
 04/24: Changed Oracle Java version check
+04/26: Added $SoftwareToAutoInstall  for PVS Admin Toolkit
 #>
 
 Param (
@@ -57,8 +58,7 @@ Param (
 		[Parameter(
 			Mandatory = $false
 		)]  
-		$SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername.xml"
-    
+		[switch]$SoftwareToAutoInstall
 )
 
 
@@ -1108,7 +1108,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.11"
+	[version]$EvergreenVersion = "2.13"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1170,7 +1170,10 @@ Write-Output ""
 $SoftwareFolder = ("$PSScriptRoot" + "\" + "Software\")
 $ErrorActionPreference = "Continue"
 $SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername.xml"
-
+IF ($SoftwareToAutoInstall -eq $True) {
+	$SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername-Auto.xml"
+	}
+	
 # Check version
 if ($noGUI -eq $False) {
 Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion"`n

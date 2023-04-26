@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.7
+Version: 2.8.8
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -40,6 +40,7 @@ Version: 2.8.7
 03/23: Added ShareX
 04/11: Added KeepassXC
 04/24: Changed Oracle Java version check
+04/26: Delete Office download data older 40 days, changed regex for Cisco WebEx VDI
 #>
 
 
@@ -1155,7 +1156,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.7"
+	[version]$EvergreenVersion = "2.8.8"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -2406,6 +2407,7 @@ IF ($SoftwareSelection.MS365Apps_SAC -eq $true) {
 			else {
 				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
 				  $MS365Apps_SACUpdate = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+				  Get-ChildItem -Path "$SoftwareFolder\$Product\Office\Data" | where {$_.LastWriteTime -le $(get-date).Adddays(-40)} | Remove-Item -recurse
 				  }
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
@@ -2467,6 +2469,7 @@ IF ($SoftwareSelection.MS365Apps_MEC -eq $true) {
 			else {
 				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
 				  $MS365Apps_MECUpdate = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+				  Get-ChildItem -Path "$SoftwareFolder\$Product\Office\Data" | where {$_.LastWriteTime -le $(get-date).Adddays(-40)} | Remove-Item -recurse
 				  }
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
@@ -2527,7 +2530,8 @@ IF ($SoftwareSelection.MSOffice2019 -eq $true) {
 				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
 			else {
 				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
-				  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+				  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru
+				  Get-ChildItem -Path "$SoftwareFolder\$Product\Office\Data" | where {$_.LastWriteTime -le $(get-date).Adddays(-40)} | Remove-Item -recurse
 				  }
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
@@ -2588,7 +2592,8 @@ IF ($SoftwareSelection.MSOffice2021 -eq $true) {
 				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
 			else {
 				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
-				  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru 
+				  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru
+				  Get-ChildItem -Path "$SoftwareFolder\$Product\Office\Data" | where {$_.LastWriteTime -le $(get-date).Adddays(-40)} | Remove-Item -recurse
 				  }
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
@@ -3927,7 +3932,7 @@ IF ($SoftwareSelection.CiscoWebExVDI -eq $true) {
 	$PackageName = "WebExVDIPlugin"
 	$URLVersionWebExVDI = "https://www.webex.com/downloads/teams-vdi.html"
 	$webRequestWebExVDI = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionWebExVDI) -SessionVariable websession
-	$regexAppVersionWebExVDI = '\(\d\d\.\d\d\.\d\.\d\d\d\d\d\)'
+	$regexAppVersionWebExVDI = '\(\d\d\.\d\.\d\.\d\d\d\d\d\)'
 	$webVersionWebExVDI = $webRequestWebExVDI.RawContent | Select-String -Pattern $regexAppVersionWebExVDI -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
 	$webVersionWebExVDI = $webVersionWebExVDI.TrimEnd(')').Substring(1)
 	[Version]$VersionWebExVDI  = $webVersionWebExVDI
