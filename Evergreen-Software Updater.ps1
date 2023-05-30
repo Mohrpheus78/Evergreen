@@ -41,7 +41,7 @@ Version: 2.8.9
 04/11: Added KeepassXC
 04/24: Changed Oracle Java version check
 04/26: Delete Office download data older 40 days, changed regex for Cisco WebEx VDI
-05/30: Changed regex for pdf24Creator
+05/30: Changed regex for pdf24Creator, changed WinSCP download type, changed PuTTY source to Evergreen
 #>
 
 
@@ -3633,7 +3633,7 @@ IF ($SoftwareSelection.WinSCP -eq $true) {
 	$Product = "WinSCP"
 	$PackageName = "WinSCP"
 	Try {
-	$WinSCP = Get-EvergreenApp -Name WinSCP -ErrorAction Stop
+	$WinSCP = Get-EvergreenApp -Name WinSCP | Where-Object {$_.Type -eq "msi"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
@@ -3686,7 +3686,7 @@ IF ($SoftwareSelection.Putty -eq $true) {
 	$Product = "Putty"
 	$PackageName = "Putty"
 	Try {
-	$putty = Get-NevergreenApp -Name SimonTathamPuTTY | Where-Object {$_.Architecture -eq "x64"} -ErrorAction Stop
+	$putty = Get-EvergreenApp -Name PuTTY | Where-Object {$_.Architecture -eq "x64"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
