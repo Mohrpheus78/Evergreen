@@ -3633,7 +3633,7 @@ IF ($SoftwareSelection.WinSCP -eq $true) {
 	$Product = "WinSCP"
 	$PackageName = "WinSCP"
 	Try {
-	$WinSCP = Get-EvergreenApp -Name WinSCP | Where-Object {$_.Type -eq "msi"} -ErrorAction Stop
+	$WinSCP = Get-EvergreenApp -Name WinSCP | Where-Object {$_.Type -eq "exe"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
