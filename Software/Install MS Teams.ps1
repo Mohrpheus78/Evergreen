@@ -135,7 +135,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		# Configure Teams Settings with json template
 		IF (!(Test-Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams")) {
 			New-Item -ItemType Directory -Path "C:\Users\Default\AppData\Roaming\Microsoft\Teams" | out-null
-			Write-Host -ForegroundColor Cyan "Default Teams settings configured for Default User profile, please check settings!"
+			Write-Host -ForegroundColor Cyan "Default Teams settings configured for Default User profile, please check settings in 'C:\Users\Default\AppData\Roaming\Microsoft\Teams\desktop-config.json'!"
 			copy-item -Path "$PSScriptRoot\$Product\desktop-config.json" -Destination "C:\Users\Default\AppData\Roaming\Microsoft\Teams\desktop-config.json"
 		}
 		# Prevents MS Teams from starting at logon

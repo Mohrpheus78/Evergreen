@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.8
+Version: 2.8.9
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -41,6 +41,7 @@ Version: 2.8.8
 04/11: Added KeepassXC
 04/24: Changed Oracle Java version check
 04/26: Delete Office download data older 40 days, changed regex for Cisco WebEx VDI
+05/30: Changed regex for pdf24Creator
 #>
 
 
@@ -1156,7 +1157,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.8"
+	[version]$EvergreenVersion = "2.8.9"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1403,8 +1404,8 @@ IF ($SoftwareSelection.pdf24Creator -eq $true) {
 	Try {
 	$URLVersion = "https://creator.pdf24.org/listVersions.php"
 	$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersion) -SessionVariable websession
-	$regexAppVersionPDF2 = "\d\d\.\d\.\d+"
-    $webVersionPDF24 = $webRequest.RawContent | Select-String -Pattern $regexAppVersionPDF2 -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+	$regexAppVersionPDF2 = "\d\d\.\d\d\.\d+"
+    $webVersionPDF24 = $webRequest.RawContent | Select-String -Pattern $regexAppVersionPDF2 -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1 -Skip 1
     [version]$VersionPDF24 = $webVersionPDF24
     $regexAppVersionDL = "pdf24-creator-.*.msi"
     $webVersionPDF24 = $webRequest.RawContent | Select-String -Pattern $regexAppVersionDL -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1

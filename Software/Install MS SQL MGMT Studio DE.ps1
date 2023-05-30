@@ -52,10 +52,11 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 	$MSSsmsDE = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft SQL Server Management Studio*"}).DisplayName
 	$MSSsmsDE = $MSSsmsDE -replace '[a-zA-Z]','' -replace '\s','' -replace '-',''
-	[version]$MSSsmsDE = [string]$MSSsmsDE
+	IF ([string]::ISNullOrEmpty( $MSSsmsDE) -eq $False) {
+		[version]$MSSsmsDE = [string]$MSSsmsDE
+	}
 	
 	IF ($MSSsmsDE -lt $Version) {
-
 	# Installation MSSsmsDE++
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
