@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.9
+Version: 2.8.10
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -42,6 +42,7 @@ Version: 2.8.9
 04/24: Changed Oracle Java version check
 04/26: Delete Office download data older 40 days, changed regex for Cisco WebEx VDI
 05/30: Changed regex for pdf24Creator, changed WinSCP download type, changed PuTTY source to Evergreen
+06/13: Changed RemoteDesktopManager URL, added MS EdgeWebView2 to Citrix WorkspaceApp LTSR
 #>
 
 
@@ -1157,7 +1158,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.9"
+	[version]$EvergreenVersion = "2.8.10"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1346,7 +1347,7 @@ IF ($SoftwareSelection.RemoteDesktopManager -eq $true) {
 	$Product = "RemoteDesktopManager"
 	$PackageName = "RemoteDesktopManagerFree"
 	Try {
-	$URLVersionRDM = "https://remotedesktopmanager.com/de/release-notes/free"
+	$URLVersionRDM = "https://devolutions.net/remote-desktop-manager/release-notes/free/"
 	$webRequestRDM = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionRDM) -SessionVariable websession
 	$regexAppVersionRDM = "\d\d\d\d\.\d\.\d\d\.\d+"
 	$webVersionRDM = $webRequestRDM.RawContent | Select-String -Pattern $regexAppVersionRDM -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
@@ -1775,60 +1776,6 @@ IF ($SoftwareSelection.BISF -eq $true) {
 	}
 }
 
-<#
-# Download WorkspaceApp Current
-IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
-	$Product = "WorkspaceApp"
-	$PackageName = "CitrixWorkspaceApp"
-	Try {
-	$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "Current"} -ErrorAction Stop
-	} catch {
-		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
-		}
-	[version]$Version = $WSA.Version
-	$URL = $WSA.uri
-	$InstallerType = "exe"
-	$Source = "$PackageName" + "." + "$InstallerType"
-	[version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -EA SilentlyContinue
-	Write-Host -ForegroundColor Yellow "Download $Product"
-	Write-Host "Download Version: $Version"
-	Write-Host "Current Version: $CurrentVersion"
-	IF ($Version) {
-		IF ($Version -gt $CurrentVersion) {
-		Write-Host -ForegroundColor Green "Update available"
-		if (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
-		$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
-		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Recurse
-		Start-Transcript $LogPS | Out-Null
-		New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -Name "Download date $Date.txt" | Out-Null
-		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -Value "$Version"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
-		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
-		Try {
-			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
-		} catch {
-			throw $_.Exception.Message
-		}
-		Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceAppWeb.exe" | Out-Null
-		Write-Host "Stop logging"
-		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
-        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
-        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
-        }
-		Stop-Transcript | Out-Null
-		Write-Output ""
-		}
-		ELSE {
-		Write-Host -ForegroundColor Yellow "No new version available"
-		Write-Output ""
-		}
-	}
-	ELSE {
-		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
-		Write-Output ""
-	}
-}
-#>
 
 # Download WorkspaceApp Current
 IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
@@ -1884,7 +1831,7 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 }
 
 # Download Microsoft EdgeWebView2 Runtime
-IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
+IF ($SoftwareSelection.WorkspaceApp_CR -eq $true -or $SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 	$Product = "MS Edge WebView2 Runtime"
 	$PackageName = "MicrosoftEdgeWebView2RuntimeInstallerX64"
 	Try {
