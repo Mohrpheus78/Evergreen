@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.10
+Version: 2.8.11
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -43,6 +43,7 @@ Version: 2.8.10
 04/26: Delete Office download data older 40 days, changed regex for Cisco WebEx VDI
 05/30: Changed regex for pdf24Creator, changed WinSCP download type, changed PuTTY source to Evergreen
 06/13: Changed RemoteDesktopManager URL, added MS EdgeWebView2 to Citrix WorkspaceApp LTSR
+06/29: Changed Filezilla URL because of error 403
 #>
 
 
@@ -1158,7 +1159,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.10"
+	[version]$EvergreenVersion = "2.8.11"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1466,7 +1467,12 @@ IF ($SoftwareSelection.NotePadPlusPlus -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 	}
-	$Version = $Notepad.Version
+	IF ($NotePad.Version -eq "RateLimited") {
+		$Version = $null
+		}
+	ELSE {
+		$Version = $Notepad.Version
+		}
 	# $Version = $Version.substring(1)
 	$URL = $Notepad.uri
 	$InstallerType = "exe"
@@ -1681,7 +1687,14 @@ IF ($SoftwareSelection.FileZilla -eq $true) {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
 	$Version = $FileZilla.Version
-	$URL = $FileZilla.uri
+	$URLFilezilla = "https://patchmypc.com/freeupdater/definitions/definitions.xml"
+	$webRequestFilezilla = Invoke-WebRequest -UseBasicParsing -Uri ($URLFilezilla) -SessionVariable websession
+	$regexAppFilezilla = "<FileZillax64Download>.*"
+	$UrlFilezilla = $webRequestFilezilla.RawContent | Select-String -Pattern $regexAppFilezilla -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+    $UrlFilezilla = $UrlFilezilla.Split('"<')
+    $UrlFilezilla = $UrlFilezilla.Split('">')
+	$UrlFilezilla = $UrlFilezilla[2]
+	#$URL = $FileZilla.uri
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -1700,7 +1713,7 @@ IF ($SoftwareSelection.FileZilla -eq $true) {
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Try {
-			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+			Get-FileFromWeb -Url $UrlFilezilla -File ("$SoftwareFolder\$Product\" + ($Source))
 		} catch {
 			throw $_.Exception.Message
 		}
@@ -1733,7 +1746,12 @@ IF ($SoftwareSelection.BISF -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	[Version]$Version = $BISF.Version
+	IF ($BISF.Version -eq "RateLimited") {
+		$Version = $null
+		}
+	ELSE {	
+		[Version]$Version = $BISF.Version
+		}
 	$URL = $BISF.uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
@@ -1831,7 +1849,7 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 }
 
 # Download Microsoft EdgeWebView2 Runtime
-IF ($SoftwareSelection.WorkspaceApp_CR -eq $true -or $SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
+IF ($SoftwareSelection.WorkspaceApp_CR -eq $true -or $SoftwareSelection.WorkspaceApp_LTSR -eq $true -or $SoftwareSelection.MSEdge -eq $true) {
 	$Product = "MS Edge WebView2 Runtime"
 	$PackageName = "MicrosoftEdgeWebView2RuntimeInstallerX64"
 	Try {
@@ -2572,7 +2590,12 @@ IF ($SoftwareSelection.MSPowershell -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 	}
-	$Version = $MSPowershell.Version
+	IF ($MSPowershell.Version -eq "RateLimited") {
+		$Version = $null
+		}
+	ELSE {
+		$Version = $MSPowershell.Version
+		}
 	$URL = $MSPowershell.uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
@@ -3156,8 +3179,13 @@ IF ($SoftwareSelection.OpenJDK -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$VersionOpenJDK = $OpenJDK.Version
-	[Version]$VersionOpenJDK = $VersionOpenJDK -replace ".{6}$"
+	IF ($OpenJDK.Version -eq "RateLimited") {
+		$VersionOpenJDK = $null
+		}
+	ELSE {
+		$VersionOpenJDK = $OpenJDK.Version
+		[Version]$VersionOpenJDK = $VersionOpenJDK -replace ".{6}$"
+	}
 	$URL = $OpenJDK.uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
@@ -3373,7 +3401,12 @@ IF ($SoftwareSelection.KeePassXC -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$Version = $KeePassXC.Version
+	IF ($KeePassXC.Version -eq "RateLimited") {
+		$Version = $null
+		}
+	ELSE {
+		$Version = $KeePassXC.Version
+		}
 	$URL = $KeePassXC.uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
@@ -3478,7 +3511,12 @@ IF ($SoftwareSelection.mRemoteNG -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$Version = $mRemoteNG.Version
+	IF ($mRemoteNG.Version -eq "RateLimited") {
+		$Version = $null
+		}
+	ELSE {
+		$Version = $mRemoteNG.Version
+		}
 	$URL = $mRemoteNG.uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
@@ -3939,7 +3977,12 @@ IF ($SoftwareSelection.ImageGlass -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$Version = $ImageGlass.Version
+	IF ($ImageGlass.Version -eq "RateLimited") {
+		$Version = $null
+		}
+	ELSE {
+		$Version = $ImageGlass.Version
+		}
 	$URL = $ImageGlass.uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
@@ -3992,7 +4035,12 @@ IF ($SoftwareSelection.ShareX -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$Version = $ShareX.Version
+	IF ($ShareX.Version -eq "RateLimited") {
+		$Version = $null
+		}
+	ELSE {
+		$Version = $ShareX.Version
+		}
 	$URL = $ShareX.uri
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
@@ -4044,7 +4092,12 @@ IF ($SoftwareSelection.Greenshot -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$Version = $Greenshot.Version
+	IF ($Greenshot.Version -eq "RateLimited") {
+		$Version = $null
+		}
+	ELSE {
+		$Version = $Greenshot.Version
+		}
 	$URL = $Greenshot.uri
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
