@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.11
+Version: 2.8.12
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -44,6 +44,7 @@ Version: 2.8.11
 05/30: Changed regex for pdf24Creator, changed WinSCP download type, changed PuTTY source to Evergreen
 06/13: Changed RemoteDesktopManager URL, added MS EdgeWebView2 to Citrix WorkspaceApp LTSR
 06/29: Changed Filezilla URL because of error 403
+07/17/23: Added WinRAR de and en
 #>
 
 
@@ -819,6 +820,16 @@ function gui_mode{
     $form.Controls.Add($CiscoWebExVDIBox)
 	$CiscoWebExVDIBox.Checked =  $SoftwareSelection.CiscoWebExVDI
 	
+	# WinRAR Checkbox
+    $WinRARBox = New-Object system.Windows.Forms.CheckBox
+    $WinRARBox.text = "WinRAR (de/en)"
+    $WinRARBox.width = 95
+    $WinRARBox.height = 20
+    $WinRARBox.autosize = $true
+    $WinRARBox.location = New-Object System.Drawing.Point(685,320)
+    $form.Controls.Add($WinRARBox)
+	$WinRARBox.Checked =  $SoftwareSelection.WinRAR
+	
 	<#
 	# Cisco WebEx Desktop Checkbox
     $CiscoWebExDesktopBox = New-Object system.Windows.Forms.CheckBox
@@ -919,6 +930,7 @@ function gui_mode{
 		$VLCPlayerBox.checked = $True
 		$FileZillaBox.checked = $True
 		$CiscoWebExVDIBox.checked = $True
+		$WinRARBox.checked = $True
 		#$CiscoWebExDesktopBox.checked = $True
 		$OpenJDKBox.checked = $True
 		$GreenshotBox.checked = $True
@@ -981,6 +993,7 @@ function gui_mode{
 		$VLCPlayerBox.checked = $False
 		$FileZillaBox.checked = $False
 		$CiscoWebExVDIBox.checked = $False
+		$WinRARBox.checked = $False
 		#$CiscoWebExDesktopBox.checked = $False
 		$OpenJDKBox.checked = $False
 		$GreenshotBox.checked = $False
@@ -1044,6 +1057,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VLCPlayer" -Value $VLCPlayerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FileZilla" -Value $FileZillaBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExVDI" -Value $CiscoWebExVDIBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinRAR" -Value $WinRARBox.checked -Force
 		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExDesktop" -Value $CiscoWebExDesktopBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "deviceTRUST" -Value $deviceTRUSTBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VMWareTools" -Value $VMWareToolsBox.checked -Force
@@ -1159,7 +1173,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.11"
+	[version]$EvergreenVersion = "2.8.12"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -4296,6 +4310,75 @@ IF ($SoftwareSelection.VcRedist -eq $true) {
 	}
 }
 
+
+# Download WinRAR
+IF ($SoftwareSelection.WinRAR -eq $true) {
+	$Product = "WinRAR"
+	$PackageName = "WinRAR"
+	$appURLVersion = "https://www.rarlab.com/download.htm"
+	$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($appURLVersion) -SessionVariable websession
+	$regexAppVersionDe = "<tr>\n.*\n.*German.*\n.*\n.*.*\n<\/tr>"
+	$regexAppVersionEn = "<tr>\n.*\n.*English.*\n.*\n.*.*\n<\/tr>"
+	$regexAppVersionbeta = 'center\">.*beta.{2}'
+	$webVersionprodde = $webRequest.RawContent | Select-String -Pattern $regexAppVersionDe -AllMatches | ForEach-Object { $_.Matches.Value } | Select-String -NotMatch $regexAppVersionbeta -AllMatches | Select-Object -First 1
+	$installerprodde = $webVersionprodde.Line.Split(">")[2]
+	$installerprodde = $installerprodde.Split('"')[1]
+	$appversionprodde = $webVersionprodde.Line.Split(">")[8]
+	$appversionprodde = $appversionprodde.Split("<")[0]
+	$webVersionbetade = $webRequest.RawContent | Select-String -Pattern $regexAppVersionDe -AllMatches | ForEach-Object { $_.Matches.Value } | Select-String -Pattern $regexAppVersionbeta -AllMatches | Select-Object -First 1
+	
+	$webVersionproden = $webRequest.RawContent | Select-String -Pattern $regexAppVersionEn -AllMatches | ForEach-Object { $_.Matches.Value } | Select-String -NotMatch $regexAppVersionbeta -AllMatches | Select-Object -First 1
+	$installerproden = $webVersionproden.Line.Split(">")[2]
+	$installerproden = $installerproden.Split('"')[1]
+	$webVersionbetaen = $webRequest.RawContent | Select-String -Pattern $regexAppVersionEn -AllMatches | ForEach-Object { $_.Matches.Value } | Select-String -Pattern $regexAppVersionbeta -AllMatches | Select-Object -First 1
+	$URLen = "https://www.rarlab.com" + "$installerproden"
+	$URLde = "https://www.rarlab.com" + "$installerprodde"
+	$InstallerType = "exe"
+	$SourceDe = "$PackageName" + "_de" + "." + "$InstallerType"
+	$SourceEn = "$PackageName" + "_en" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $appversionprodde"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($appversionprodde) {
+		IF ($appversionprodde -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $appversionprodde.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$appversionprodde"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $appversionprodde"
+		Try {
+			Get-FileFromWeb -Url $URLde -File ("$SoftwareFolder\$Product\" + ($SourceDe))
+		} catch {
+			throw $_.Exception.Message
+		}
+		start-sleep -s 3
+		Try {
+			Get-FileFromWeb -Url $URLen -File ("$SoftwareFolder\$Product\" + ($SourceEn))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
 
 
 # Stop UpdateLog

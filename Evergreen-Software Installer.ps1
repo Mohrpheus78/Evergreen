@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.13.1
+Version: 2.13.2
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -47,6 +47,7 @@ Version: 2.13.1
 04/24: Changed Oracle Java version check
 04/26: Added $SoftwareToAutoInstall  for PVS Admin Toolkit
 05/30: Changed MS Teams notes, changed MS SQL MGMT Studio version check
+07/18/23: Added WinRAR
 #>
 
 Param (
@@ -780,6 +781,26 @@ function gui_mode{
     $FileZillaBox.location = New-Object System.Drawing.Point(780,195)
     $form.Controls.Add($FileZillaBox)
 	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
+
+	# WinRARDe Checkbox
+    $WinRARBoxDe = New-Object system.Windows.Forms.CheckBox
+    $WinRARBoxDe.text = "WinRAR de"
+    $WinRARBoxDe.width = 95
+    $WinRARBoxDe.height = 20
+    $WinRARBoxDe.autosize = $true
+    $WinRARBoxDe.location = New-Object System.Drawing.Point(780,220)
+    $form.Controls.Add($WinRARBoxDe)
+	$WinRARBoxDe.Checked =  $SoftwareSelection.WinRARDe
+
+	# WinRAREn Checkbox
+    $WinRARBoxEn = New-Object system.Windows.Forms.CheckBox
+    $WinRARBoxEn.text = "WinRAR en"
+    $WinRARBoxEn.width = 95
+    $WinRARBoxEn.height = 20
+    $WinRARBoxEn.autosize = $true
+    $WinRARBoxEn.location = New-Object System.Drawing.Point(780,245)
+    $form.Controls.Add($WinRARBoxEn)
+	$WinRARBoxEn.Checked =  $SoftwareSelection.WinRAREn
 	
 	<#
 	# Zoom Host Checkbox
@@ -848,6 +869,8 @@ function gui_mode{
 		$ShareXBox.checked = $True
 		$VLCPlayerBox.checked = $True
 		$FileZillaBox.checked = $True
+		$WinRARBoxDe.checked = $True
+		$WinRARBoxEn.checked = $True
 		$ImageGlassBox.checked = $True
 		$GreenshotBox.checked = $True
 		$pdf24CreatorBox.checked = $True
@@ -915,6 +938,8 @@ function gui_mode{
 		$ShareXBox.checked = $False
 		$VLCPlayerBox.checked = $False
 		$FileZillaBox.checked = $False
+		$WinRARBoxDe.checked = $False
+		$WinRARBoxEn.checked = $False
 		$ImageGlassBox.checked = $False
 		$GreenshotBox.checked = $False
 		$pdf24CreatorBox.checked = $False
@@ -984,6 +1009,8 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ShareX" -Value $ShareXBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VLCPlayer" -Value $VLCPlayerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FileZilla" -Value $FileZillaBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinRARDe" -Value $WinRARBoxDe.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinRAREn" -Value $WinRARBoxEn.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ImageGlass" -Value $ImageGlassBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Greenshot" -Value $GreenshotBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "pdf24Creator" -Value $pdf24CreatorBox.checked -Force
@@ -1109,7 +1136,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.13.1"
+	[version]$EvergreenVersion = "2.13.2"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1962,6 +1989,19 @@ IF ($SoftwareSelection.WinSCP -eq $true)
 	{
 		try {
 			& "$SoftwareFolder\Install WinSCP.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing WinSCP"
+			Write-Host -ForegroundColor Red "Error in launching script 'Install WinSCP': $($Error[0])"
+			Write-Output ""
+			}
+	}
+
+# Install WinRAR
+IF ($SoftwareSelection.WinRARDe -or $SoftwareSelection.WinRAREn -eq $true)
+	{
+		try {
+			& "$SoftwareFolder\Install WinRAR.ps1"
 			}
 		catch {
 			Write-Host -ForegroundColor Red "Installing WinSCP"
