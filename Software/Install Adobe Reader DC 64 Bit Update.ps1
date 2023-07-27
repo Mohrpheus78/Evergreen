@@ -50,7 +50,7 @@ DS_WriteLog "-" "" $LogFile
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-	[version]$Adobe = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Adobe Acrobat (64-bit)"}).DisplayVersion
+	[version]$Adobe = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Adobe Acrobat (64-bit)"}).DisplayVersion | Select-Object -Last 1
 	IF ($Adobe -lt $Version) {
 
 	# Adobe Reader DC Update

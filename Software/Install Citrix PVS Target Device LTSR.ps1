@@ -66,12 +66,12 @@ if ($noGUI -eq $False) {
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
 Write-Host -ForegroundColor Yellow "Installing $Product"
-IF (!(Test-Path "$PSScriptRoot\Software\Citrix\LTSR\PVS")) {
+IF (!(Test-Path "$PSScriptRoot\Citrix\LTSR\PVS")) {
 		Write-Host ""
-		Write-host -ForegroundColor Red "Installation path not valid, please check '$PSScriptRoot\Software\Citrix\LTSR\PVS'!"
+		Write-host -ForegroundColor Red "Installation path not valid, please check '$PSScriptRoot\Citrix\LTSR\PVS'!"
 		pause
 		BREAK }
-	Start-Process "$PSScriptRoot\Software\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
+	Start-Process "$PSScriptRoot\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
 	# Remove Status Tray from autostart
 	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name StatusTray -Force -EA SilentlyContinue
 	Write-Host -ForegroundColor Green " ...ready!" 

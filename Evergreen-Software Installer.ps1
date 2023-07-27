@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.13.2
+Version: 2.13.3
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -48,6 +48,7 @@ Version: 2.13.2
 04/26: Added $SoftwareToAutoInstall  for PVS Admin Toolkit
 05/30: Changed MS Teams notes, changed MS SQL MGMT Studio version check
 07/18/23: Added WinRAR
+07/27/23: Fixed error in PVS target LTSR script, changed Adobe script
 #>
 
 Param (
@@ -1136,7 +1137,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.13.2"
+	[version]$EvergreenVersion = "2.13.3"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
