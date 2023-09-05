@@ -1,5 +1,5 @@
 ﻿# ******************************************************
-# D. Mohrmann, S&L Firmengruppe, Twitter: @mohrpheus78
+# D. Mohrmann, Cancom GmbH, Twitter: @mohrpheus78
 # Install Software packages on your master server/client
 # ******************************************************
 
@@ -1188,7 +1188,7 @@ Clear-Host
 
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Installer (Powered by Evergreen-Module) "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - S&L Firmengruppe                 "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - Cancom GmbH                 "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
 Write-Output ""
 

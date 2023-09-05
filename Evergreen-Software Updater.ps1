@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.12
+Version: 2.8.13
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -45,6 +45,7 @@ Version: 2.8.12
 06/13: Changed RemoteDesktopManager URL, added MS EdgeWebView2 to Citrix WorkspaceApp LTSR
 06/29: Changed Filezilla URL because of error 403
 07/17/23: Added WinRAR de and en
+04/09/23: Corrected Citrix Files
 #>
 
 
@@ -472,7 +473,7 @@ function gui_mode{
 	
 	# Citrix Files Checkbox
     $CitrixFilesBox = New-Object system.Windows.Forms.CheckBox
-    $CitrixFilesBox.text = "Citrix Files"
+    $CitrixFilesBox.text = "Citrix Files (Sharefile)"
     $CitrixFilesBox.width = 95
     $CitrixFilesBox.height = 20
     $CitrixFilesBox.autosize = $true
@@ -1173,7 +1174,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.12"
+	[version]$EvergreenVersion = "2.8.13"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -3024,7 +3025,7 @@ IF ($SoftwareSelection.CitrixFiles -eq $true) {
 	$Product = "Citrix Files"
 	$PackageName = "CitrixFiles"
 	Try {
-	$CitrixFiles = Get-NevergreenApp -Name CitrixFiles | Where-Object {$_.Type -eq "msi"} -ErrorAction Stop
+	$CitrixFiles = Get-NevergreenApp -Name CitrixShareFile | Where-Object {$_.Type -eq "msi"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
