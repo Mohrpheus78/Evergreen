@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.13
+Version: 2.8.14
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -45,7 +45,8 @@ Version: 2.8.13
 06/13: Changed RemoteDesktopManager URL, added MS EdgeWebView2 to Citrix WorkspaceApp LTSR
 06/29: Changed Filezilla URL because of error 403
 07/17/23: Added WinRAR de and en
-04/09/23: Corrected Citrix Files
+09/04/23: Corrected Citrix Files
+09/11/23: Corrected WinRAR
 #>
 
 
@@ -1174,7 +1175,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.13"
+	[version]$EvergreenVersion = "2.8.14"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -4363,8 +4364,8 @@ IF ($SoftwareSelection.WinRAR -eq $true) {
 			throw $_.Exception.Message
 		}
 		Write-Host "Stop logging"
-		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
-        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source_de")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source_de', try again later or check log file"
         Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
         }
 		Stop-Transcript | Out-Null
