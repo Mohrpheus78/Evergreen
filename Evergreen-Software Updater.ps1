@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.14
+Version: 2.8.15
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -45,8 +45,9 @@ Version: 2.8.14
 06/13: Changed RemoteDesktopManager URL, added MS EdgeWebView2 to Citrix WorkspaceApp LTSR
 06/29: Changed Filezilla URL because of error 403
 07/17/23: Added WinRAR de and en
-09/04/23: Corrected Citrix Files
-09/11/23: Corrected WinRAR
+09/04/23: Citrix Files corrected
+09/11/23: WinRAR corrected 
+09/18/23: Chrome corrected
 #>
 
 
@@ -1175,7 +1176,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.14"
+	[version]$EvergreenVersion = "2.8.15"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1539,7 +1540,7 @@ IF ($SoftwareSelection.GoogleChrome -eq $true) {
 	$Product = "Google Chrome"
 	$PackageName = "GoogleChromeStandaloneEnterprise64"
 	Try {
-	$Chrome = Get-EvergreenApp -Name GoogleChrome | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "Stable"} -ErrorAction Stop
+	$Chrome = Get-EvergreenApp -Name GoogleChrome | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "Stable" -and $_.Type -eq "msi"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
