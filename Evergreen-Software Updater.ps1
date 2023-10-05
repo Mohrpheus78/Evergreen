@@ -1,5 +1,5 @@
 ﻿# ***************************************************************************
-# D. Mohrmann, S&L Firmengruppe, Twitter: @mohrpheus78
+# D. Mohrmann, Cancom GmbH BU S&L, Twitter: @mohrpheus78
 # Download Software packages with Evergreen powershell module
 # ***************************************************************************
 
@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.16
+Version: 2.8.17
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -1177,7 +1177,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.16"
+	[version]$EvergreenVersion = "2.8.17"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
@@ -1229,7 +1229,7 @@ Clear-Host
 
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Updater (Powered by Evergreen-Module) "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed "    © D. Mohrmann - S&L Firmengruppe            "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed "    © D. Mohrmann - Cancom GmbH - BU S&L        "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Output ""
 
