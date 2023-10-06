@@ -26,7 +26,7 @@ if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
 $Product = "Citrix VDA for PVS LTSR"
-$InstDir = Split-Path $PSScriptRoot -Parent
+# $InstDir = Split-Path $PSScriptRoot -Parent
 
 #========================================================================================================================================
 # Logging
@@ -50,28 +50,27 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 # Ask again
-if ($noGUI -eq $False) {
-	Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix VDA, otherwise please uncheck in the selection!"
+Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix VDA, otherwise please uncheck in the selection!"
+Write-Host ""
+    $Frage = Read-Host "( y / n )"
+	IF ($Frage -eq 'n') {
 	Write-Host ""
-		$Frage = Read-Host "( y / n )"
-		IF ($Frage -eq 'n') {
-		Write-Host ""
-		Write-host -ForegroundColor Red "Update canceled!"
-		Write-Host ""
-		BREAK
-		}
+	Write-host -ForegroundColor Red "Update canceled!"
 	Write-Host ""
+	BREAK
+	}
+Write-Host ""
 
 # Installation Server VDA
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
 Write-Host -ForegroundColor Yellow "Installing $Product"
-	IF (!(Test-Path "$InstDir\Software\Citrix\LTSR\CVAD")) {
+	IF (!(Test-Path "$PSScriptRoot\Citrix\LTSR\CVAD")) {
 			Write-Host ""
-			Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\LTSR\CVAD'!"
+			Write-host -ForegroundColor Red "Installation path not valid, please check '$PSScriptRoot\Citrix\LTSR\CVAD'!"
 			pause
 			BREAK }
-			Start-Process "$InstDir\Software\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"",""Citrix MCS IODriver"",""Citrix WEM Agent"" /COMPONENTS VDA /disableexperiencemetrics /enable_remote_assistance /enable_hdx_ports /enable_hdx_udp_ports /enable_real_time_transport /enable_ss_ports /masterpvsimage" –NoNewWindow -Wait
+			Start-Process "$PSScriptRoot\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"",""Workspace Environment Management"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"" /COMPONENTS VDA /disableexperiencemetrics /enable_remote_assistance /enable_hdx_ports /enable_hdx_udp_ports /enable_real_time_transport /enable_ss_ports /masterpvsimage" –NoNewWindow -Wait
 			DS_WriteLog "-" "" $LogFile
 			Write-Host -ForegroundColor Green " ...ready!" 
 			Write-Output ""
@@ -85,7 +84,6 @@ Write-Host -ForegroundColor Yellow "Installing $Product"
 		Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
 		Write-Output ""    
 		}
-}
 
 
 

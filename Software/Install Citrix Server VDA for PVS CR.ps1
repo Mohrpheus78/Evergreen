@@ -72,7 +72,7 @@ IF (!(Test-Path "$PSScriptRoot\Citrix\Current\CVAD")) {
 		Write-host -ForegroundColor Red "Installation path not valid, please check '$PSScriptRoot\Citrix\Current\CVAD'!"
 		pause
 		BREAK }
-		Start-Process "$PSScriptRoot\Citrix\Current\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"",""Citrix MCS IODriver"" /COMPONENTS VDA /disableexperiencemetrics /enable_remote_assistance /enable_hdx_ports /enable_hdx_udp_ports /enable_real_time_transport /enable_ss_ports /masterpvsimage" –NoNewWindow -Wait
+		Start-Process "$PSScriptRoot\Citrix\Current\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"" /COMPONENTS VDA /disableexperiencemetrics /enable_remote_assistance /enable_hdx_ports /enable_hdx_udp_ports /enable_real_time_transport /enable_ss_ports /masterpvsimage" –NoNewWindow -Wait
 		DS_WriteLog "-" "" $LogFile
 		Write-Host -ForegroundColor Green " ...ready!" 
 		Write-Output ""

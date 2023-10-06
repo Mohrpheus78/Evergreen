@@ -26,7 +26,7 @@ if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
 $Product = "Citrix VDA for MCS CR-Cloud"
-$InstDir = Split-Path $PSScriptRoot -Parent
+# $InstDir = Split-Path $PSScriptRoot -Parent
 
 #========================================================================================================================================
 # Logging
@@ -66,12 +66,12 @@ if ($noGUI -eq $False) {
 DS_WriteLog "I" "Installing $Product" $LogFile
 try	{
 Write-Host -ForegroundColor Yellow "Installing $Product"
-	IF (!(Test-Path "$InstDir\Software\Citrix\Current")) {
+	IF (!(Test-Path "$PSScriptRoot\Citrix\Current")) {
 			Write-Host ""
-			Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\Current'!"
+			Write-host -ForegroundColor Red "Installation path not valid, please check '$PSScriptRoot\Citrix\Current'!"
 			pause
 			BREAK }
-			Start-Process "$InstDir\Software\Citrix\Current\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Citrix Telemetry Service"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"" /includeadditional ""Citrix MCS IODriver"" /COMPONENTS VDA /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /ENABLE_REAL_TIME_TRANSPORT /enable_ss_ports /mastermcsimage" –NoNewWindow -Wait
+			Start-Process "$PSScriptRoot\Citrix\Current\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Citrix Telemetry Service"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"" /includeadditional ""Citrix MCS IODriver"" /COMPONENTS VDA /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /ENABLE_REAL_TIME_TRANSPORT /enable_ss_ports /mastermcsimage" –NoNewWindow -Wait
 			DS_WriteLog "-" "" $LogFile
 			Write-Host -ForegroundColor Green " ...ready!" 
 			Write-Output ""

@@ -26,7 +26,7 @@ if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
 $Product = "Citrix WEM Agent for PVS"
-$InstDir = Split-Path $PSScriptRoot -Parent
+# $InstDir = Split-Path $PSScriptRoot -Parent
 
 #========================================================================================================================================
 # Logging
@@ -70,13 +70,13 @@ Write-Host ""
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try	{
 	Write-Host -ForegroundColor Yellow "Installing $Product On-Prem"
-	IF (!(Test-Path "$InstDir\Software\Citrix\WEM")) {
+	IF (!(Test-Path "$PSScriptRoot\Citrix\WEM")) {
 		Write-Host ""
 		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\WEM'!"
 		pause
 		BREAK }
 		$WEMServer = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").BrokerSvcName
-		Start-Process "$InstDir\Software\Citrix\WEM\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=0 AgentCacheLocation=D:\WEMCache InfrastructureServer=$WEMServer' –NoNewWindow -Wait
+		Start-Process "$PSScriptRoot\Citrix\WEM\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=0 AgentCacheLocation=D:\WEMCache InfrastructureServer=$WEMServer' –NoNewWindow -Wait
 		DS_WriteLog "-" "" $LogFile
 		write-Host -ForegroundColor Green "...ready"
 		Write-Output ""
@@ -91,15 +91,15 @@ Write-Host ""
 	# Installation WEM Agent Cloud
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	Write-Host -ForegroundColor Yellow "Installing $Product for WEM Cloud service"
-	IF (!(Test-Path "$InstDir\Software\Citrix\WEM")) {
+	IF (!(Test-Path "$PSScriptRoot\Citrix\WEM\Cloud")) {
 		Write-Host ""
-		Write-host -ForegroundColor Red "Installation path not valid, please check '$InstDir\Software\Citrix\Cloud'!"
+		Write-host -ForegroundColor Red "Installation path not valid, please check if folder '$PSScriptRoot\Citrix\WEM\Cloud' is present!"
 		pause
 		BREAK
 	}
 	try	{
 		$CC = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").CloudConnectorList -join","
-		Start-Process "$InstDir\Software\Citrix\WEM\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=1 AgentCacheLocation=D:\WEMCache CloudConnectorList=$CC' –NoNewWindow -Wait
+		Start-Process "$PSScriptRoot\Citrix\WEM\Cloud\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=1 AgentCacheLocation=D:\WEMCache CloudConnectorList=$CC' –NoNewWindow -Wait
 		DS_WriteLog "-" "" $LogFile
 		write-Host -ForegroundColor Green "...ready"
 		Write-Output ""
