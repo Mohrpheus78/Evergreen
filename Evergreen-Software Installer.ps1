@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.13.5
+Version: 2.14
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -49,7 +49,7 @@ Version: 2.13.5
 05/30: Changed MS Teams notes, changed MS SQL MGMT Studio version check
 23/07/18: Added WinRAR
 23/07/27: Fixed error in PVS target LTSR script, changed Adobe script
-23/10/06: Changed installation path for Citrix products
+23/10/06: Changed installation path for Citrix products, Better internet connection check
 #>
 
 Param (
@@ -1092,6 +1092,7 @@ $Form = [Windows.Markup.XamlReader]::Load($reader)
 
 # FUNCTION Check internet access
 # ========================================================================================================================================
+<#
 Function Get-StatusCodeFromWebsite {
 	param($Website)
 	Try {
@@ -1108,6 +1109,16 @@ IF($Result -eq 200) {
 ELSE {
     $Internet = "False"
 }
+#>
+
+function Test-InternetAccess {
+  param (
+    [String]
+    $RemoteHost = "github.com"
+    )
+  Test-Connection -Computer $RemoteHost -BufferSize 16 -Count 1 -Quiet
+}
+$Internet = Test-InternetAccess
 # ========================================================================================================================================
 
 
@@ -1138,10 +1149,13 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.13.5"
+	[version]$EvergreenVersion = "2.14"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {
+		Write-Host -ForegroundColor Green "Internet access is working!"
+		Write-Output ""
+		start-sleep -seconds 2
 		$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1"
 		If ($WebResponseVersion) {
 			[version]$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()

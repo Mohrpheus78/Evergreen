@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.8.17
+Version: 2.9
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -44,11 +44,12 @@ Version: 2.8.17
 05/30: Changed regex for pdf24Creator, changed WinSCP download type, changed PuTTY source to Evergreen
 06/13: Changed RemoteDesktopManager URL, added MS EdgeWebView2 to Citrix WorkspaceApp LTSR
 06/29: Changed Filezilla URL because of error 403
-07/17/23: Added WinRAR de and en
-09/04/23: Citrix Files corrected
-09/11/23: WinRAR corrected 
-09/18/23: Chrome corrected
-09/29/23: MS Teams corrected
+23/07/17: Added WinRAR de and en
+23/09/04: Citrix Files corrected
+23/09/11: WinRAR corrected 
+23/09/18: Chrome corrected
+23/09/29: MS Teams corrected
+23/10/06: Better internet connection check
 #>
 
 
@@ -95,7 +96,7 @@ try {
 	# Mahapps Library
 	[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\MahApps.Metro.dll")       | out-null
 	[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\System.Windows.Interactivity.dll") | out-null
-	}
+}
 catch {
 	$SplashScreen = $False
 }
@@ -1130,6 +1131,7 @@ $Form = [Windows.Markup.XamlReader]::Load($reader)
 
 # FUNCTION Check internet access
 # ========================================================================================================================================
+<#
 Function Get-StatusCodeFromWebsite {
 	param($Website)
 	Try {
@@ -1146,6 +1148,15 @@ IF($Result -eq 200) {
 ELSE {
     $Internet = "False"
 }
+#>
+function Test-InternetAccess {
+  param (
+    [String]
+    $RemoteHost = "github.com"
+    )
+  Test-Connection -Computer $RemoteHost -BufferSize 16 -Count 1 -Quiet
+}
+$Internet = Test-InternetAccess
 # ========================================================================================================================================
 
 
@@ -1161,6 +1172,7 @@ IF ($myWindowsPrincipal.IsInRole($adminRole))
     # OK, runs as admin
     Write-Host "OK, script is running with Admin rights"
     Write-Output ""
+	start-sleep -seconds 2
    }
 
 else
@@ -1177,10 +1189,13 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.8.17"
+	[version]$EvergreenVersion = "2.9"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
-	If ($Internet -eq "True") {
+	IF ($Internet -eq "True") {
+		Write-Host -ForegroundColor Green "Internet access is working!"
+		Write-Output ""
+		start-sleep -seconds 2
 		$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1"
 		If ($WebResponseVersion) {
 			[version]$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
@@ -1225,6 +1240,7 @@ if ($Splashscreen -ne $False) {
 	}
 }
 
+
 Clear-Host
 
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
@@ -1232,7 +1248,6 @@ Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Updater (Po
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed "    © D. Mohrmann - Cancom GmbH - BU S&L        "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Output ""
-
 
 Write-Host -ForegroundColor Cyan "Setting Variables"
 Write-Output ""
