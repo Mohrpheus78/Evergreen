@@ -1203,7 +1203,7 @@ Clear-Host
 
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Installer (Powered by Evergreen-Module) "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - Cancom GmbH                 "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " © D. Mohrmann - Cancom GmbH                      "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " -------------------------------------------------"
 Write-Output ""
 
