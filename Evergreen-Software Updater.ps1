@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.9
+Version: 2.9.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -50,6 +50,7 @@ Version: 2.9
 23/09/18: Chrome corrected
 23/09/29: MS Teams corrected
 23/10/06: Better internet connection check
+23/10/98: Changed Citrix VM Tools (not in Evergreen anymore), added Citrix XenCenter
 #>
 
 
@@ -465,15 +466,27 @@ function gui_mode{
     $form.Controls.Add($WorkspaceApp_LTSRBox)
 	$WorkspaceApp_LTSRBox.Checked = $SoftwareSelection.WorkspaceApp_LTSR
 	
-	# Citrix Hypervisor Tools Checkbox
-    $Citrix_HypervisorToolsBox = New-Object system.Windows.Forms.CheckBox
-    $Citrix_HypervisorToolsBox.text = "Citrix Hypervisor Tools"
-    $Citrix_HypervisorToolsBox.width = 95
-    $Citrix_HypervisorToolsBox.height = 20
-    $Citrix_HypervisorToolsBox.autosize = $true
-    $Citrix_HypervisorToolsBox.location = New-Object System.Drawing.Point(11,270)
-    $form.Controls.Add($Citrix_HypervisorToolsBox)
-	$Citrix_HypervisorToolsBox.Checked = $SoftwareSelection.CitrixHypervisorTools
+	# Citrix VM Tools Checkbox
+    $Citrix_VMToolsBox = New-Object system.Windows.Forms.CheckBox
+    $Citrix_VMToolsBox.text = "Citrix VM Tools (Windows)"
+	# $CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
+    # $Citrix_VMToolsBox.Font = $CustomFont
+    $Citrix_VMToolsBox.width = 95
+    $Citrix_VMToolsBox.height = 20
+    $Citrix_VMToolsBox.autosize = $true
+    $Citrix_VMToolsBox.location = New-Object System.Drawing.Point(11,270)
+    $form.Controls.Add($Citrix_VMToolsBox)
+	$Citrix_VMToolsBox.Checked = $SoftwareSelection.CitrixVMTools
+	
+	# Citrix XenCenter Checkbox
+    $Citrix_XenCenterBox = New-Object system.Windows.Forms.CheckBox
+    $Citrix_XenCenterBox.text = "Citrix XenCenter"
+	$Citrix_XenCenterBox.width = 95
+    $Citrix_XenCenterBox.height = 20
+    $Citrix_XenCenterBox.autosize = $true
+    $Citrix_XenCenterBox.location = New-Object System.Drawing.Point(11,295)
+    $form.Controls.Add($Citrix_XenCenterBox)
+	$Citrix_XenCenterBox.Checked = $SoftwareSelection.CitrixXenCenter
 	
 	# Citrix Files Checkbox
     $CitrixFilesBox = New-Object system.Windows.Forms.CheckBox
@@ -481,7 +494,7 @@ function gui_mode{
     $CitrixFilesBox.width = 95
     $CitrixFilesBox.height = 20
     $CitrixFilesBox.autosize = $true
-    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,295)
+    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,320)
     $form.Controls.Add($CitrixFilesBox)
 	$CitrixFilesBox.Checked = $SoftwareSelection.CitrixFiles
 	
@@ -491,7 +504,7 @@ function gui_mode{
     $VMWareToolsBox.width = 95
     $VMWareToolsBox.height = 20
     $VMWareToolsBox.autosize = $true
-    $VMWareToolsBox.location = New-Object System.Drawing.Point(11,320)
+    $VMWareToolsBox.location = New-Object System.Drawing.Point(11,345)
     $form.Controls.Add($VMWareToolsBox)
 	$VMWareToolsBox.Checked = $SoftwareSelection.VMWareTools
 
@@ -501,20 +514,10 @@ function gui_mode{
     $RemoteDesktopManagerBox.width = 95
     $RemoteDesktopManagerBox.height = 20
     $RemoteDesktopManagerBox.autosize = $true
-    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(11,345)
+    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(11,370)
     $form.Controls.Add($RemoteDesktopManagerBox)
 	$RemoteDesktopManagerBox.Checked = $SoftwareSelection.RemoteDesktopManager
 
-    # deviceTRUST CheckBox
-    $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
-    $deviceTRUSTBox.text = "deviceTRUST"
-    $deviceTRUSTBox.width = 95
-    $deviceTRUSTBox.height = 20
-    $deviceTRUSTBox.autosize = $true
-    $deviceTRUSTBox.location = New-Object System.Drawing.Point(11,370)
-    $form.Controls.Add($deviceTRUSTBox)
-	$deviceTRUSTBox.Checked = $SoftwareSelection.deviceTRUST
-    
     # mRemoteNG Checkbox
     $mRemoteNGBox = New-Object system.Windows.Forms.CheckBox
     $mRemoteNGBox.text = "mRemoteNG"
@@ -675,15 +678,15 @@ function gui_mode{
     $form.Controls.Add($VcRedistBox)
 	$VcRedistBox.Checked = $SoftwareSelection.VcRedist
 	
-	# Greenshot Checkbox
-    $GreenshotBox = New-Object system.Windows.Forms.CheckBox
-    $GreenshotBox.text = "Greenshot"
-    $GreenshotBox.width = 95
-    $GreenshotBox.height = 20
-    $GreenshotBox.autosize = $true
-    $GreenshotBox.location = New-Object System.Drawing.Point(250,370)
-    $form.Controls.Add($GreenshotBox)
-	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
+	# deviceTRUST CheckBox
+    $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
+    $deviceTRUSTBox.text = "deviceTRUST"
+    $deviceTRUSTBox.width = 95
+    $deviceTRUSTBox.height = 20
+    $deviceTRUSTBox.autosize = $true
+    $deviceTRUSTBox.location = New-Object System.Drawing.Point(250,370)
+    $form.Controls.Add($deviceTRUSTBox)
+	$deviceTRUSTBox.Checked = $SoftwareSelection.deviceTRUST
 	
 	# OracleJava8 x64 Checkbox
     $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
@@ -835,6 +838,16 @@ function gui_mode{
     $form.Controls.Add($WinRARBox)
 	$WinRARBox.Checked =  $SoftwareSelection.WinRAR
 	
+	# Greenshot Checkbox
+    $GreenshotBox = New-Object system.Windows.Forms.CheckBox
+    $GreenshotBox.text = "Greenshot"
+    $GreenshotBox.width = 95
+    $GreenshotBox.height = 20
+    $GreenshotBox.autosize = $true
+    $GreenshotBox.location = New-Object System.Drawing.Point(685,345)
+    $form.Controls.Add($GreenshotBox)
+	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
+	
 	<#
 	# Cisco WebEx Desktop Checkbox
     $CiscoWebExDesktopBox = New-Object system.Windows.Forms.CheckBox
@@ -901,7 +914,8 @@ function gui_mode{
 		$GoogleChromeBox.checked = $True
 		$WorkspaceApp_CRBox.checked = $True
 		$WorkspaceApp_LTSRBox.checked = $True
-		$Citrix_HypervisorToolsBox.checked = $True
+		$Citrix_VMToolsBox.checked = $True
+		$Citrix_XenCenterBox.checked = $True
 		$CitrixFilesBox.checked = $True
 		$VMWareToolsBox.checked = $True
 		$RemoteDesktopManagerBox.checked = $True
@@ -964,7 +978,8 @@ function gui_mode{
 		$GoogleChromeBox.checked = $False
 		$WorkspaceApp_CRBox.checked = $False
 		$WorkspaceApp_LTSRBox.checked = $False
-		$Citrix_HypervisorToolsBox.checked = $False
+		$Citrix_VMToolsBox.checked = $False
+		$Citrix_XenCenterBox.checked = $False
 		$CitrixFilesBox.checked = $False
 		$VMWareToolsBox.checked = $False
 		$RemoteDesktopManagerBox.checked = $False
@@ -1029,7 +1044,8 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "GoogleChrome" -Value $GoogleChromeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_CR" -Value $WorkspaceApp_CRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_LTSR" -Value $WorkspaceApp_LTSRBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixHypervisorTools" -Value $Citrix_HypervisorToolsBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixVMTools" -Value $Citrix_VMToolsBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixXenCenter" -Value $Citrix_XenCenterBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixFiles" -Value $CitrixFilesBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_SAC" -Value $MS365AppsBox_SAC.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_MEC" -Value $MS365AppsBox_MEC.checked -Force
@@ -1189,7 +1205,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.9"
+	[version]$EvergreenVersion = "2.9.1"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($Internet -eq "True") {
@@ -2985,10 +3001,11 @@ IF ($SoftwareSelection.MSWVDRTCService -eq $true) {
 }
 #>
 
-# Download Citrix Hypervisor Tools
-IF ($SoftwareSelection.CitrixHypervisorTools -eq $true) {
-	$Product = "Citrix Hypervisor Tools"
+# Download Citrix VM Tools
+IF ($SoftwareSelection.CitrixVMTools -eq $true) {
+	$Product = "Citrix VM Tools"
 	$PackageName = "managementagentx64"
+	<#
 	Try {
 	$CitrixTools = Get-EvergreenApp -Name CitrixVMTools | Where-Object {$_.Architecture -eq "x64"} | Select-Object -First 1
 	} catch {
@@ -2996,32 +3013,93 @@ IF ($SoftwareSelection.CitrixHypervisorTools -eq $true) {
 		}
 	$Version = $CitrixTools.Version
 	$URL = $CitrixTools.uri
+	#>
+	$URLVersionCitrixVMTools = "https://www.xenserver.com/downloads"
+	$webRequestCitrixVMTools = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionCitrixVMTools) -SessionVariable websession
+	$regexAppVersionCitrixVMTools = "<b>XenServer VM Tools for Windows \d\.\d\.\d</b>"
+	$webVersionCitrixVMTools = $webRequestCitrixVMTools.RawContent | Select-String -Pattern $regexAppVersionCitrixVMTools -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+    $webVersionCitrixVMTools = $webVersionCitrixVMTools.Split("s ")[7] -replace ".{4}$"
+    [Version]$VersionCitrixVMTools  = $webVersionCitrixVMTools
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
+	$URL = "https://downloads.xenserver.com/vm-tools-windows/$VersionCitrixVMTools/$Source"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"
-	Write-Host "Download Version: $Version"
+	Write-Host "Download Version: $VersionCitrixVMTools"
 	Write-Host "Current Version: $CurrentVersion"
-	IF ($Version) {
-		IF (!($CurrentVersion -eq $Version)) {
+	IF ($VersionCitrixVMTools) {
+		IF ($VersionCitrixVMTools -gt $CurrentVersion) {
 		Write-Host -ForegroundColor Green "Update available"
-		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
-		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product")) {New-Item -Path "$SoftwareFolder\Citrix\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\Citrix\$Product\" + "$Product $VersionCitrixVMTools.log"
+		Remove-Item "$SoftwareFolder\Citrix\$Product\*" -Recurse
 		Start-Transcript $LogPS | Out-Null
-		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		New-Item -Path "$SoftwareFolder\Citrix\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -Value "$VersionCitrixVMTools"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionCitrixVMTools"
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Try {
-			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\" + ($Source))
 		} catch {
 			throw $_.Exception.Message
 		}
 		Write-Host "Stop logging"
-		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
-        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        Remove-Item "$SoftwareFolder\Citrix\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
+
+
+# Download Citrix XenCenter
+IF ($SoftwareSelection.CitrixXenCenter -eq $true) {
+	$Product = "Citrix XenCenter"
+	$PackageName = "XenCenter"
+	$URLVersionCitrixXenCenter = "https://www.xenserver.com/downloads"
+	$webRequestCitrixXenCenter = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionCitrixXenCenter) -SessionVariable websession
+	$regexAppVersionCitrixXenCenter = "<b>XenCenter \d\d\d\d\.\d\.\d</b>"
+	$webVersionCitrixXenCenter = $webRequestCitrixXenCenter.RawContent | Select-String -Pattern $regexAppVersionCitrixXenCenter -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+    $webVersionCitrixXenCenter = $webVersionCitrixXenCenter.Split("r ")[2] -replace ".{4}$"
+    [Version]$VersionCitrixXenCenter  = $webVersionCitrixXenCenter
+    $InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$URL = "https://downloads.xenserver.com/xencenter/$VersionCitrixXenCenter/XenCenter-$VersionCitrixXenCenter.msi"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $VersionCitrixXenCenter"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($VersionCitrixXenCenter) {
+		IF ($VersionCitrixXenCenter -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product")) {New-Item -Path "$SoftwareFolder\Citrix\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\Citrix\$Product\" + "$Product $VersionCitrixXenCenter.log"
+		Remove-Item "$SoftwareFolder\Citrix\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\Citrix\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -Value "$VersionCitrixXenCenter"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionCitrixXenCenter"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\Citrix\$Product\*" -Exclude *.log -Recurse
         }
 		Stop-Transcript | Out-Null
 		Write-Output ""
