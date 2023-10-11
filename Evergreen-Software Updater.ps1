@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.9.2
+Version: 2.9.3
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -1148,7 +1148,6 @@ $Form = [Windows.Markup.XamlReader]::Load($reader)
 
 # FUNCTION Check internet access
 # ========================================================================================================================================
-<#
 Function Get-StatusCodeFromWebsite {
 	param($Website)
 	Try {
@@ -1165,7 +1164,8 @@ IF($Result -eq 200) {
 ELSE {
     $Internet = "False"
 }
-#>
+
+<#
 function Test-InternetAccess {
   param (
     [String]
@@ -1174,6 +1174,7 @@ function Test-InternetAccess {
   Test-Connection -Computer $RemoteHost -BufferSize 16 -Count 1 -Quiet
 }
 $Internet = Test-InternetAccess
+#>
 # ========================================================================================================================================
 
 
@@ -1206,7 +1207,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.9.2"
+	[version]$EvergreenVersion = "2.9.3"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($Internet -eq "True") {
