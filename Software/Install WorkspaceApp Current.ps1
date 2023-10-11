@@ -90,13 +90,16 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	
 	Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime"
 	DS_WriteLog "I" "Installing MS DotNet Desktop Runtime" $LogFile
+	Write-Output "" 
 	IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Windows Desktop Runtime*"})) {
-		Start-Process -FilePath "$PSScriptRoot\MS DotNet Desktop Runtime\windowsdesktop-runtime-win-x86-runtime.exe" -ArgumentList "/quiet /noreboot" –NoNewWindow -wait
-	} catch {
-		DS_WriteLog "E" "Error installing MS DotNet Desktop Runtime (error: $($Error[0]))" $LogFile
-		Write-Host -ForegroundColor Red "Error installing MS DotNet Desktop Runtime (error: $($Error[0])), MS DotNet Desktop Runtime is a new requirement for WorkspaceApp, make sure it's available in the software folder!"
-		BREAK
-		}
+		try {
+			Start-Process -FilePath "$PSScriptRoot\MS DotNet Desktop Runtime\windowsdesktop-runtime-win-x86-runtime.exe" -ArgumentList "/quiet /noreboot" –NoNewWindow -wait
+		} catch {
+			DS_WriteLog "E" "Error installing MS DotNet Desktop Runtime (error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing MS DotNet Desktop Runtime (error: $($Error[0])), MS DotNet Desktop Runtime is a new requirement for WorkspaceApp, make sure it's available in the software folder!"
+			BREAK
+			}
+	}
 	
 	try	{
 		Write-Host -ForegroundColor Yellow "Installing $Product"
