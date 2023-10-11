@@ -85,10 +85,22 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	"/ALLOWSAVEPWD=S"
 	"/includeSSON"
 	"/ENABLE_SSON=Yes"
+	"/InstallEmbeddedBrowser=N"
 	)
-	Write-Host -ForegroundColor Yellow "Installing $Product"
-	DS_WriteLog "I" "Installing $Product" $LogFile
+	
+	Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime"
+	DS_WriteLog "I" "Installing MS DotNet Desktop Runtime" $LogFile
+	IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Windows Desktop Runtime*"})) {
+		Start-Process -FilePath "$PSScriptRoot\MS DotNet Desktop Runtime\windowsdesktop-runtime-win-x86-runtime.exe" -ArgumentList "/quiet /noreboot" –NoNewWindow -wait
+	} catch {
+		DS_WriteLog "E" "Error installing MS DotNet Desktop Runtime (error: $($Error[0]))" $LogFile
+		Write-Host -ForegroundColor Red "Error installing MS DotNet Desktop Runtime (error: $($Error[0])), MS DotNet Desktop Runtime is a new requirement for WorkspaceApp, make sure it's available in the software folder!"
+		BREAK
+		}
+	
 	try	{
+		Write-Host -ForegroundColor Yellow "Installing $Product"
+		DS_WriteLog "I" "Installing $Product" $LogFile
 		$inst = Start-Process -FilePath "$PSScriptRoot\Citrix\WorkspaceApp\Windows\Current\CitrixWorkspaceAppWeb.exe" -ArgumentList $Options -PassThru -ErrorAction Stop
 		IF ([string]::ISNullOrEmpty( $inst) -eq $False) {
 			Wait-Process -InputObject $inst
