@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.9.1
+Version: 2.9.2
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -50,7 +50,8 @@ Version: 2.9.1
 23/09/18: Chrome corrected
 23/09/29: MS Teams corrected
 23/10/06: Better internet connection check
-23/10/98: Changed Citrix VM Tools (not in Evergreen anymore), added Citrix XenCenter
+23/10/08: Changed Citrix VM Tools (not in Evergreen anymore), added Citrix XenCenter
+23/10/11: Added MS .NET Desktop Runtime as a requirement for Citrix WorkspaceApp CR
 #>
 
 
@@ -640,13 +641,13 @@ function gui_mode{
 	
 	# MS DotNet Checkbox
     $MSDotNetBox = New-Object system.Windows.Forms.CheckBox
-    $MSDotNetBox.text = "Microsoft .Net Framework"
+    $MSDotNetBox.text = "Microsoft .Net Desktop Runtime"
     $MSDotNetBox.width = 95
     $MSDotNetBox.height = 20
     $MSDotNetBox.autosize = $true
     $MSDotNetBox.location = New-Object System.Drawing.Point(250,270)
     $form.Controls.Add($MSDotNetBox)
-	$MSDotNetBox.Checked = $SoftwareSelection.MSDotNetFramework
+	$MSDotNetBox.Checked = $SoftwareSelection.MSDotNetDesktopRuntime
 	
 	# MS SQL Management Studio EN Checkbox
     $MSSQLManagementStudioENBox = New-Object system.Windows.Forms.CheckBox
@@ -1059,7 +1060,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOneDrive" -Value $MSOneDriveBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSTeams" -Value $MSTeamsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSPowershell" -Value $MSPowershellBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSDotNetFramework" -Value $MSDotNetBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSDotNetDesktopRuntime" -Value $MSDotNetBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsEN" -Value $MSSQLManagementStudioENBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsDE" -Value $MSSQLManagementStudioDEBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VcRedist" -Value $VcRedistBox.checked -Force		
@@ -1205,7 +1206,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.9.1"
+	[version]$EvergreenVersion = "2.9.2"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($Internet -eq "True") {
@@ -2689,16 +2690,16 @@ IF ($SoftwareSelection.MSPowershell -eq $true) {
 
 
 # Download MS .Net Framework
-IF ($SoftwareSelection.MSDotNetFramework -eq $true) {
-	$Product = "MS DotNet Framework"
-	$PackageName = "DotNetFramework-runtime"
+IF ($SoftwareSelection.MSDotNetDesktopRuntime -eq $true) {
+	$Product = "MS DotNet Desktop Runtime"
+	$PackageName = "windowsdesktop-runtime-win-x86-runtime"
 	Try {
-	$MSDotNetFramework = Get-EvergreenApp -Name Microsoft.NET | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "LTS" -and $_.Installer -eq "runtime"} -ErrorAction Stop
+	$MSDotNetDesktopRuntime = Get-EvergreenApp -Name Microsoft.NET | Where-Object {$_.Architecture -eq "x86" -and $_.Channel -eq "LTS" -and $_.Installer -eq "windowsdesktop"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$Version = $MSDotNetFramework.Version
-	$URL = $MSDotNetFramework.uri
+	$Version = $MSDotNetDesktopRuntime.Version
+	$URL = $MSDotNetDesktopRuntime.uri
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
