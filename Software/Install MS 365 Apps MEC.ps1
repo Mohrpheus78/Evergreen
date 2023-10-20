@@ -57,6 +57,12 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	# Installation MS 365 Apps-Monthly Enterprise Channel
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
+
+	# Move FSLogix Rules
+	DS_WriteLog "I" "FSLogix rules will be temporarily moved, if there are any" $LogFile
+	New-Item -Path "C:\Program Files\FSLogix\Apps\Rules" -Name WU -ItemType Directory -EA SilentlyContinue | Out-Null
+	Move-Item -Path "C:\Program Files\FSLogix\Apps\Rules\*.*" "C:\Program Files\FSLogix\Apps\Rules\WU" | Out-Null	
+
 	try	{
 		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
 		if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
@@ -75,6 +81,11 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 				Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
 				Write-Output ""    
 				}
+
+	# Move FSLogix rules back
+	DS_WriteLog "I" "Moving FSLogix rules back to rules folder" $LogFile
+	Move-Item -Path "C:\Program Files\FSLogix\Apps\Rules\WU\*.*" "C:\Program Files\FSLogix\Apps\Rules" | Out-Null
+
 	}
 	# Stop, if no new version is available
 	Else {
