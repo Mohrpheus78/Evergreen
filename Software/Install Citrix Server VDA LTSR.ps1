@@ -26,7 +26,7 @@ if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
 $Product = "Citrix VDA Standalone LTSR"
-# $InstDir = Split-Path $PSScriptRoot -Parent
+$InstDir = Split-Path $PSScriptRoot -Parent
 
 #========================================================================================================================================
 # Logging

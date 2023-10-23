@@ -26,7 +26,7 @@ if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
 $Product = "Citrix VDA for PVS CR-Cloud"
-#$InstDir = Split-Path $PSScriptRoot -Parent
+$InstDir = Split-Path $PSScriptRoot -Parent
 
 #========================================================================================================================================
 # Logging
