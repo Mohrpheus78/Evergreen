@@ -61,54 +61,82 @@ Write-Host ""
 	}
 Write-Host ""
 
-# Cloud or onPrem?
-Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix WEM Agent for WEM Cloud service?"
-Write-Host ""
-    $Frage = Read-Host "( y / n )"
-	IF ($Frage -eq 'n') {
+[version]$WEMAgent = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Workspace Environment*"}).DisplayVersion | Select-Object -Last 1
+
+# Cloud or onPrem?	
+$WEMSettings = "HKLM:\SOFTWARE\Policies\Norskale\Agent Host"
+$CC = Get-ItemProperty -Path $WEMSettings | Select-Object -ExpandProperty CloudConnectorList -EA SilentlyContinue
+$CVADConnectors = Get-ItemProperty -Path "$WEMSettings" | Select-Object -ExpandProperty AllowWEMUseCvadConnectors -EA SilentlyContinue
+if ($CC -ne $null -or $CVADConnectors -ne $null) {
+    $Cloud=$true
+	Write-Host -ForegroundColor Yellow "WEM Cloud service detected"
+    }
+else {
+	$Cloud=$false
+}
+
+IF ($Cloud -eq $false) {	
 	# Installation WEM Agent onPrem
-	DS_WriteLog "I" "Installing $Product" $LogFile
-	try	{
-	Write-Host -ForegroundColor Yellow "Installing $Product On-Prem"
-	IF (!(Test-Path "$PSScriptRoot\Citrix\WEM")) {
+	IF (!(Test-Path "$InstDir\Software\Citrix\WEM")) {
 		Write-Host ""
-		Write-host -ForegroundColor Red "Installation path not valid, please check '$PSScriptRoot\Citrix\WEM'!"
+		Write-host -ForegroundColor Red "Installation path not valid, please check if '$InstDir\Software\Citrix\WEM' exists and the WEM Agent is present!"
 		pause
-		BREAK }
-		$WEMServer = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").BrokerSvcName
-		Start-Process "$PSScriptRoot\Citrix\WEM\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=0 InfrastructureServer=$WEMServer' –NoNewWindow -Wait
-		DS_WriteLog "-" "" $LogFile
-		write-Host -ForegroundColor Green "...ready"
-		Write-Output ""
+		BREAK
+	}
+	[version]$VersionWEM = (Get-Item "$InstDir\Software\Citrix\WEM\Citrix Workspace Environment Management Agent.exe").VersionInfo.ProductVersion	
+	$WEMServer = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").BrokerSvcName
+	IF ($WEMAgent -lt $VersionWEM) {
+		DS_WriteLog "I" "Installing $Product" $LogFile
+		Write-Host -ForegroundColor Yellow "Installing $Product $VersionWEM On-Prem"
+		try	{
+			Start-Process "$InstDir\Software\Citrix\WEM\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=0 InfrastructureServer=$WEMServer' –NoNewWindow -Wait
+			DS_WriteLog "-" "" $LogFile
+			write-Host -ForegroundColor Green "...ready"
+			Write-Output ""
 		} catch {
 			DS_WriteLog "-" "" $LogFile
 			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
 			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
 			Write-Output ""    
 			}
+	}
+	ELSE {
+		Write-Host "No Update available for $Product"
+		Write-Output ""
+	}
 }
 	ELSE {
-	# Installation WEM Agent Cloud 
-	DS_WriteLog "I" "Installing $Product" $LogFile
-	Write-Host -ForegroundColor Yellow "Installing $Product for WEM Cloud service"
-	IF (!(Test-Path "$PSScriptRoot\Citrix\WEM\Cloud")) {
+	# Installation WEM Agent Cloud
+	IF (!(Test-Path "$InstDir\Software\Citrix\Cloud")) {
 		Write-Host ""
-		Write-host -ForegroundColor Red "Installation path not valid, please check if folder '$PSScriptRoot\Citrix\WEM\Cloud' is present!"
+		Write-host -ForegroundColor Red "Installation path not valid, please check if '$InstDir\Software\Citrix\Cloud' exists and the WEM Agent is present!"
 		pause
 		BREAK
 	}
-	try	{
-		$CC = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").CloudConnectorList -join","
-		Start-Process "$PSScriptRoot\Citrix\WEM\Cloud\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=1 CloudConnectorList=$CC' –NoNewWindow -Wait
-		DS_WriteLog "-" "" $LogFile
-		write-Host -ForegroundColor Green "...ready"
+	[version]$VersionWEM = (Get-Item "$InstDir\Software\Citrix\Cloud\Citrix Workspace Environment Management Agent.exe").VersionInfo.ProductVersion
+	IF ($WEMAgent -lt $VersionWEM) {
+		DS_WriteLog "I" "Installing $Product" $LogFile
+		Write-Host -ForegroundColor Yellow "Installing $Product $VersionWEM for WEM Cloud service"
+		try	{
+			IF ($CC) {
+				$CCList = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Norskale\Agent Host").CloudConnectorList -join","
+				Start-Process "$InstDir\Software\Citrix\Cloud\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=1 CloudConnectorList=$CCList' –NoNewWindow -Wait
+			}
+			IF ($CVADConnectors) {
+				Start-Process "$InstDir\Software\Citrix\Cloud\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=1' –NoNewWindow -Wait
+			}
+			DS_WriteLog "-" "" $LogFile
+			write-Host -ForegroundColor Green "...ready"
+			Write-Output ""
+		} catch {
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Rrror: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0])"
+			Write-Output ""    
+			}
+	}
+	ELSE {
+		Write-Host "No Update available for $Product"
 		Write-Output ""
-	} catch {
-		DS_WriteLog "-" "" $LogFile
-		DS_WriteLog "E" "Error installing $Product (Rrror: $($Error[0]))" $LogFile
-		Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0])"
-		Write-Output ""    
-		}
+	}
 }
-
-

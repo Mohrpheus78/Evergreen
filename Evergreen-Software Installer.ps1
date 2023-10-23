@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.14.5
+Version: 2.15
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -52,6 +52,7 @@ Version: 2.14.5
 23/10/06: Changed installation path for Citrix products, Better internet connection check
 23/10/11: Added MS .NET Desktop Runtime as a requirement for Citrix WorkspaceApp CR
 23/10/20: Move FSLogix rules before updating Office
+23/10/23: WEM agent checks if WEM cloud service or onPrem is used, VDA and WEM version check
 #>
 
 Param (
@@ -1151,7 +1152,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.14.5"
+	[version]$EvergreenVersion = "2.15"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	If ($Internet -eq "True") {

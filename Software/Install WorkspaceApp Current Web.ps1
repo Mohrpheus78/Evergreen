@@ -53,8 +53,8 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt"
 	[version]$MEWV2RT = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Edge WebView*"}).DisplayVersion
 	IF ($MEWV2RT -lt $Version) {
-	Write-Host -ForegroundColor Yellow "Installing MS Edge WebView2 Runtime"
-	DS_WriteLog "I" "Installing MS Edge WebView2 Runtime" $LogFile
+	Write-Host -ForegroundColor Yellow "Installing MS Edge WebView2 Runtime (Prerequisite for current Workspace App)"
+	DS_WriteLog "I" "Installing MS Edge WebView2 Runtime (Prerequisite for current Workspace App)" $LogFile
 	try	{
 		Start-Process -FilePath "$PSScriptRoot\MS Edge WebView2 Runtime\MicrosoftEdgeWebView2RuntimeInstallerX64.exe" -ArgumentList "/silent /install" –NoNewWindow -wait
 		DS_WriteLog "-" "" $LogFile
@@ -88,12 +88,14 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	"/InstallEmbeddedBrowser=N"
 	)
 	
-	Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime"
-	DS_WriteLog "I" "Installing MS DotNet Desktop Runtime" $LogFile
-	Write-Output "" 
+	Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime (Prerequisite for current Workspace App)"
+	DS_WriteLog "I" "Installing MS DotNet Desktop Runtime (Prerequisite for current Workspace App)" $LogFile
 	IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Windows Desktop Runtime*"})) {
 		try {
 			Start-Process -FilePath "$PSScriptRoot\MS DotNet Desktop Runtime\windowsdesktop-runtime-win-x86-runtime.exe" -ArgumentList "/quiet /noreboot" –NoNewWindow -wait
+			DS_WriteLog "-" "" $LogFile
+			Write-Host -ForegroundColor Green " ... ready!"
+			Write-Output "" 
 		} catch {
 			DS_WriteLog "E" "Error installing MS DotNet Desktop Runtime (error: $($Error[0]))" $LogFile
 			Write-Host -ForegroundColor Red "Error installing MS DotNet Desktop Runtime (error: $($Error[0])), MS DotNet Desktop Runtime is a new requirement for WorkspaceApp, make sure it's available in the software folder!"
