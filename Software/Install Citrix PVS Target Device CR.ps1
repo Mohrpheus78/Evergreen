@@ -62,31 +62,43 @@ if ($noGUI -eq $False) {
 		}
 	Write-Host ""
 
-# Installation PVS Target Device CR/Cloud
-Write-Host -ForegroundColor Yellow "Installing $Product"
-DS_WriteLog "I" "Installing $Product" $LogFile
-try	{
+	# Installation PVS Target Device CR/Cloud
+	$PVS = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Citrix Provisioning Target Device*"}).DisplayName
+	$PVS = [version]$PVS.Split("x64 ")[9]
+	$VersionPVS = (Get-Item "$PSScriptRoot\Citrix\Current\PVS\Device\PVS_Device_x64.exe").VersionInfo.ProductName
+	$VersionPVS = [version]$VersionPVS.Split("x64 ")[9]
+
 	IF (!(Test-Path "$PSScriptRoot\Citrix\Current\PVS")) {
-			Write-Host ""
-			Write-host -ForegroundColor Red "Installation path not valid, please check '$PSScriptRoot\Citrix\Current\PVS'!"
-			pause
-			BREAK
+		Write-Host ""
+		Write-host -ForegroundColor Red "Installation path not valid, please check if '$PSScriptRoot\Citrix\Current\PVS' exists and the PVS installation files are present!"
+		pause
+		BREAK 
 	}
-	Start-Process "$PSScriptRoot\Citrix\Current\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
-	# Remove Status Tray from autostart
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name StatusTray -Force -EA SilentlyContinue
-	Write-Host -ForegroundColor Green " ...ready!" 
-	Write-Output ""
-	Write-Host -ForegroundColor Red "Server needs to reboot, start script again after reboot to update Citrix VDA"
-	Write-Output "Hit any key to reboot server"
-	Read-Host
-	Restart-Computer
-	} catch {
-		DS_WriteLog "-" "" $LogFile
-		DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
-		Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
-		Write-Output ""    
-		}
+
+	IF ($PVS -lt $VersionPVS) {
+		try	{
+			DS_WriteLog "I" "Installing $Product $VersionPVS" $LogFile
+			Write-Host -ForegroundColor Yellow "Installing $Product $VersionPVS"
+			Start-Process "$PSScriptRoot\Citrix\Current\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
+			# Remove Status Tray from autostart
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name StatusTray -Force -EA SilentlyContinue
+			Write-Host -ForegroundColor Green " ...ready!" 
+			Write-Output ""
+			Write-Host -ForegroundColor Red "Server needs to reboot, start script again after reboot to update Citrix PVS target"
+			Write-Output "Hit any key to reboot server"
+			Read-Host
+			Restart-Computer
+		} catch {
+			DS_WriteLog "-" "" $LogFile
+			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+			Write-Output ""    
+			}
+	}
+	ELSE {
+		Write-Host "No Update available for $Product"
+		Write-Output ""
+	}
 }
 
 
