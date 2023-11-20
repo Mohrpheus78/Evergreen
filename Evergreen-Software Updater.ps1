@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.9.3
+Version: 2.9.4
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -52,6 +52,7 @@ Version: 2.9.3
 23/10/06: Better internet connection check
 23/10/08: Changed Citrix VM Tools (not in Evergreen anymore), added Citrix XenCenter
 23/10/11: Added MS .NET Desktop Runtime as a requirement for Citrix WorkspaceApp CR
+23/11/20: Second internet connection check
 #>
 
 
@@ -1148,7 +1149,7 @@ $Form = [Windows.Markup.XamlReader]::Load($reader)
 
 # FUNCTION Check internet access
 # ========================================================================================================================================
-Function Get-StatusCodeFromWebsite {
+Function Test-InternetConnection1 {
 	param($Website)
 	Try {
     (Invoke-WebRequest -Uri $Website -TimeoutSec 1 -UseBasicParsing).StatusCode
@@ -1156,25 +1157,32 @@ Function Get-StatusCodeFromWebsite {
 	Catch {
     }
 }
-$Result = Get-StatusCodeFromWebsite -Website github.com
+$InternetAccess1 = Test-InternetConnection1 -Website github.com
 
-IF($Result -eq 200) {
-	$Internet = "True"
+IF($internetAccess1 -eq 200) {
+	$InternetCheck1 = "True"
 }
 ELSE {
-    $Internet = "False"
+    $InternetCheck1 = "False"
 }
 
-<#
-function Test-InternetAccess {
-  param (
-    [String]
-    $RemoteHost = "github.com"
-    )
-  Test-Connection -Computer $RemoteHost -BufferSize 16 -Count 1 -Quiet
+function Test-InternetConnection2 {
+    try {
+        $WebClient = New-Object System.Net.WebClient
+        $WebClient.DownloadString("https://github.com")
+        return $true
+    } catch {
+        return $false
+    }
 }
-$Internet = Test-InternetAccess
-#>
+
+$InternetAccess2 = Test-InternetConnection2
+
+if ($InternetAccess2) {
+    $InternetCheck2 = "True"
+} else {
+    $InternetCheck2 = "False"
+}
 # ========================================================================================================================================
 
 
@@ -1207,10 +1215,10 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.9.3"
+	[version]$EvergreenVersion = "2.9.4"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
-	IF ($Internet -eq "True") {
+	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
 		Write-Host -ForegroundColor Green "Internet access is working!"
 		Write-Output ""
 		start-sleep -seconds 2
@@ -1324,57 +1332,65 @@ $ProgressPreference = 'SilentlyContinue'
 
 # Install/Update Evergreen and Nevergreen modules
 # Start logfile Modules Update Log
-Start-Transcript $ModulesUpdateLog | Out-Null
-Write-Host -ForegroundColor Cyan "Installing/updating Evergreen and Nevergreen modules... please wait"
-Write-Output ""
-#[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-IF (!(Test-Path -Path "C:\Program Files\PackageManagement\ProviderAssemblies\nuget")) {Find-PackageProvider -Name 'Nuget' -ForceBootstrap -IncludeDependencies}
-IF (!(Get-Module -ListAvailable -Name Evergreen)) {Install-Module Evergreen -Force | Import-Module Evergreen}
-IF (!(Get-Module -ListAvailable -Name Nevergreen)) {Install-Module Nevergreen -Force | Import-Module Nevergreen}
-IF (!(Get-Module -ListAvailable -Name VcRedist)) {Install-Module VcRedist -Force | Import-Module VcRedist}
-# Check for Updates
-$LocalEvergreenVersion = (Get-Module -Name Evergreen -ListAvailable | Select-Object -First 1).Version
-$CurrentEvergreenVersion = (Find-Module -Name Evergreen -Repository PSGallery).Version
-IF (($LocalEvergreenVersion -lt $CurrentEvergreenVersion))
-{
-    Update-Module Evergreen -force
-}
 
-$LocalNevergreenVersion = (Get-Module -Name Nevergreen -ListAvailable | Select-Object -First 1).Version
-$CurrentNevergreenVersion = (Find-Module -Name Nevergreen -Repository PSGallery).Version
-IF (($LocalNevergreenVersion -lt $CurrentNevergreenVersion))
-{
-    Update-Module Nevergreen -force
-}
-
-$LocalVcRedistVersion = (Get-Module -Name VcRedist -ListAvailable | Select-Object -First 1).Version
-$CurrentVcRedistVersion = (Find-Module -Name VcRedist -Repository PSGallery).Version
-IF (($LocalVcRedistVersion -lt $CurrentVcRedistVersion))
-{
-    Update-Module VcRedist -force
-}
-
-IF (!(Get-Module -ListAvailable -Name Evergreen))
-	{
-	Write-Host -ForegroundColor Cyan "Evergreen module not found, check module installation!"
-	BREAK
-	}
-IF (!(Get-Module -ListAvailable -Name Nevergreen))
-	{
-	Write-Host -ForegroundColor Cyan "Nevergreen module not found, check module installation!"
-	BREAK
-	}
-IF (!(Get-Module -ListAvailable -Name VcRedist))
-	{
-	Write-Host -ForegroundColor Cyan "VcRedist module not found, check module installation!"
-	BREAK
+IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
+	Start-Transcript $ModulesUpdateLog | Out-Null
+	Write-Host -ForegroundColor Cyan "Installing/updating Evergreen and Nevergreen modules... please wait"
+	Write-Output ""
+	IF (!(Test-Path -Path "C:\Program Files\PackageManagement\ProviderAssemblies\nuget")) {
+		Find-PackageProvider -Name 'Nuget' -ForceBootstrap -IncludeDependencies
+		}
+	IF (!(Get-Module -ListAvailable -Name Evergreen)) {
+		Install-Module Evergreen -Force | Import-Module Evergreen
+		}
+	IF (!(Get-Module -ListAvailable -Name Nevergreen)) {
+		Install-Module Nevergreen -Force | Import-Module Nevergreen
+		}
+	IF (!(Get-Module -ListAvailable -Name VcRedist)) {
+		Install-Module VcRedist -Force | Import-Module VcRedist
+		
+		}
+	# Check for Updates
+	$LocalEvergreenVersion = (Get-Module -Name Evergreen -ListAvailable | Select-Object -First 1).Version
+	$CurrentEvergreenVersion = (Find-Module -Name Evergreen -Repository PSGallery).Version
+	IF (($LocalEvergreenVersion -lt $CurrentEvergreenVersion)) {
+		Update-Module Evergreen -force
 	}
 
-# Stop logfile Modules Update Log
-Stop-Transcript | Out-Null
-$Content = Get-Content -Path $ModulesUpdateLog | Select-Object -Skip 18
-Set-Content -Value $Content -Path $ModulesUpdateLog
+	$LocalNevergreenVersion = (Get-Module -Name Nevergreen -ListAvailable | Select-Object -First 1).Version
+	$CurrentNevergreenVersion = (Find-Module -Name Nevergreen -Repository PSGallery).Version
+	IF (($LocalNevergreenVersion -lt $CurrentNevergreenVersion)) {
+		Update-Module Nevergreen -force
+	}
 
+	$LocalVcRedistVersion = (Get-Module -Name VcRedist -ListAvailable | Select-Object -First 1).Version
+	$CurrentVcRedistVersion = (Find-Module -Name VcRedist -Repository PSGallery).Version
+	IF (($LocalVcRedistVersion -lt $CurrentVcRedistVersion)) {
+		Update-Module VcRedist -force
+	}
+
+	IF (!(Get-Module -ListAvailable -Name Evergreen)) {
+		Write-Host -ForegroundColor Cyan "Evergreen module not found, check module installation!"
+		BREAK
+	}
+	IF (!(Get-Module -ListAvailable -Name Nevergreen)) {
+		Write-Host -ForegroundColor Cyan "Nevergreen module not found, check module installation!"
+		BREAK
+	}
+	IF (!(Get-Module -ListAvailable -Name VcRedist)) {
+		Write-Host -ForegroundColor Cyan "VcRedist module not found, check module installation!"
+		BREAK
+	}
+
+	# Stop logfile Modules Update Log
+	Stop-Transcript | Out-Null
+	$Content = Get-Content -Path $ModulesUpdateLog | Select-Object -Skip 18
+	Set-Content -Value $Content -Path $ModulesUpdateLog
+}
+ELSE {
+	Write-Host -ForegroundColor Cyan "Powershell is NOT able to connect to the internet, the script will not update the Evergreen and Nevergreen Powershell modules!"
+	Write-Output ""
+}
 
 # Start logfile Update Log
 Start-Transcript $UpdateLog | Out-Null
