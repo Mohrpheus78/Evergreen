@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.15.1
+Version: 2.15.2
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -53,6 +53,7 @@ Version: 2.15.1
 23/10/11: Added MS .NET Desktop Runtime as a requirement for Citrix WorkspaceApp CR
 23/10/20: Move FSLogix rules before updating Office
 23/10/23: WEM agent checks if WEM cloud service or onPrem is used, VDA and WEM version check
+23/11/20: Second internet connection check
 #>
 
 Param (
@@ -1095,7 +1096,7 @@ $Form = [Windows.Markup.XamlReader]::Load($reader)
 
 # FUNCTION Check internet access
 # ========================================================================================================================================
-Function Get-StatusCodeFromWebsite {
+Function Test-InternetConnection1 {
 	param($Website)
 	Try {
     (Invoke-WebRequest -Uri $Website -TimeoutSec 1 -UseBasicParsing).StatusCode
@@ -1103,25 +1104,32 @@ Function Get-StatusCodeFromWebsite {
 	Catch {
     }
 }
-$Result = Get-StatusCodeFromWebsite -Website github.com
+$InternetAccess1 = Test-InternetConnection1 -Website github.com
 
-IF($Result -eq 200) {
-	$Internet = "True"
+IF($internetAccess1 -eq 200) {
+	$InternetCheck1 = "True"
 }
 ELSE {
-    $Internet = "False"
+    $InternetCheck1 = "False"
 }
 
-<#
-function Test-InternetAccess {
-  param (
-    [String]
-    $RemoteHost = "github.com"
-    )
-  Test-Connection -Computer $RemoteHost -BufferSize 16 -Count 1 -Quiet
+function Test-InternetConnection2 {
+    try {
+        $WebClient = New-Object System.Net.WebClient
+        $WebClient.DownloadString("https://github.com")
+        return $true
+    } catch {
+        return $false
+    }
 }
-$Internet = Test-InternetAccess
-#>
+
+$InternetAccess2 = Test-InternetConnection2
+
+if ($InternetAccess2) {
+    $InternetCheck2 = "True"
+} else {
+    $InternetCheck2 = "False"
+}
 # ========================================================================================================================================
 
 
@@ -1152,10 +1160,10 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.15.1"
+	[version]$EvergreenVersion = "2.15.2"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
-	If ($Internet -eq "True") {
+	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
 		Write-Host -ForegroundColor Green "Internet access is working!"
 		Write-Output ""
 		start-sleep -seconds 2
