@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.9.4
+Version: 2.9.5
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -53,6 +53,8 @@ Version: 2.9.4
 23/10/08: Changed Citrix VM Tools (not in Evergreen anymore), added Citrix XenCenter
 23/10/11: Added MS .NET Desktop Runtime as a requirement for Citrix WorkspaceApp CR
 23/11/20: Second internet connection check
+23/11/22: Added MS .NET Desktop Runtime 6.0.20 as a requirement for Citrix WorkspaceApp CR
+
 #>
 
 
@@ -1215,7 +1217,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.9.4"
+	[version]$EvergreenVersion = "2.9.5"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1884,12 +1886,19 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
 		$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
-		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Recurse
+		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Exclude "windowsdesktop-runtime-6.0.20-win-x86.exe" -Recurse
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -Value "$Version"
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version Current Release"
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
+		IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\Current\windowsdesktop-runtime-6.0.20-win-x86.exe")) {
+			Try {
+			Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/0413b619-3eb2-4178-a78e-8d1aafab1a01/5247f08ea3c13849b68074a2142fbf31/windowsdesktop-runtime-6.0.20-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\Current\windowsdesktop-runtime-6.0.20-win-x86.exe"
+			} catch {
+			throw $_.Exception.Message
+			}
+		}
 		Try {
 		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\Windows\Current\" + ($Source))
 		} catch {
