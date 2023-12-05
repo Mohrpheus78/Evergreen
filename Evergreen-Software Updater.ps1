@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.9.5
+Version: 2.9.6
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -54,6 +54,7 @@ Version: 2.9.5
 23/10/11: Added MS .NET Desktop Runtime as a requirement for Citrix WorkspaceApp CR
 23/11/20: Second internet connection check
 23/11/22: Added MS .NET Desktop Runtime 6.0.20 as a requirement for Citrix WorkspaceApp CR
+23/12/05: Fixed FSLogix download and expand archive error
 
 #>
 
@@ -1217,7 +1218,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.9.5"
+	[version]$EvergreenVersion = "2.9.6"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2277,12 +2278,12 @@ IF ($SoftwareSelection.FSLogix -eq $true) {
 			throw $_.Exception.Message
 		}
 		expand-archive -path "$SoftwareFolder\$Product\Install\FSLogixAppsSetup.zip" -destinationpath "$SoftwareFolder\$Product\Install"
-		start-sleep -Seconds 10
+        $FSLogixDir = (Get-ChildItem -Path "$SoftwareFolder\$Product\Install" -Directory).Name
+		start-sleep -Seconds 5
 		Remove-Item -Path "$SoftwareFolder\$Product\Install\FSLogixAppsSetup.zip" -Force
-		Move-Item -Path "$SoftwareFolder\$Product\Install\x64\Release\*" -Destination "$SoftwareFolder\$Product\Install"
-		Remove-Item -Path "$SoftwareFolder\$Product\Install\Win32" -Force -Recurse
-		Remove-Item -Path "$SoftwareFolder\$Product\Install\x64" -Force -Recurse
-		Get-ChildItem -Path "$SoftwareFolder\$Product\Install\*.adm*" | Copy-Item -Destination (New-Item -Type Directory -Force ("$SoftwareFolder\_ADMX\FSLogix")) -Force -EA SilentlyContinue
+		Move-Item -Path "$SoftwareFolder\$Product\Install\$FSLogixDir\x64\Release\*" -Destination "$SoftwareFolder\$Product\Install"
+		Get-ChildItem -Path "$SoftwareFolder\$Product\Install\$FSLogixDir\*.adm*" | Copy-Item -Destination (New-Item -Type Directory -Force ("$SoftwareFolder\_ADMX\FSLogix")) -Force -EA SilentlyContinue
+        Remove-Item -Path "$SoftwareFolder\$Product\Install\$FSLogixDir" -Force -Recurse
 		Write-Host "Stop logging"
 		IF (!(Get-ChildItem -Path "$SoftwareFolder\$Product\Install\*.exe")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
