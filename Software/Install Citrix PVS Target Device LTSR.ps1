@@ -49,55 +49,60 @@ DS_WriteLog "I" "START SCRIPT - $PackageName" $LogFile
 DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
-# Ask again
 if ($noGUI -eq $False) {
 	Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix PVS Client, otherwise please uncheck in the selection!"
 	Write-Host ""
 		$Frage = Read-Host "( y / n )"
-		IF ($Frage -eq 'n') {
-		Write-Host ""
-		Write-host -ForegroundColor Red "Update canceled!"
-		Write-Host ""
-		BREAK
-		}
-	Write-Host ""
-	
-	# Installation PVS Target Device CR/Cloud
-	[version]$PVS = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Citrix Provisioning Target Device*"}).DisplayVersion
-	$VersionPVS = (Get-Item "$PSScriptRoot\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe").VersionInfo.ProductName
-	$VersionPVS = [version]$VersionPVS.Split("x64 ")[9]
+		IF ($Frage -eq 'y') {
 
-	IF (!(Test-Path "$PSScriptRoot\Citrix\LTSR\PVS")) {
-		Write-Host ""
-		Write-host -ForegroundColor Red "Installation path not valid, please check if '$PSScriptRoot\Citrix\LTSR\PVS' exists and the PVS installation files are present!"
-		pause
-		BREAK 
-	}
-	
-	IF ($PVS -lt $VersionPVS) {
-		try	{
-			DS_WriteLog "I" "Installing $Product $VersionPVS" $LogFile
-			Write-Host -ForegroundColor Yellow "Installing $Product $VersionPVS"
-			Start-Process "$PSScriptRoot\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
-			# Remove Status Tray from autostart
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name StatusTray -Force -EA SilentlyContinue
-			Write-Host -ForegroundColor Green " ...ready!" 
-			Write-Output ""
-			Write-Host -ForegroundColor Red "Server needs to reboot, start script again after reboot to update Citrix VDA"
-			Write-Output "Hit any key to reboot server"
-			Read-Host
-			Restart-Computer
-		} catch {
-			DS_WriteLog "-" "" $LogFile
-			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
-			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
-			Write-Output ""    
+			# Installation PVS Target LTSR
+			$PVS = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Citrix Provisioning Target Device*"}).DisplayName
+			# $PVS = [version]$PVS.Split("x64 ")[9]
+			$VersionPVS = (Get-Item "$PSScriptRoot\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe").VersionInfo.ProductName
+			# $VersionPVS = [version]$VersionPVS.Split("x64 ")[9]
+
+			IF (!(Test-Path "$PSScriptRoot\Citrix\LTSR\PVS")) {
+				Write-Host ""
+				Write-host -ForegroundColor Red "Installation path not valid, please check if '$PSScriptRoot\Citrix\LTSR\PVS' exists and the PVS installation files are present!"
+				pause
+				BREAK 
 			}
-	}
-	ELSE {
-		Write-Host "No Update available for $Product"
-		Write-Output ""
-	}
+
+			IF ($PVS -ne $VersionPVS) {
+				try	{
+					DS_WriteLog "I" "Installing $Product $VersionPVS" $LogFile
+					Write-Output ""
+					Write-Host -ForegroundColor Yellow "Installing $Product $VersionPVS"
+					Start-Process "$PSScriptRoot\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
+					# Remove Status Tray from autostart
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name StatusTray -Force -EA SilentlyContinue
+					Write-Host -ForegroundColor Green " ...ready!" 
+					Write-Output ""
+					Write-Host -ForegroundColor Red "Server needs to reboot, start script again after reboot to update Citrix PVS target"
+					Write-Output "Hit any key to reboot server"
+					Read-Host
+					Restart-Computer
+				} catch {
+					DS_WriteLog "-" "" $LogFile
+					DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+					Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+					Write-Output ""    
+					}
+		
+		
+			}
+			ELSE {
+				Write-Output ""
+				Write-Host "No Update available for $Product"
+				Write-Output ""
+			}
+		
+		}
+		ELSE {
+			Write-Host ""
+			Write-host -ForegroundColor Red "Update canceled!"
+			Write-Host ""
+		}
 }
 
 

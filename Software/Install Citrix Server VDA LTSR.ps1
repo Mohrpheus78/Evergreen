@@ -53,18 +53,12 @@ DS_WriteLog "-" "" $LogFile
 if ($noGUI -eq $False) {
 	Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix VDA, otherwise please uncheck in the selection!"
 	Write-Host ""
-		$Frage = Read-Host "( y / n )"
-		IF ($Frage -eq 'n') {
+	$Frage = Read-Host "( y / n )"
+	IF ($Frage -eq 'y') {
 		Write-Host ""
-		Write-host -ForegroundColor Red "Update canceled!"
-		Write-Host ""
-		BREAK
-		}
-	Write-Host ""
-	
-	# Installation Server VDA
-	[version]$VDA = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Citrix Virtual Apps*"}).DisplayVersion
-	[version]$VersionVDA = Get-Content -Path "$InstDir\Software\Citrix\LTSR\CVAD\ProductVersion.txt"
+		# Installation Server VDA
+		[version]$VDA = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Citrix Virtual Apps*"}).DisplayVersion
+		[version]$VersionVDA = Get-Content -Path "$InstDir\Software\Citrix\LTSR\CVAD\ProductVersion.txt"
 
 	IF (!(Test-Path "$InstDir\Software\Citrix\LTSR\CVAD")) {
 		Write-Host ""
@@ -73,28 +67,34 @@ if ($noGUI -eq $False) {
 		BREAK 
 	}
 
-	IF ($VDA -lt $VersionVDA) {
-		try	{
-			DS_WriteLog "I" "Installing $Product $VersionVDA" $LogFile
-			Write-Host -ForegroundColor Yellow "Installing $Product"
-			Start-Process "$PSScriptRoot\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"",""Citrix MCS IODriver"",""Citrix WEM Agent"" /COMPONENTS VDA /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /ENABLE_REAL_TIME_TRANSPORT /enable_ss_ports" –NoNewWindow -Wait
-			DS_WriteLog "-" "" $LogFile
-			Write-Host -ForegroundColor Green " ...ready!" 
+		IF ($VDA -lt $VersionVDA) {
+			try	{
+				DS_WriteLog "I" "Installing $Product $VersionVDA" $LogFile
+				Write-Host -ForegroundColor Yellow "Installing $Product"
+				Start-Process "$PSScriptRoot\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"",""Citrix MCS IODriver"",""Citrix WEM Agent"" /COMPONENTS VDA /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /ENABLE_REAL_TIME_TRANSPORT /enable_ss_ports" –NoNewWindow -Wait
+				DS_WriteLog "-" "" $LogFile
+				Write-Host -ForegroundColor Green " ...ready!" 
+				Write-Output ""
+				Write-Host -ForegroundColor Red "Attention, server needs to reboot! Wait for the installer to finish after reboot and reboot again!"
+				Write-Output "Hit any key to reboot server"
+				Read-Host
+				Restart-Computer
+			} catch {
+				DS_WriteLog "-" "" $LogFile
+				DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+				Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+				Write-Output ""    
+				}
+		}
+		ELSE {
+			Write-Host "No Update available for $Product"
 			Write-Output ""
-			Write-Host -ForegroundColor Red "Attention, server needs to reboot! Wait for the installer to finish after reboot and reboot again!"
-			Write-Output "Hit any key to reboot server"
-			Read-Host
-			Restart-Computer
-		} catch {
-			DS_WriteLog "-" "" $LogFile
-			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
-			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
-			Write-Output ""    
-			}
-	}
+		}
+	}	
 	ELSE {
-		Write-Host "No Update available for $Product"
-		Write-Output ""
+		Write-Host ""
+		Write-host -ForegroundColor Red "Update canceled!"
+		Write-Host ""
 	}
 }
 

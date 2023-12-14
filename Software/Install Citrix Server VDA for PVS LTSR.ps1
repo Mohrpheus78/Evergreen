@@ -53,18 +53,12 @@ DS_WriteLog "-" "" $LogFile
 IF ($noGUI -eq $False) {
 	Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix VDA, otherwise please uncheck in the selection!"
 	Write-Host ""
-		$Frage = Read-Host "( y / n )"
-		IF ($Frage -eq 'n') {
+	$Frage = Read-Host "( y / n )"
+	IF ($Frage -eq 'y') {
 		Write-Host ""
-		Write-host -ForegroundColor Red "Update canceled!"
-		Write-Host ""
-		BREAK
-		}
-	Write-Host ""
-
-	# Installation Server VDA
-	[version]$VDA = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Citrix Virtual Apps*"}).DisplayVersion
-	[version]$VersionVDA = Get-Content -Path "$InstDir\Software\Citrix\LTSR\CVAD\ProductVersion.txt"
+		# Installation Server VDA
+		[version]$VDA = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Citrix Virtual Apps*"}).DisplayVersion
+		[version]$VersionVDA = Get-Content -Path "$InstDir\Software\Citrix\LTSR\CVAD\ProductVersion.txt"
 
 	IF (!(Test-Path "$InstDir\Software\Citrix\LTSR\CVAD")) {
 		Write-Host ""
@@ -73,28 +67,35 @@ IF ($noGUI -eq $False) {
 		BREAK 
 	}
 	
-	IF ($VDA -lt $VersionVDA) {
-		try	{
-			DS_WriteLog "I" "Installing $Product $VersionVDA" $LogFile
-			Write-Host -ForegroundColor Yellow "Installing $Product"
-			Start-Process "$PSScriptRoot\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"",""Workspace Environment Management"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"" /COMPONENTS VDA /disableexperiencemetrics /enable_remote_assistance /enable_hdx_ports /enable_hdx_udp_ports /enable_real_time_transport /enable_ss_ports /masterpvsimage" –NoNewWindow -Wait
-			DS_WriteLog "-" "" $LogFile
-			Write-Host -ForegroundColor Green " ...ready!" 
+		IF ($VDA -lt $VersionVDA) {
+			try	{
+				DS_WriteLog "I" "Installing $Product $VersionVDA" $LogFile
+				Write-Host -ForegroundColor Yellow "Installing $Product"
+				Start-Process "$PSScriptRoot\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Personal vDisk"",""Machine Identity Service"",""Citrix Telemetry Service"",""Citrix Personalization for App-V -VDA"",""Citrix Files for Windows"",""Citrix Files for Outlook"",""User personalization layer"",""Workspace Environment Management"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"" /COMPONENTS VDA /disableexperiencemetrics /enable_remote_assistance /enable_hdx_ports /enable_hdx_udp_ports /enable_real_time_transport /enable_ss_ports /masterpvsimage" –NoNewWindow -Wait
+				DS_WriteLog "-" "" $LogFile
+				Write-Host -ForegroundColor Green " ...ready!" 
+				Write-Output ""
+				Write-Host -ForegroundColor Red "Attention, server needs to reboot! Wait for the installer to finish after reboot and reboot again!"
+				Write-Output "Hit any key to reboot server"
+				Read-Host
+				Restart-Computer
+			} catch {
+				DS_WriteLog "-" "" $LogFile
+				DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+				Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+				Write-Output ""    
+				}
+		}
+		ELSE {
+			Write-Host "No Update available for $Product"
 			Write-Output ""
-			Write-Host -ForegroundColor Red "Attention, server needs to reboot! Wait for the installer to finish after reboot and reboot again!"
-			Write-Output "Hit any key to reboot server"
-			Read-Host
-			Restart-Computer
-		} catch {
-			DS_WriteLog "-" "" $LogFile
-			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
-			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
-			Write-Output ""    
-			}
-	}
+		}
+	}	
 	ELSE {
-		Write-Host "No Update available for $Product"
-		Write-Output ""
+		Write-Host ""
+		Write-host -ForegroundColor Red "Update canceled!"
+		Write-Host ""
 	}
 }
+
 

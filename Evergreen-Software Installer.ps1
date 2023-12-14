@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.15.2
+Version: 2.15.3
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -54,6 +54,7 @@ Version: 2.15.2
 23/10/20: Move FSLogix rules before updating Office
 23/10/23: WEM agent checks if WEM cloud service or onPrem is used, VDA and WEM version check
 23/11/20: Second internet connection check
+23/12/14: Changed Citrix PVS, WEM and VDA scripts to not cancel if selected and no newer version is available
 #>
 
 Param (
@@ -1160,7 +1161,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.15.2"
+	[version]$EvergreenVersion = "2.15.3"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
