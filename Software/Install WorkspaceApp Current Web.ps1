@@ -72,7 +72,7 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	# Check, if a new version is available
 	IF (Test-Path -Path "$PSScriptRoot\Citrix\WorkspaceApp\Windows\Current\Version.txt") {
 	[version]$VersionWSA = Get-Content -Path "$PSScriptRoot\Citrix\WorkspaceApp\Windows\Current\Version.txt"
-	[version]$WSA = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Workspace*" -and $_.UninstallString -like "*Trolley*"}).DisplayVersion
+	[version]$WSA = [version]$WSA = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Workspace*"}).DisplayVersion | Select-Object -First 1
 	IF ($WSA -lt $VersionWSA) {
 
 	# Citrix WSA Installation
