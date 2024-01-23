@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.9.6
+Version: 2.9.7
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -55,6 +55,7 @@ Version: 2.9.6
 23/11/20: Second internet connection check
 23/11/22: Added MS .NET Desktop Runtime 6.0.20 as a requirement for Citrix WorkspaceApp CR
 23/12/05: Fixed FSLogix download and expand archive error
+24/01/23: Version check for XenCenter and Citrix VM Tools corrected
 
 #>
 
@@ -1218,7 +1219,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.9.6"
+	[version]$EvergreenVersion = "2.9.7"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -3051,7 +3052,7 @@ IF ($SoftwareSelection.CitrixVMTools -eq $true) {
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$URL = "https://downloads.xenserver.com/vm-tools-windows/$VersionCitrixVMTools/$Source"
-	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $VersionCitrixVMTools"
 	Write-Host "Current Version: $CurrentVersion"
@@ -3104,7 +3105,7 @@ IF ($SoftwareSelection.CitrixXenCenter -eq $true) {
     $InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$URL = "https://downloads.xenserver.com/xencenter/$VersionCitrixXenCenter/XenCenter-$VersionCitrixXenCenter.msi"
-	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $VersionCitrixXenCenter"
 	Write-Host "Current Version: $CurrentVersion"
