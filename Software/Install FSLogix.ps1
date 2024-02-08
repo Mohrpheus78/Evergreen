@@ -115,10 +115,10 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Install\Version.txt") {
 				Write-Output ""    
 				}
 
-		# Windows Search Task importieren bei Windows Server 2019 oder Windows 10
+		# Windows Search Task importieren bei Windows Server 2019/2022 oder Windows 11
 		IF ((Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft FSLogix Apps"}).DisplayVersion) {
 			IF (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name ProductName | Where-Object {$_.ProductName -match "Windows Server 2019" -or $_.ProductName -like "*Windows 10*"}) {
-				IF (!(Get-ScheduledTask -TaskName "Windows Search*")) {
+				IF (!(Get-ScheduledTask -TaskName "Windows Search Failure")) {
 				Write-Host -ForegroundColor Yellow "Creating scheduled task for Windows Search error"
 				DS_WriteLog "I" "Importing Windows Search Task" $LogFile
 				try {
@@ -133,6 +133,21 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Install\Version.txt") {
 					Write-Output ""    
 					}
 				}
+				IF (!(Get-ScheduledTask -TaskName "Windows Search User Logon")) {
+					Write-Host -ForegroundColor Yellow "Creating scheduled task for Windows Search User Logon"
+					DS_WriteLog "I" "Importing Windows Search Task" $LogFile
+					try {
+						Register-ScheduledTask -Xml (get-content "$PSScriptRoot\$Product\Task\Windows Search User Logon.xml" | out-string) -TaskName "Windows Search User Logon" | Out-Null
+						DS_WriteLog "-" "" $LogFile
+						Write-Host -ForegroundColor Green "...ready"
+						Write-Output ""
+					} catch {
+						DS_WriteLog "-" "" $LogFile
+						DS_WriteLog "E" "Error installing FSLogix Apps (Error: $($Error[0]))" $LogFile
+						Write-Host -ForegroundColor Red "Error installing FSLogix Apps (Error: $($Error[0]))"
+						Write-Output ""    
+						}
+					}
 			}
 		}
 	}
