@@ -56,7 +56,7 @@ Version: 2.15.5
 23/11/20: Second internet connection check
 23/12/14: Changed Citrix PVS, WEM and VDA scripts to not cancel if selected and no newer version is available
 24/01/16: Changed version variable for Citrix WorkspaceApp CR
-24/02/08: Added Windows Task in FSLogix install sckrip for Windows Search problem with multi user on Windows Server 2019/2022
+24/02/08: Added Windows Task in FSLogix install script for Windows Search problem with multi user on Windows Server 2019/2022
 #>
 
 Param (
