@@ -66,7 +66,7 @@ IF ($Frage -eq 'y') {
 		$CC = Get-ItemProperty -Path $WEMSettings | Select-Object -ExpandProperty CloudAgent -EA SilentlyContinue
 	}
 
-	IF ($CC -eq 1) {
+	IF ($CC -ne $null) {
 		$Cloud=$true
 		Write-Host -ForegroundColor Yellow "WEM Cloud service detected"
 		}
