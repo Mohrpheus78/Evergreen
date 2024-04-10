@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.9.8
+Version: 2.9.9
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -57,6 +57,7 @@ Version: 2.9.8
 23/12/05: Fixed FSLogix download and expand archive error
 24/01/23: Version check for XenCenter and Citrix VM Tools corrected
 24/02/15: New FSLogix version
+24/04/10: Changed MS Teams classic
 #>
 
 
@@ -1219,7 +1220,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.9.8"
+	[version]$EvergreenVersion = "2.9.9"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2312,7 +2313,7 @@ IF ($SoftwareSelection.MSTeams -eq $true) {
 	$Product = "MS Teams"
 	$PackageName = "Teams_windows_x64"
 	Try {
-	$Teams = Get-EvergreenApp -Name MicrosoftTeams | Where-Object {$_.Architecture -eq 'x64' -and $_.Type -eq 'MSI' -and $_.Ring -eq 'General'} -ErrorAction Stop | Select-Object -First 1
+	$Teams = Get-EvergreenApp -Name MicrosoftTeamsClassic | Where-Object {$_.Architecture -eq 'x64' -and $_.Type -eq 'MSI' -and $_.Ring -eq 'General'} -ErrorAction Stop | Select-Object -First 1
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
