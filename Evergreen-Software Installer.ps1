@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.15.8
+Version: 2.16
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -59,6 +59,7 @@ Version: 2.15.8
 24/02/08: Added Windows Task in FSLogix install script for Windows Search problem with multi user on Windows Server 2019/2022
 24/02/15: Changed detection of WEM agent running on Cloud or on prem
 24/03/19: Fixed update check for Citrix WorkspaceApp
+24/04/23: Added new Citrix 2402 LTSR components, chaned WEM cloud service detection
 #>
 
 Param (
@@ -1165,7 +1166,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.15.8"
+	[version]$EvergreenVersion = "2.16"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
