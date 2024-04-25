@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.9.9
+Version: 2.10
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -58,6 +58,7 @@ Version: 2.9.9
 24/01/23: Version check for XenCenter and Citrix VM Tools corrected
 24/02/15: New FSLogix version
 24/04/10: Changed MS Teams classic
+24/04/25: Added MS .NET DesktopRuntime 8.4.0 for Remote Desktop Manager
 #>
 
 
@@ -1220,7 +1221,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.9.9"
+	[version]$EvergreenVersion = "2.10"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1435,6 +1436,13 @@ IF ($SoftwareSelection.RemoteDesktopManager -eq $true) {
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $VersionRDM"
 	Write-Host "Current Version: $CurrentVersion"
+	IF (!(Test-Path "$SoftwareFolder\$Product\windowsdesktop-runtime-8.0.4-win-x64.exe")) {
+		Try {
+		Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/c1d08a81-6e65-4065-b606-ed1127a954d3/14fe55b8a73ebba2b05432b162ab3aa8/windowsdesktop-runtime-8.0.4-win-x64.exe" -OutFile "$SoftwareFolder\$Product\windowsdesktop-runtime-8.0.4-win-x64.exe"
+		} catch {
+		throw $_.Exception.Message
+		}
+	}
 	IF ($VersionRDM) {
 		IF ($VersionRDM -gt $CurrentVersion) {
 		Write-Host -ForegroundColor Green "Update available"
