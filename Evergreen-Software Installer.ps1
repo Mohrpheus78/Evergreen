@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.16
+Version: 2.16.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -60,6 +60,7 @@ Version: 2.16
 24/02/15: Changed detection of WEM agent running on Cloud or on prem
 24/03/19: Fixed update check for Citrix WorkspaceApp
 24/04/23: Added new Citrix 2402 LTSR components, chaned WEM cloud service detection
+24/04/25: Added MS .NET DesktopRuntime 8.4.0 for Remote Desktop Manager
 #>
 
 Param (
@@ -1166,7 +1167,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.16"
+	[version]$EvergreenVersion = "2.16.1"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {

@@ -90,6 +90,21 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 	[version]$RemoteDesktopManager = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Remote Desktop Manager*"}).DisplayVersion | Select-Object -First 1
 	IF ($RemoteDesktopManager -lt $Version) {
+		
+	Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime 8.0.4 (Prerequisite for Remotedesktopmanager)"
+	DS_WriteLog "I" "Installing MS DotNet Desktop Runtime 8.0.4 (Prerequisite for Remotedesktopmanager)" $LogFile
+	IF (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Windows Desktop Runtime - 8.0.4 (x64)"})) {
+		try {
+			Start-Process -FilePath "$PSScriptRoot\$Product\windowsdesktop-runtime-8.0.4-win-x64.exe" -ArgumentList "/quiet /noreboot" –NoNewWindow -wait
+			DS_WriteLog "-" "" $LogFile
+			Write-Host -ForegroundColor Green " ... ready!"
+			Write-Output ""
+		} catch {
+			DS_WriteLog "E" "Error installing MS DotNet Desktop Runtime (error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing MS DotNet Desktop Runtime (error: $($Error[0])), MS DotNet Desktop Runtime is a new requirement for WorkspaceApp, make sure it's available in the software folder!"
+			BREAK
+			}
+	}
 
 	# RemoteDesktopManager
 	Write-Host -ForegroundColor Yellow "Installing $Product"
