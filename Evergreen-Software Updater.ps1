@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.10
+Version: 2.10.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -59,6 +59,7 @@ Version: 2.10
 24/02/15: New FSLogix version
 24/04/10: Changed MS Teams classic
 24/04/25: Added MS .NET DesktopRuntime 8.4.0 for Remote Desktop Manager
+24/05/02: Fixed KeePass, 7-Zip and OneDrive
 #>
 
 
@@ -1221,7 +1222,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.10"
+	[version]$EvergreenVersion = "2.10.1"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2047,7 +2048,7 @@ IF ($SoftwareSelection.SevenZip -eq $true) {
 	$Product = "7-Zip"
 	$PackageName = "7-Zip_x64"
 	Try {
-	$7Zip = Get-EvergreenApp -Name 7zip | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*exe*"} -ErrorAction Stop
+	$7Zip = Get-EvergreenApp -Name 7zip | Where-Object {$_.Architecture -eq "x64" -and $_.Type -like "*exe*" -and $_.URI -like "*-x64.exe"}
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
@@ -2374,7 +2375,7 @@ IF ($SoftwareSelection.MSOneDrive -eq $true) {
 	$Product = "MS OneDrive"
 	$PackageName = "OneDriveSetup"
 	Try {
-	$OneDrive = Get-EvergreenApp -Name MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production" -and $_.Type -eq "exe" -and $_.Architecture -eq "AMD64"} | Select-Object -First 1 -ErrorAction Stop
+	$OneDrive = Get-EvergreenApp -Name MicrosoftOneDrive | Where-Object {$_.Ring -eq "Production" -and $_.Type -eq "exe" -and $_.Architecture -eq "x64"} | Select-Object -First 1
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
@@ -3496,7 +3497,7 @@ IF ($SoftwareSelection.KeePass -eq $true) {
 	$Product = "KeePass"
 	$PackageName = "KeePass"
 	Try {
-	$KeePass = Get-EvergreenApp -Name KeePass | Where-Object {$_.URI -like "*exe*"} -ErrorAction Stop
+	$KeePass = Get-EvergreenApp -Name KeePass | Where-Object {$_.Type -like "*exe*"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}

@@ -118,9 +118,9 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	# Disable scheduled tasks
 	Start-Sleep -s 5
 	try {
-		$ChromeTasks = (Get-ScheduledTask | Where-Object {$_.TaskName -like "GoogleUpdate*"} -EA SilentlyContinue).TaskName
+		$ChromeTasks = (Get-ScheduledTask | Where-Object {$_.TaskName -like "GoogleUpdate*"})
 		foreach ($Task in $ChromeTasks) {
-			Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue | Out-Null
+			Disable-ScheduledTask -TaskName $Task.Taskname -TaskPath $Task.TaskPath
 			}
 		}
 	catch {
