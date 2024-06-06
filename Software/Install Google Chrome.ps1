@@ -121,6 +121,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		$ChromeTasks = (Get-ScheduledTask | Where-Object {$_.TaskName -like "GoogleUpdate*"})
 		foreach ($Task in $ChromeTasks) {
 			Disable-ScheduledTask -TaskName $Task.Taskname -TaskPath $Task.TaskPath
+			Write-Output ""
 			}
 		}
 	catch {
