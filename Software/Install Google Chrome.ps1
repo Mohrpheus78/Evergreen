@@ -129,20 +129,27 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		Write-Host -ForegroundColor Red "Error disabling scheduled tasks for $Product, Error: $($Error[0])"
 		}
 	}
-
 	Start-Sleep -s 3
+	
+	# Disable scheduled tasks
 	try {
 		$ChromeServices = (Get-Service | Where-Object {$_.Name -like "GoogleUpdater*" -or $_.Name -like "gupdate*"})
 		foreach ($Service in $ChromeServices) {
        		Set-Service -Name $Service.Name -StartupType Disabled -EA SilentlyContinue
 			Write-Output ""
 			}
+		}
 	catch {
 		DS_WriteLog "E" "Error disabling update services for $Product, Error: $($Error[0])" $LogFile
 		Write-Host -ForegroundColor Red "Error disabling update services for $Product, Error: $($Error[0])"
 		}
-	}
 	
+	# Disable Active Setup
+	$ChromeKey = (Get-Childitem -recurse "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components" -Exclude 'AutorunsDisabled' | Get-Itemproperty | Where-Object { $_ -like '*Chrome*' }).PSChildName | Select-Object -First 1
+	IF ($ChromeKey) {
+		Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\$ChromeKey" -EA SilentlyContinue
+	}
+
 }
 Else {
 Write-Host -ForegroundColor Red "Version file not found for $Product"

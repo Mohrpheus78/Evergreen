@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.16.4
+Version: 2.16.5
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -64,6 +64,7 @@ Version: 2.16.4
 24/05/02: nNw path for Google Chrome scheduled update tasks 
 24/06/06: Changed version variable for Citrix WorkspaceApp LTSR
 24/07/03: Disabled all Google Chrome update services
+24/07/08: Delete Chrome active setup regkeys, corrected error with Chrome install syntax
 #>
 
 Param (
@@ -1170,7 +1171,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.16.4"
+	[version]$EvergreenVersion = "2.16.5"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
