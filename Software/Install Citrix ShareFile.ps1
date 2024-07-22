@@ -24,12 +24,12 @@ $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "Citrix Files"
+$Product = "ShareFile"
 
 #========================================================================================================================================
 # Logging
 $BaseLogDir = $ENV:Temp       				# [edit] add the location of your log directory here, local folder because network gets interrupted 
-$PackageName = "Citrix Files" 	 # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
+$PackageName = "ShareFile" 	 # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
 # $StartDir = $PSScriptRoot # the directory path of the script currently being executed
@@ -90,16 +90,16 @@ else {
 #========================================================================================================================================
 
 # Check, if a new version is available
-IF (Test-Path -Path "$PSScriptRoot\Citrix\$Product\Version.txt") {
-	[version]$Version = Get-Content -Path "$PSScriptRoot\Citrix\$Product\Version.txt"
-	[version]$CitrixFiles = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Files*"}).DisplayVersion
-	IF ($CitrixFiles -lt $Version) {
+IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
+	[version]$Sharefile = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Sharefile"}).DisplayVersion
+	IF ($Sharefile -lt $Version) {
 		
-	# Citrix Files Installation
+	# ShareFile Installation
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
-		"$PSScriptRoot\Citrix\$Product\CitrixFiles.msi" | Install-MSIFile
+		"$PSScriptRoot\$Product\Sharefile.msi" | Install-MSIFile
 		DS_WriteLog "-" "" $LogFile
 		write-Host -ForegroundColor Green "...ready"
 		Write-Output ""
@@ -111,9 +111,11 @@ IF (Test-Path -Path "$PSScriptRoot\Citrix\$Product\Version.txt") {
 			}
 	}
 
-	IF ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Files*"}).DisplayVersion) {
+	<#
+	IF ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Sharefile"}).DisplayVersion) {
 		Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name CitrixFiles -Force -EA SilentlyContinue | Out-Null
 	}
+	#>
 
 	# Stop, if no new version is available
 	Else {
