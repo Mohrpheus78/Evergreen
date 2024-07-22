@@ -98,9 +98,6 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
 		"$PSScriptRoot\$Product\MicrosoftEdgeEnterpriseX64.msi" | Install-MSIFile
-		DS_WriteLog "-" "" $LogFile
-		write-Host -ForegroundColor Green "...ready"
-		Write-Output ""
 		} catch {
 			DS_WriteLog "-" "" $LogFile
 			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
@@ -117,17 +114,20 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 
 	IF ((Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Edge"} | Select-Object -First 1).DisplayVersion) {
 		# Disable scheduled tasks
-		Start-Sleep -s 5
+		Write-Host "Disable scheduled update tasks for Edge"
+		Start-Sleep -s 3
 		$EdgeTasks= (Get-ScheduledTask | Where-Object {$_.TaskName -like "MicrosoftEdge*"}).TaskName
 		foreach ($Task in $EdgeTasks) {
 			Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue | Out-Null
 			}
 		# Disable Active Setup
+		Write-Host "Disable active setup regkyes for Edge"
 		$EdgeKey = (Get-Childitem -recurse "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components" -Exclude 'AutorunsDisabled' | Get-Itemproperty | Where-Object { $_  -match 'Edge' }).PSChildName | Select-Object -First 1
 		IF ($EdgeKey) {
 			Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\$EdgeKey" -EA SilentlyContinue
 			}
 		# Disable Citrix API Hooks (MS Edge) on Citrix VDA
+		Write-Host "Citrix API hooks (MS Edge) on Citrix VDA"
 		$(
 		$RegPath = "HKLM:SYSTEM\CurrentControlSet\services\CtxUvi"
 		IF (Test-Path $RegPath) {
@@ -142,7 +142,9 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		}
 		) | Out-Null
 	}
-		
+	DS_WriteLog "-" "" $LogFile
+	write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
 }
 Else {
 Write-Host -ForegroundColor Red "Version file not found for $Product"

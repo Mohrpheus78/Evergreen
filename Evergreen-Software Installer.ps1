@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.16.5
+Version: 2.17
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -65,6 +65,7 @@ Version: 2.16.5
 24/06/06: Changed version variable for Citrix WorkspaceApp LTSR
 24/07/03: Disabled all Google Chrome update services
 24/07/08: Delete Chrome active setup regkeys, corrected error with Chrome install syntax
+24/07/19: Added NEW MS Teams 2.x
 #>
 
 Param (
@@ -506,13 +507,23 @@ function gui_mode{
     $form.Controls.Add($MSTeamsBox)
 	$MSTeamsBox.Checked =  $SoftwareSelection.MSTeams
 	
+	# MSTeams 2 Checkbox
+    $NEWMSTeamsBox = New-Object system.Windows.Forms.CheckBox
+    $NEWMSTeamsBox.text = "Microsoft Teams 2.x (BETA!))"
+    $NEWMSTeamsBox.width = 95
+    $NEWMSTeamsBox.height = 20
+    $NEWMSTeamsBox.autosize = $true
+    $NEWMSTeamsBox.location = New-Object System.Drawing.Point(390,120)
+    $form.Controls.Add($NEWMSTeamsBox)
+	$NEWMSTeamsBox.Checked =  $SoftwareSelection.MSTeams2
+	
 	# MS365 Apps Semi Annual Channel Checkbox
     $MS365AppsBox_SAC = New-Object system.Windows.Forms.CheckBox
     $MS365AppsBox_SAC.text = "Microsoft 365 Apps (x64/Semi Annual Channel)"
     $MS365AppsBox_SAC.width = 95
     $MS365AppsBox_SAC.height = 20
     $MS365AppsBox_SAC.autosize = $true
-    $MS365AppsBox_SAC.location = New-Object System.Drawing.Point(390,120)
+    $MS365AppsBox_SAC.location = New-Object System.Drawing.Point(390,145)
     $form.Controls.Add($MS365AppsBox_SAC)
 	$MS365AppsBox_SAC.Checked = $SoftwareSelection.MS365Apps_SAC
 	
@@ -522,7 +533,7 @@ function gui_mode{
     $MS365AppsBox_MEC.width = 95
     $MS365AppsBox_MEC.height = 20
     $MS365AppsBox_MEC.autosize = $true
-    $MS365AppsBox_MEC.location = New-Object System.Drawing.Point(390,145)
+    $MS365AppsBox_MEC.location = New-Object System.Drawing.Point(390,170)
     $form.Controls.Add($MS365AppsBox_MEC)
 	$MS365AppsBox_MEC.Checked = $SoftwareSelection.MS365Apps_MEC
 	
@@ -532,7 +543,7 @@ function gui_mode{
     $MSOffice2019Box.width = 95
     $MSOffice2019Box.height = 20
     $MSOffice2019Box.autosize = $true
-    $MSOffice2019Box.location = New-Object System.Drawing.Point(390,170)
+    $MSOffice2019Box.location = New-Object System.Drawing.Point(390,195)
     $form.Controls.Add($MSOffice2019Box)
 	$MSOffice2019Box.Checked = $SoftwareSelection.MSOffice2019
 	
@@ -542,7 +553,7 @@ function gui_mode{
     $MSOffice2021Box.width = 95
     $MSOffice2021Box.height = 20
     $MSOffice2021Box.autosize = $true
-    $MSOffice2021Box.location = New-Object System.Drawing.Point(390,195)
+    $MSOffice2021Box.location = New-Object System.Drawing.Point(390,220)
     $form.Controls.Add($MSOffice2021Box)
 	$MSOffice2021Box.Checked = $SoftwareSelection.MSOffice2021
 	
@@ -552,7 +563,7 @@ function gui_mode{
     $VcRedistBox.width = 95
     $VcRedistBox.height = 20
     $VcRedistBox.autosize = $true
-    $VcRedistBox.location = New-Object System.Drawing.Point(390,220)
+    $VcRedistBox.location = New-Object System.Drawing.Point(390,245)
     $form.Controls.Add($VcRedistBox)
 	$VcRedistBox.Checked = $SoftwareSelection.VcRedist
 
@@ -562,7 +573,7 @@ function gui_mode{
     $MSSQLManagementStudioENBox.width = 95
     $MSSQLManagementStudioENBox.height = 20
     $MSSQLManagementStudioENBox.autosize = $true
-    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(390,245)
+    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(390,270)
     $form.Controls.Add($MSSQLManagementStudioENBox)
 	$MSSQLManagementStudioENBox.Checked = $SoftwareSelection.MSSsmsEN
 
@@ -572,7 +583,7 @@ function gui_mode{
     $MSSQLManagementStudioDEBox.width = 95
     $MSSQLManagementStudioDEBox.height = 20
     $MSSQLManagementStudioDEBox.autosize = $true
-    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(390,270)
+    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(390,295)
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
 	
@@ -582,7 +593,7 @@ function gui_mode{
     $BISFBox.width = 95
     $BISFBox.height = 20
     $BISFBox.autosize = $true
-    $BISFBox.location = New-Object System.Drawing.Point(390,295)
+    $BISFBox.location = New-Object System.Drawing.Point(390,320)
     $form.Controls.Add($BISFBox)
 	$BISFBox.Checked =  $SoftwareSelection.BISF
 	
@@ -592,7 +603,7 @@ function gui_mode{
     $FSLogixBox.width = 95
     $FSLogixBox.height = 20
     $FSLogixBox.autosize = $true
-    $FSLogixBox.location = New-Object System.Drawing.Point(390,320)
+    $FSLogixBox.location = New-Object System.Drawing.Point(390,345)
     $form.Controls.Add($FSLogixBox)
 	$FSLogixBox.Checked =  $SoftwareSelection.FSLogix
 	
@@ -602,7 +613,7 @@ function gui_mode{
     $GoogleChromeBox.width = 95
     $GoogleChromeBox.height = 20
     $GoogleChromeBox.autosize = $true
-    $GoogleChromeBox.location = New-Object System.Drawing.Point(390,345)
+    $GoogleChromeBox.location = New-Object System.Drawing.Point(390,370)
     $form.Controls.Add($GoogleChromeBox)
 	$GoogleChromeBox.Checked =  $SoftwareSelection.GoogleChrome
 <#	
@@ -622,7 +633,7 @@ function gui_mode{
     $PuttyBox.width = 95
     $PuttyBox.height = 20
     $PuttyBox.autosize = $true
-    $PuttyBox.location = New-Object System.Drawing.Point(390,370)
+    $PuttyBox.location = New-Object System.Drawing.Point(390,395)
 	# $PuttyBox.location = New-Object System.Drawing.Point(770,45)
     $form.Controls.Add($PuttyBox)
     $PuttyBox.Checked =  $SoftwareSelection.Putty
@@ -633,7 +644,7 @@ function gui_mode{
     $WinSCPBox.width = 95
     $WinSCPBox.height = 20
     $WinSCPBox.autosize = $true
-    $WinSCPBox.location = New-Object System.Drawing.Point(390,395)
+    $WinSCPBox.location = New-Object System.Drawing.Point(390,420)
     $form.Controls.Add($WinSCPBox)
     $WinSCPBox.Checked =  $SoftwareSelection.WinSCP
 	
@@ -655,7 +666,7 @@ function gui_mode{
     $mRemoteNGBox.width = 95
     $mRemoteNGBox.height = 20
     $mRemoteNGBox.autosize = $true
-    $mRemoteNGBox.location = New-Object System.Drawing.Point(390,420)
+    $mRemoteNGBox.location = New-Object System.Drawing.Point(390,445)
     $form.Controls.Add($mRemoteNGBox)
 	$mRemoteNGBox.Checked =  $SoftwareSelection.mRemoteNG
 	
@@ -665,7 +676,7 @@ function gui_mode{
     $RemoteDesktopManagerBox.width = 95
     $RemoteDesktopManagerBox.height = 20
     $RemoteDesktopManagerBox.autosize = $true
-    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(390,445)
+    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(390,470)
     $form.Controls.Add($RemoteDesktopManagerBox)
 	$RemoteDesktopManagerBox.Checked =  $SoftwareSelection.RemoteDesktopManager
 	
@@ -675,7 +686,7 @@ function gui_mode{
     $VLCPlayerBox.width = 95
     $VLCPlayerBox.height = 20
     $VLCPlayerBox.autosize = $true
-    $VLCPlayerBox.location = New-Object System.Drawing.Point(390,470)
+    $VLCPlayerBox.location = New-Object System.Drawing.Point(390,495)
     $form.Controls.Add($VLCPlayerBox)
 	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
 	
@@ -685,7 +696,7 @@ function gui_mode{
     $OracleJava8Box.width = 95
     $OracleJava8Box.height = 20
     $OracleJava8Box.autosize = $true
-    $OracleJava8Box.location = New-Object System.Drawing.Point(390,495)
+    $OracleJava8Box.location = New-Object System.Drawing.Point(390,520)
     $form.Controls.Add($OracleJava8Box)
 	$OracleJava8Box.Checked =  $SoftwareSelection.OracleJava8
 	
@@ -695,7 +706,7 @@ function gui_mode{
     $OracleJava8_32Box.width = 95
     $OracleJava8_32Box.height = 20
     $OracleJava8_32Box.autosize = $true
-    $OracleJava8_32Box.location = New-Object System.Drawing.Point(390,520)
+    $OracleJava8_32Box.location = New-Object System.Drawing.Point(390,545)
     $form.Controls.Add($OracleJava8_32Box)
 	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
 	
@@ -705,7 +716,7 @@ function gui_mode{
     $GreenshotBox.width = 95
     $GreenshotBox.height = 20
     $GreenshotBox.autosize = $true
-    $GreenshotBox.location = New-Object System.Drawing.Point(390,545)
+    $GreenshotBox.location = New-Object System.Drawing.Point(390,570)
     $form.Controls.Add($GreenshotBox)
 	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
 	
@@ -715,19 +726,11 @@ function gui_mode{
     $pdf24CreatorBox.width = 95
     $pdf24CreatorBox.height = 20
     $pdf24CreatorBox.autosize = $true
-    $pdf24CreatorBox.location = New-Object System.Drawing.Point(390,570)
+    $pdf24CreatorBox.location = New-Object System.Drawing.Point(390,595)
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 
-    # FoxitReader Checkbox
-    $FoxitReaderBox = New-Object system.Windows.Forms.CheckBox
-    $FoxitReaderBox.text = "Foxit Reader"
-    $FoxitReaderBox.width = 95
-    $FoxitReaderBox.height = 20
-    $FoxitReaderBox.autosize = $true
-    $FoxitReaderBox.location = New-Object System.Drawing.Point(390,595)
-    $form.Controls.Add($FoxitReaderBox)
-	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
+    
 	
 	# deviceTRUST Checkbox
     $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
@@ -819,6 +822,16 @@ function gui_mode{
     $form.Controls.Add($WinRARBoxEn)
 	$WinRARBoxEn.Checked =  $SoftwareSelection.WinRAREn
 	
+	# FoxitReader Checkbox
+    $FoxitReaderBox = New-Object system.Windows.Forms.CheckBox
+    $FoxitReaderBox.text = "Foxit Reader"
+    $FoxitReaderBox.width = 95
+    $FoxitReaderBox.height = 20
+    $FoxitReaderBox.autosize = $true
+    $FoxitReaderBox.location = New-Object System.Drawing.Point(780,270)
+    $form.Controls.Add($FoxitReaderBox)
+	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
+	
 	<#
 	# Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
@@ -872,7 +885,7 @@ function gui_mode{
 		$MSEdgeBox.checked = $True
 		$MSOneDriveBox.checked = $True
 		$MSTeamsBox.checked = $True
-		#$MSTeamsPrevBox.checked = $True
+		$NEWMSTeamsBox.checked = $True
 		$MS365AppsBox_SAC.checked = $True
 		$MS365AppsBox_MEC.checked = $True
 		$MSOffice2019Box.checked = $True
@@ -942,6 +955,7 @@ function gui_mode{
 		$MSEdgeBox.checked = $False
 		$MSOneDriveBox.checked = $False
 		$MSTeamsBox.checked = $False
+		$NEWMSTeamsBox.checked = $False
 		$MS365AppsBox_SAC.checked = $False
 		$MS365AppsBox_MEC.checked = $False
 		$MSOffice2019Box.checked = $False
@@ -1013,6 +1027,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSEdge" -Value $MSEdgeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOneDrive" -Value $MSOneDriveBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSTeams" -Value $MSTeamsBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSTeams2" -Value $NEWMSTeamsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_SAC" -Value $MS365AppsBox_SAC.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_MEC" -Value $MS365AppsBox_MEC.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2019" -Value $MSOffice2019Box.checked -Force
@@ -1171,7 +1186,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.16.5"
+	[version]$EvergreenVersion = "2.17"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1565,13 +1580,20 @@ IF ($SoftwareSelection.MSTeams -eq $true)
 			Write-Output ""
 			}
 	}
-<#
-# Install MS Teams Preview
-IF ($SoftwareSelection.MSTeamsPrev -eq $true)
+	
+# Install NEW MS Teams
+IF ($SoftwareSelection.MSTeams2 -eq $true)
 	{
-		& "$SoftwareFolder\Install MS Teams-Preview.ps1"
+		try {
+			& "$SoftwareFolder\Install MS Teams 2.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "MS Teams 2.x"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS Teams': $($Error[0])"
+			Write-Output ""
+			}
 	}
-#>
+	
 # Install MS 365Apps
 IF ($SoftwareSelection.MS365Apps_SAC -eq $true)
 	{

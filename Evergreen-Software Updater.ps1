@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.10.1
+Version: 2.11
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -60,6 +60,7 @@ Version: 2.10.1
 24/04/10: Changed MS Teams classic
 24/04/25: Added MS .NET DesktopRuntime 8.4.0 for Remote Desktop Manager
 24/05/02: Fixed KeePass, 7-Zip and OneDrive
+24/07/22: Fixed Citrix WorkspaceApp, Sharefile, 7-Zip and VLC Player, added NEW MS Teams 2.x
 #>
 
 
@@ -497,15 +498,15 @@ function gui_mode{
     $form.Controls.Add($Citrix_XenCenterBox)
 	$Citrix_XenCenterBox.Checked = $SoftwareSelection.CitrixXenCenter
 	
-	# Citrix Files Checkbox
-    $CitrixFilesBox = New-Object system.Windows.Forms.CheckBox
-    $CitrixFilesBox.text = "Citrix Files (Sharefile)"
-    $CitrixFilesBox.width = 95
-    $CitrixFilesBox.height = 20
-    $CitrixFilesBox.autosize = $true
-    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,320)
-    $form.Controls.Add($CitrixFilesBox)
-	$CitrixFilesBox.Checked = $SoftwareSelection.CitrixFiles
+	# Sharefile Checkbox
+    $SharefileBox = New-Object system.Windows.Forms.CheckBox
+    $SharefileBox.text = "Citrix Sharefile"
+    $SharefileBox.width = 95
+    $SharefileBox.height = 20
+    $SharefileBox.autosize = $true
+    $SharefileBox.location = New-Object System.Drawing.Point(11,320)
+    $form.Controls.Add($SharefileBox)
+	$SharefileBox.Checked = $SoftwareSelection.Sharefile
 	
 	# VMWareTools Checkbox
     $VMWareToolsBox = New-Object system.Windows.Forms.CheckBox
@@ -637,13 +638,23 @@ function gui_mode{
     $form.Controls.Add($MSTeamsBox)
 	$MSTeamsBox.Checked = $SoftwareSelection.MSTeams
 	
+	# NEW MS Teams Checkbox
+    $NEWMSTeamsBox = New-Object system.Windows.Forms.CheckBox
+    $NEWMSTeamsBox.text = "Microsoft Teams 2.x (Boostrapper MSIX)"
+    $NEWMSTeamsBox.width = 95
+    $NEWMSTeamsBox.height = 20
+    $NEWMSTeamsBox.autosize = $true
+    $NEWMSTeamsBox.location = New-Object System.Drawing.Point(250,245)
+    $form.Controls.Add($NEWMSTeamsBox)
+	$NEWMSTeamsBox.Checked = $SoftwareSelection.NEWMSTeams
+	
 	 # MS Powershell Checkbox
     $MSPowershellBox = New-Object system.Windows.Forms.CheckBox
     $MSPowershellBox.text = "Microsoft Powershell"
     $MSPowershellBox.width = 95
     $MSPowershellBox.height = 20
     $MSPowershellBox.autosize = $true
-    $MSPowershellBox.location = New-Object System.Drawing.Point(250,245)
+    $MSPowershellBox.location = New-Object System.Drawing.Point(250,270)
     $form.Controls.Add($MSPowershellBox)
 	$MSPowershellBox.Checked = $SoftwareSelection.MSPowershell
 	
@@ -653,7 +664,7 @@ function gui_mode{
     $MSDotNetBox.width = 95
     $MSDotNetBox.height = 20
     $MSDotNetBox.autosize = $true
-    $MSDotNetBox.location = New-Object System.Drawing.Point(250,270)
+    $MSDotNetBox.location = New-Object System.Drawing.Point(250,295)
     $form.Controls.Add($MSDotNetBox)
 	$MSDotNetBox.Checked = $SoftwareSelection.MSDotNetDesktopRuntime
 	
@@ -663,7 +674,7 @@ function gui_mode{
     $MSSQLManagementStudioENBox.width = 95
     $MSSQLManagementStudioENBox.height = 20
     $MSSQLManagementStudioENBox.autosize = $true
-    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(250,295)
+    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(250,320)
     $form.Controls.Add($MSSQLManagementStudioENBox)
 	$MSSQLManagementStudioENBox.Checked = $SoftwareSelection.MSSsmsEN
 	
@@ -673,7 +684,7 @@ function gui_mode{
     $MSSQLManagementStudioDEBox.width = 95
     $MSSQLManagementStudioDEBox.height = 20
     $MSSQLManagementStudioDEBox.autosize = $true
-    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,320)
+    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,345)
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
 	
@@ -683,7 +694,7 @@ function gui_mode{
     $VcRedistBox.width = 95
     $VcRedistBox.height = 20
     $VcRedistBox.autosize = $true
-    $VcRedistBox.location = New-Object System.Drawing.Point(250,345)
+    $VcRedistBox.location = New-Object System.Drawing.Point(250,370)
     $form.Controls.Add($VcRedistBox)
 	$VcRedistBox.Checked = $SoftwareSelection.VcRedist
 	
@@ -693,7 +704,7 @@ function gui_mode{
     $deviceTRUSTBox.width = 95
     $deviceTRUSTBox.height = 20
     $deviceTRUSTBox.autosize = $true
-    $deviceTRUSTBox.location = New-Object System.Drawing.Point(250,370)
+    $deviceTRUSTBox.location = New-Object System.Drawing.Point(250,395)
     $form.Controls.Add($deviceTRUSTBox)
 	$deviceTRUSTBox.Checked = $SoftwareSelection.deviceTRUST
 	
@@ -703,7 +714,7 @@ function gui_mode{
     $OracleJava8Box.width = 95
     $OracleJava8Box.height = 20
     $OracleJava8Box.autosize = $true
-    $OracleJava8Box.location = New-Object System.Drawing.Point(250,395)
+    $OracleJava8Box.location = New-Object System.Drawing.Point(250,420)
     $form.Controls.Add($OracleJava8Box)
 	$OracleJava8Box.Checked =  $SoftwareSelection.OracleJava8
 	
@@ -713,7 +724,7 @@ function gui_mode{
     $OracleJava8_32Box.width = 95
     $OracleJava8_32Box.height = 20
     $OracleJava8_32Box.autosize = $true
-    $OracleJava8_32Box.location = New-Object System.Drawing.Point(250,420)
+    $OracleJava8_32Box.location = New-Object System.Drawing.Point(250,445)
     $form.Controls.Add($OracleJava8_32Box)
 	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
 	
@@ -723,19 +734,9 @@ function gui_mode{
     $OpenJDKBox.width = 95
     $OpenJDKBox.height = 20
     $OpenJDKBox.autosize = $true
-    $OpenJDKBox.location = New-Object System.Drawing.Point(250,445)
+    $OpenJDKBox.location = New-Object System.Drawing.Point(685,45)
     $form.Controls.Add($OpenJDKBox)
 	$OpenJDKBox.Checked =  $SoftwareSelection.OpenJDK
-	
-	# TreeSizeFree Checkbox
-    $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
-    $TreeSizeFreeBox.text = "TreeSize Free"
-    $TreeSizeFreeBox.width = 95
-    $TreeSizeFreeBox.height = 20
-    $TreeSizeFreeBox.autosize = $true
-    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(685,45)
-    $form.Controls.Add($TreeSizeFreeBox)
-	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
 	
 	# VLCPlayer Checkbox
     $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
@@ -857,6 +858,16 @@ function gui_mode{
     $form.Controls.Add($GreenshotBox)
 	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
 	
+	# TreeSizeFree Checkbox
+    $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
+    $TreeSizeFreeBox.text = "TreeSize Free"
+    $TreeSizeFreeBox.width = 95
+    $TreeSizeFreeBox.height = 20
+    $TreeSizeFreeBox.autosize = $true
+    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(685,370)
+    $form.Controls.Add($TreeSizeFreeBox)
+	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
+	
 	<#
 	# Cisco WebEx Desktop Checkbox
     $CiscoWebExDesktopBox = New-Object system.Windows.Forms.CheckBox
@@ -925,7 +936,7 @@ function gui_mode{
 		$WorkspaceApp_LTSRBox.checked = $True
 		$Citrix_VMToolsBox.checked = $True
 		$Citrix_XenCenterBox.checked = $True
-		$CitrixFilesBox.checked = $True
+		$SharefileBox.checked = $True
 		$VMWareToolsBox.checked = $True
 		$RemoteDesktopManagerBox.checked = $True
 		$deviceTRUSTBox.checked = $True
@@ -942,6 +953,7 @@ function gui_mode{
 		$MSEdgeBox.checked = $True
 		$MSOneDriveBox.checked = $True
 		$MSTeamsBox.checked = $True
+		$NEWMSTeamsBox.checked = $True
 		$MSPowershellBox.checked = $True
 		$MSDotNetBox.checked = $True
 		$MSSQLManagementStudioDEBox.checked = $True
@@ -989,7 +1001,7 @@ function gui_mode{
 		$WorkspaceApp_LTSRBox.checked = $False
 		$Citrix_VMToolsBox.checked = $False
 		$Citrix_XenCenterBox.checked = $False
-		$CitrixFilesBox.checked = $False
+		$SharefileBox.checked = $False
 		$VMWareToolsBox.checked = $False
 		$RemoteDesktopManagerBox.checked = $False
 		$deviceTRUSTBox.checked = $False
@@ -1006,6 +1018,7 @@ function gui_mode{
 		$MSEdgeBox.checked = $False
 		$MSOneDriveBox.checked = $False
 		$MSTeamsBox.checked = $False
+		$NEWMSTeamsBox.checked = $False
 		$MSPowershellBox.checked = $False
 		$MSDotNetBox.checked = $False
 		$MSSQLManagementStudioDEBox.checked = $False
@@ -1055,7 +1068,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_LTSR" -Value $WorkspaceApp_LTSRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixVMTools" -Value $Citrix_VMToolsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixXenCenter" -Value $Citrix_XenCenterBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixFiles" -Value $CitrixFilesBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Sharefile" -Value $SharefileBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_SAC" -Value $MS365AppsBox_SAC.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_MEC" -Value $MS365AppsBox_MEC.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2019" -Value $MSOffice2019Box.checked -Force
@@ -1067,6 +1080,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSEdge" -Value $MSEdgeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOneDrive" -Value $MSOneDriveBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSTeams" -Value $MSTeamsBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "NEWMSTeams" -Value $NEWMSTeamsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSPowershell" -Value $MSPowershellBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSDotNetDesktopRuntime" -Value $MSDotNetBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsEN" -Value $MSSQLManagementStudioENBox.checked -Force
@@ -1221,8 +1235,9 @@ else
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
+
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.10.1"
+	[version]$EvergreenVersion = "2.11"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1263,6 +1278,7 @@ if ($noGUI -eq $False) {
 		}
 	}
 }
+
 
 # Everything is loaded so we close the splash-screen
 if ($Splashscreen -ne $False) {
@@ -1398,6 +1414,7 @@ ELSE {
 	Write-Host -ForegroundColor Cyan "Powershell is NOT able to connect to the internet, the script will not update the Evergreen and Nevergreen Powershell modules!"
 	Write-Output ""
 }
+
 
 # Start logfile Update Log
 Start-Transcript $UpdateLog | Out-Null
@@ -1710,7 +1727,7 @@ IF ($SoftwareSelection.VLCPlayer -eq $true) {
 	$Product = "VLC Player"
 	$PackageName = "VLC-Player"
 	Try {
-	$VLC = Get-EvergreenApp -Name VideoLanVlcPlayer | Where-Object {$_.Platform -eq "Windows"  -and $_.Architecture -eq "x64" -and $_.Type -eq "MSI"} -ErrorAction Stop
+	$VLC = Get-EvergreenApp -Name VideoLanVlcPlayer | Where-Object {$_.Architecture -eq "x64" -and $_.Type -eq "msi"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
@@ -1881,7 +1898,7 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 	$Product = "WorkspaceApp"
 	$PackageName = "CitrixWorkspaceApp"
 	Try {
-	$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "Current"} -ErrorAction Stop
+	$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Stream -eq "Current"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
@@ -1994,7 +2011,7 @@ IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 	$Product = "WorkspaceApp"
 	$PackageName = "CitrixWorkspaceApp"
 	Try {
-	$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Title -like "Citrix Workspace*" -and $_.Stream -eq "LTSR"} -ErrorAction Stop
+	$WSA = Get-EvergreenApp -Name CitrixWorkspaceApp | Where-Object {$_.Stream -eq "LTSR"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
@@ -2048,7 +2065,7 @@ IF ($SoftwareSelection.SevenZip -eq $true) {
 	$Product = "7-Zip"
 	$PackageName = "7-Zip_x64"
 	Try {
-	$7Zip = Get-EvergreenApp -Name 7zip | Where-Object {$_.Architecture -eq "x64" -and $_.Type -like "*exe*" -and $_.URI -like "*-x64.exe"}
+	$7Zip = Get-NevergreenApp -Name 7zip | Where-Object {$_.Architecture -eq "x64" -and $_.Type -like "exe"}
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
@@ -2354,6 +2371,66 @@ IF ($SoftwareSelection.MSTeams -eq $true) {
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
         Remove-Item "$SoftwareFolder\$Product\*" -Include *.msi, Version.txt, Download* -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
+
+
+# Download NEW MS Teams
+IF ($SoftwareSelection.NEWMSTeams -eq $true) {
+	$Product = "MS Teams 2"
+	$PackageName = "MSTeams-x64"
+    Write-Host -ForegroundColor Yellow "Download Microsoft Teams 2 Bootstrapper"
+	Try {
+	$NEWTeams = Get-EvergreenApp -Name MicrosoftTeams -WarningAction silentlyContinue | Where-Object { $_.Architecture -eq "x64" -and $_.Release -eq "Enterprise" -and $_.Type -eq "msix"}
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $NEWTeams.Version
+	$URL = $NEWTeams.uri
+	$InstallerType = "msix"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF ($Version -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.msix, *.exe, *.log, Version.txt, Download* -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host -ForegroundColor Yellow "Download Microsoft Teams 2 Bootstrapper"
+		Try {
+			start-sleep -seconds 3
+			Invoke-WebRequest -Uri  "https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409" -OutFile ("$SoftwareFolder\$Product\teamsbootstrapper.exe")
+		} catch {
+		throw $_.Exception.Message
+		}	
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Include *.msix, *.exe, Version.txt, Download* -Recurse
         }
 		Stop-Transcript | Out-Null
 		Write-Output ""
@@ -3157,40 +3234,40 @@ IF ($SoftwareSelection.CitrixXenCenter -eq $true) {
 }
 
 
-# Download Citrix Files
-IF ($SoftwareSelection.CitrixFiles -eq $true) {
-	$Product = "Citrix Files"
-	$PackageName = "CitrixFiles"
+# Download Sharefile
+IF ($SoftwareSelection.Sharefile -eq $true) {
+	$Product = "ShareFile"
+	$PackageName = "ShareFile"
 	Try {
-	$CitrixFiles = Get-NevergreenApp -Name CitrixShareFile | Where-Object {$_.Type -eq "msi"} -ErrorAction Stop
+	$Sharefile = Get-NevergreenApp -Name CitrixShareFile | Where-Object {$_.Type -eq "msi"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$Version = $CitrixFiles.Version
-	$URL = $CitrixFiles.uri
+	$Version = $Sharefile.Version
+	$URL = $Sharefile.uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
-	$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -EA SilentlyContinue
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $Version"
 	Write-Host "Current Version: $CurrentVersion"
 	IF ($Version) {
 		IF (!($CurrentVersion -eq $Version)) {
 		Write-Host -ForegroundColor Green "Update available"
-		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product")) {New-Item -Path "$SoftwareFolder\Citrix\$Product" -ItemType Directory | Out-Null}
-		$LogPS = "$SoftwareFolder\Citrix\$Product\" + "$Product $Version.log"
-		Remove-Item "$SoftwareFolder\Citrix\$Product\*" -Include *.exe, *.log, *.txt -Recurse
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
 		Start-Transcript $LogPS | Out-Null
-		New-Item -Path "$SoftwareFolder\Citrix\$Product" -Name "Download date $Date.txt" | Out-Null
-		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -Value "$Version"
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 		Try {
-			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\Citrix\$Product\" + ($Source))
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 		} catch {
 			throw $_.Exception.Message
 		}
 		Write-Host "Stop logging"
-		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\$Source")) {
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
         Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
         }
@@ -3207,6 +3284,7 @@ IF ($SoftwareSelection.CitrixFiles -eq $true) {
 		Write-Output ""
 	}
 }
+
 
 
 # Download VMWareTools

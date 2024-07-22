@@ -97,9 +97,6 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
 		"$PSScriptRoot\$Product\googlechromestandaloneenterprise64.msi" | Install-MSIFile
-		DS_WriteLog "-" "" $LogFile
-		write-Host -ForegroundColor Green "...ready"
-		Write-Output ""
 		} catch {
 			DS_WriteLog "-" "" $LogFile
 			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
@@ -117,11 +114,11 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	IF ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Google Chrome"}).DisplayVersion) {
 	# Disable scheduled tasks
 	Start-Sleep -s 3
+	Write-Host "Disable scheduled update tasks for Chrome"
 	try {
 		$ChromeTasks = (Get-ScheduledTask | Where-Object {$_.TaskName -like "GoogleUpdate*"})
 		foreach ($Task in $ChromeTasks) {
-			Disable-ScheduledTask -TaskName $Task.Taskname -TaskPath $Task.TaskPath
-			Write-Output ""
+			Disable-ScheduledTask -TaskName $Task.Taskname -TaskPath $Task.TaskPath | Out-Null
 			}
 		}
 	catch {
@@ -131,12 +128,12 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	}
 	Start-Sleep -s 3
 	
-	# Disable scheduled tasks
+	# Disable update service
+	Write-Host "Disable update service for Chrome"
 	try {
 		$ChromeServices = (Get-Service | Where-Object {$_.Name -like "GoogleUpdater*" -or $_.Name -like "gupdate*"})
 		foreach ($Service in $ChromeServices) {
-       		Set-Service -Name $Service.Name -StartupType Disabled -EA SilentlyContinue
-			Write-Output ""
+       		Set-Service -Name $Service.Name -StartupType Disabled -EA SilentlyContinue | Out-Null
 			}
 		}
 	catch {
@@ -145,11 +142,15 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		}
 	
 	# Disable Active Setup
+	Write-Host "Deleting active setup regkeys for Chrome"
 	$ChromeKey = (Get-Childitem -recurse "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components" -Exclude 'AutorunsDisabled' | Get-Itemproperty | Where-Object { $_ -like '*Chrome*' }).PSChildName | Select-Object -First 1
 	IF ($ChromeKey) {
-		Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\$ChromeKey" -EA SilentlyContinue
+		Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\$ChromeKey" -EA SilentlyContinue | Out-Null
 	}
 
+	DS_WriteLog "-" "" $LogFile
+	write-Host -ForegroundColor Green "...ready"
+	Write-Output ""
 }
 Else {
 Write-Host -ForegroundColor Red "Version file not found for $Product"
