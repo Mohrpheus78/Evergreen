@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.11.1
+Version: 2.11.2
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -62,6 +62,7 @@ Version: 2.11.1
 24/05/02: Fixed KeePass, 7-Zip and OneDrive
 24/07/22: Fixed Citrix WorkspaceApp, Sharefile, 7-Zip and VLC Player, added NEW MS Teams 2.x
 24/07/23: Fixed FileZilla, replaced openJDK with Microsoft openJDK 
+24/07/23: Added Zoom VDI client and Citrix HDX plugin, added ControlUp console and ControlUp DX client for Windows
 #>
 
 
@@ -859,13 +860,33 @@ function gui_mode{
 	
 	# TreeSizeFree Checkbox
     $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
-    $TreeSizeFreeBox.text = "TreeSize Free"
+    $TreeSizeFreeBox.text = "TreeSize Free for Client OS"
     $TreeSizeFreeBox.width = 95
     $TreeSizeFreeBox.height = 20
     $TreeSizeFreeBox.autosize = $true
     $TreeSizeFreeBox.location = New-Object System.Drawing.Point(685,370)
     $form.Controls.Add($TreeSizeFreeBox)
 	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
+	
+	# ControlUpConsole Checkbox
+    $ControlUpConsoleBox = New-Object system.Windows.Forms.CheckBox
+    $ControlUpConsoleBox.text = "ControlUp Console"
+    $ControlUpConsoleBox.width = 95
+    $ControlUpConsoleBox.height = 20
+    $ControlUpConsoleBox.autosize = $true
+    $ControlUpConsoleBox.location = New-Object System.Drawing.Point(685,395)
+    $form.Controls.Add($ControlUpConsoleBox)
+	$ControlUpConsoleBox.Checked =  $SoftwareSelection.ControlUpConsole
+	
+	# ControlUpRemoteDX Checkbox
+    $ControlUpRemoteDXBox = New-Object system.Windows.Forms.CheckBox
+    $ControlUpRemoteDXBox.text = "ControlUp DX client"
+    $ControlUpRemoteDXBox.width = 95
+    $ControlUpRemoteDXBox.height = 20
+    $ControlUpRemoteDXBox.autosize = $true
+    $ControlUpRemoteDXBox.location = New-Object System.Drawing.Point(685,420)
+    $form.Controls.Add($ControlUpRemoteDXBox)
+	$ControlUpRemoteDXBox.Checked =  $SoftwareSelection.ControlUpRemoteDX
 	
 	<#
 	# Cisco WebEx Desktop Checkbox
@@ -879,31 +900,32 @@ function gui_mode{
 	$CiscoWebExDesktopBox.Checked =  $SoftwareSelection.CiscoWebExDesktop
 	#>
 	
-	<#
-	## Zoom Host Checkbox
+	# Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomVDIBox.text = "Zoom VDI Host Installer (N/A)"
-	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
-    $ZoomVDIBox.Font = $CustomFont
+    $ZoomVDIBox.text = "Zoom VDI Host Installer"
+	#$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
+    #$ZoomVDIBox.Font = $CustomFont
     $ZoomVDIBox.width = 95
     $ZoomVDIBox.height = 20
     $ZoomVDIBox.autosize = $true
-    $ZoomVDIBox.location = New-Object System.Drawing.Point(685,245)
+    $ZoomVDIBox.location = New-Object System.Drawing.Point(685,445)
     $form.Controls.Add($ZoomVDIBox)
 	$ZoomVDIBox.Checked =  $SoftwareSelection.ZoomVDI
 	
 	# Zoom Citrix client Checkbox
     $ZoomCitrixBox = New-Object system.Windows.Forms.CheckBox
-    $ZoomCitrixBox.text = "Zoom Citrix Client (N/A)"
-	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
-    $ZoomCitrixBox.Font = $CustomFont
+    $ZoomCitrixBox.text = "Zoom Citrix HDX Media Plugin"
+	#$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
+    #$ZoomCitrixBox.Font = $CustomFont
     $ZoomCitrixBox.width = 95
     $ZoomCitrixBox.height = 20
     $ZoomCitrixBox.autosize = $true
-    $ZoomCitrixBox.location = New-Object System.Drawing.Point(685,270)
+    $ZoomCitrixBox.location = New-Object System.Drawing.Point(685,470)
     $form.Controls.Add($ZoomCitrixBox)
 	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
 	
+	
+	<#
 	# Zoom VMWare client Checkbox
     $ZoomVMWareBox = New-Object system.Windows.Forms.CheckBox
     $ZoomVMWareBox.text = "Zoom VMWare Client (N/A)"
@@ -963,9 +985,11 @@ function gui_mode{
 		$MSWVDRTCServiceBox.checked = $True
 		$MSWVDBootLoaderBox.checked = $True
 		$TreeSizeFreeBox.checked = $True
+		$ControlUpConsoleBox.checked = $True
+		$ControlUpConsoleBox.checked = $True
 		$ZoomVDIBox.checked = $False
 		$ZoomCitrixBox.checked = $False
-		$ZoomVMWareBox.checked = $False
+		#$ZoomVMWareBox.checked = $False
 		$VLCPlayerBox.checked = $True
 		$FileZillaBox.checked = $True
 		$CiscoWebExVDIBox.checked = $True
@@ -1028,9 +1052,11 @@ function gui_mode{
 		$MSWVDRTCServiceBox.checked = $False
 		$MSWVDBootLoaderBox.checked = $False
 		$TreeSizeFreeBox.checked = $False
+		$ControlUpConsoleBox.checked = $False
+		$ControlUpConsoleBox.checked = $False
 		$ZoomVDIBox.checked = $False
 		$ZoomCitrixBox.checked = $False
-		$ZoomVMWareBox.checked = $False
+		#$ZoomVMWareBox.checked = $False
 		$VLCPlayerBox.checked = $False
 		$FileZillaBox.checked = $False
 		$CiscoWebExVDIBox.checked = $False
@@ -1094,9 +1120,11 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8" -Value $OracleJava8Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8_32" -Value $OracleJava8_32Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "TreeSizeFree" -Value $TreeSizeFreeBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ControlUpConsole" -Value $ControlUpConsoleBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ControlUpRemoteDX" -Value $ControlUpRemoteDXBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVDI" -Value $ZoomVDIBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomCitrix" -Value $ZoomCitrixBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVMWare" -Value $ZoomVMWareBox.checked -Force
+		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVMWare" -Value $ZoomVMWareBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VLCPlayer" -Value $VLCPlayerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FileZilla" -Value $FileZillaBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExVDI" -Value $CiscoWebExVDIBox.checked -Force
@@ -1236,7 +1264,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.11"
+	[version]$EvergreenVersion = "2.11.2"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2295,9 +2323,7 @@ IF ($SoftwareSelection.FSLogix -eq $true) {
 		New-Item -Path "$SoftwareFolder\$Product\Install" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\$Product\Install\Version.txt" -Value "$Version"
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\Install\" + ($Source))
 		Try {
-			#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\Install\" + ($Source))
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\Install\" + ($Source))
 		} catch {
 			throw $_.Exception.Message
@@ -2397,7 +2423,7 @@ IF ($SoftwareSelection.NEWMSTeams -eq $true) {
 	$InstallerType = "msix"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host -ForegroundColor Yellow "Download MS Teams 2.x"
 	Write-Host "Download Version: $Version"
 	Write-Host "Current Version: $CurrentVersion"
 	IF ($Version) {
@@ -3400,20 +3426,23 @@ IF ($SoftwareSelection.MicrosoftOpenJDK -eq $true) {
 	$Product = "Microsoft OpenJDK 21"
 	$PackageName = "MicrosoftOpenJDK"
 	Try {
-	$MicrosoftOpenJDK = Get-EvergreenApp -Name MicrosoftOpenJDK21 | Where-Object {$_.Architecture -eq "x64"} -ErrorAction Stop
+		$MicrosoftOpenJDK = Get-EvergreenApp -Name MicrosoftOpenJDK21 | Where-Object {$_.Architecture -eq "x64"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	[Version]$VersionMicrosoftOpenJDK = $MicrosoftOpenJDK.version
+	$Version = $MicrosoftOpenJDK.version
 	$URL = $MicrosoftOpenJDK.uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
-	[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt"
+	IF ($CurrentVersion -like "*+*") {
+		$CurrentVersion = [version]$CurrentVersion.Replace("+", ".")
+	}
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $VersionMicrosoftOpenJDK"
 	Write-Host "Current Version: $CurrentVersion"
-	IF ($VersionMicrosoftOpenJDK) {
-		IF ($VersionMicrosoftOpenJDK -gt $CurrentVersion) {
+	IF ($version) {
+		IF ($version -gt $CurrentVersion) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionMicrosoftOpenJDK.log"
@@ -3937,17 +3966,132 @@ IF ($SoftwareSelection.Putty -eq $true) {
 	}
 }
 
-<#
+
+
+# Download ControlUp Console
+IF ($SoftwareSelection.ControlUpConsole -eq $true) {
+	$Product = "ControlUp Console"
+	$PackageName = "ControlUpConsole"
+	Try {
+	$ControlUpConsole = Get-EvergreenApp -Name ControlUpConsole -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $ControlUpConsole.Version
+	$URL = $ControlUpConsole.uri
+	$InstallerType = "zip"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		#expand-archive -path "$SoftwareFolder\$Product\Install\ControlUpConsole.zip" -destinationpath "$SoftwareFolder\$Product"  
+		#start-sleep -Seconds 5
+		#Remove-Item -Path "$SoftwareFolder\$Product\Install\ControlUpConsole.zip" -Force
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
+
+
+# Download ControlUp DX client
+IF ($SoftwareSelection.ControlUpRemoteDX -eq $true) {
+	$Product = "ControlUp DX Client"
+	$PackageName = "curdx_windows_citrix"
+	Try {
+	$ControlUpRemoteDX = Get-EvergreenApp -Name ControlUpRemoteDX | Where-Object {$_.Plugin -like "Citrix*"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $ControlUpRemoteDX.Version
+	$URL = $ControlUpRemoteDX.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		#expand-archive -path "$SoftwareFolder\$Product\Install\ControlUpConsole.zip" -destinationpath "$SoftwareFolder\$Product"  
+		#start-sleep -Seconds 5
+		#Remove-Item -Path "$SoftwareFolder\$Product\Install\ControlUpConsole.zip" -Force
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
+
+
 # Download Zoom VDI Installer
 IF ($SoftwareSelection.ZoomVDI -eq $true) {
 	$Product = "Zoom VDI Host"
 	$PackageName = "ZoomInstallerVDI"
 	Try {
-	$ZoomVDI = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom VDI Client"} -ErrorAction Stop
+	$ZoomVDI = Get-EvergreenApp -Name ZoomVDI | Where-Object {$_.Platform -eq "VDIClient" -and $_.Type -eq "msi" -and $_.Architecture -eq "x64"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$Version = $ZoomVDI.Version
+	$URLVersionZoom = "https://support.zoom.com/hc/de/article?id=zm_kb&sysparm_article=KB0063813#collapseGeneric52"
+	$webRequestZoom = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionZoom) -SessionVariable websession
+	$regexAppVersionZoom = "\d\.\d\d\.\d"
+	$webVersionZoom = $webRequestZoom.RawContent | Select-String -Pattern $regexAppVersionZoom -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+	[Version]$Version = $webVersionZoom.Trim("</td>").Trim("</td>")
 	$URL = $ZoomVDI.Uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
@@ -3965,7 +4109,6 @@ IF ($SoftwareSelection.ZoomVDI -eq $true) {
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
-		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Try {
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 		} catch {
@@ -3996,11 +4139,15 @@ IF ($SoftwareSelection.ZoomCitrix -eq $true) {
 	$Product = "Zoom Citrix Client"
 	$PackageName = "ZoomCitrixHDXMediaPlugin"
 	Try {
-	$ZoomCitrix = Get-NevergreenApp -Name Zoom | Where-Object {$_.Name -eq "Zoom Citrix HDX Media Plugin"} -ErrorAction Stop
+	$ZoomCitrix = Get-EvergreenApp -Name ZoomVDI | Where-Object {$_.Platform -eq "Citrix"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$Version = $ZoomCitrix.Version
+	$URLVersionZoomCitrix = "https://support.zoom.com/hc/de/article?id=zm_kb&sysparm_article=KB0063813#collapseGeneric52"
+	$webRequestZoomCitrix = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionZoomCitrix) -SessionVariable websession
+	$regexAppVersionZoomCitrix = "\d\.\d\d\.\d"
+	$webVersionZoomCitrix = $webRequestZoomCitrix.RawContent | Select-String -Pattern $regexAppVersionZoomCitrix -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+	[Version]$Version = $webVersionZoomCitrix.Trim("</td>").Trim("</td>")
 	$URL = $ZoomCitrix.Uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
