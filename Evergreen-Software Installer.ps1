@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.17
+Version: 2.17.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -66,6 +66,7 @@ Version: 2.17
 24/07/03: Disabled all Google Chrome update services
 24/07/08: Delete Chrome active setup regkeys, corrected error with Chrome install syntax
 24/07/19: Added NEW MS Teams 2.x
+24/07/24: Added MS openJDK 21
 #>
 
 Param (
@@ -587,13 +588,23 @@ function gui_mode{
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
 	
+	# MicrosoftOpenJDK Checkbox
+    $MicrosoftOpenJDKBox = New-Object system.Windows.Forms.CheckBox
+    $MicrosoftOpenJDKBox.text = "Microsoft OpenJDK 21"
+    $MicrosoftOpenJDKBox.width = 95
+    $MicrosoftOpenJDKBox.height = 20
+    $MicrosoftOpenJDKBox.autosize = $true
+    $MicrosoftOpenJDKBox.location = New-Object System.Drawing.Point(390,320)
+    $form.Controls.Add($MicrosoftOpenJDKBox)
+	$MicrosoftOpenJDKBox.Checked =  $SoftwareSelection.MicrosoftOpenJDK
+	
 	# BISF Checkbox
     $BISFBox = New-Object system.Windows.Forms.CheckBox
     $BISFBox.text = "BIS-F"
     $BISFBox.width = 95
     $BISFBox.height = 20
     $BISFBox.autosize = $true
-    $BISFBox.location = New-Object System.Drawing.Point(390,320)
+    $BISFBox.location = New-Object System.Drawing.Point(390,345)
     $form.Controls.Add($BISFBox)
 	$BISFBox.Checked =  $SoftwareSelection.BISF
 	
@@ -603,7 +614,7 @@ function gui_mode{
     $FSLogixBox.width = 95
     $FSLogixBox.height = 20
     $FSLogixBox.autosize = $true
-    $FSLogixBox.location = New-Object System.Drawing.Point(390,345)
+    $FSLogixBox.location = New-Object System.Drawing.Point(390,370)
     $form.Controls.Add($FSLogixBox)
 	$FSLogixBox.Checked =  $SoftwareSelection.FSLogix
 	
@@ -613,7 +624,7 @@ function gui_mode{
     $GoogleChromeBox.width = 95
     $GoogleChromeBox.height = 20
     $GoogleChromeBox.autosize = $true
-    $GoogleChromeBox.location = New-Object System.Drawing.Point(390,370)
+    $GoogleChromeBox.location = New-Object System.Drawing.Point(390,395)
     $form.Controls.Add($GoogleChromeBox)
 	$GoogleChromeBox.Checked =  $SoftwareSelection.GoogleChrome
 <#	
@@ -633,7 +644,7 @@ function gui_mode{
     $PuttyBox.width = 95
     $PuttyBox.height = 20
     $PuttyBox.autosize = $true
-    $PuttyBox.location = New-Object System.Drawing.Point(390,395)
+    $PuttyBox.location = New-Object System.Drawing.Point(390,420)
 	# $PuttyBox.location = New-Object System.Drawing.Point(770,45)
     $form.Controls.Add($PuttyBox)
     $PuttyBox.Checked =  $SoftwareSelection.Putty
@@ -644,7 +655,7 @@ function gui_mode{
     $WinSCPBox.width = 95
     $WinSCPBox.height = 20
     $WinSCPBox.autosize = $true
-    $WinSCPBox.location = New-Object System.Drawing.Point(390,420)
+    $WinSCPBox.location = New-Object System.Drawing.Point(390,445)
     $form.Controls.Add($WinSCPBox)
     $WinSCPBox.Checked =  $SoftwareSelection.WinSCP
 	
@@ -666,7 +677,7 @@ function gui_mode{
     $mRemoteNGBox.width = 95
     $mRemoteNGBox.height = 20
     $mRemoteNGBox.autosize = $true
-    $mRemoteNGBox.location = New-Object System.Drawing.Point(390,445)
+    $mRemoteNGBox.location = New-Object System.Drawing.Point(390,470)
     $form.Controls.Add($mRemoteNGBox)
 	$mRemoteNGBox.Checked =  $SoftwareSelection.mRemoteNG
 	
@@ -676,19 +687,9 @@ function gui_mode{
     $RemoteDesktopManagerBox.width = 95
     $RemoteDesktopManagerBox.height = 20
     $RemoteDesktopManagerBox.autosize = $true
-    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(390,470)
+    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(390,495)
     $form.Controls.Add($RemoteDesktopManagerBox)
 	$RemoteDesktopManagerBox.Checked =  $SoftwareSelection.RemoteDesktopManager
-	
-	# VLCPlayer Checkbox
-    $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
-    $VLCPlayerBox.text = "VLC Player"
-    $VLCPlayerBox.width = 95
-    $VLCPlayerBox.height = 20
-    $VLCPlayerBox.autosize = $true
-    $VLCPlayerBox.location = New-Object System.Drawing.Point(390,495)
-    $form.Controls.Add($VLCPlayerBox)
-	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
 	
 	# OracleJava8 Checkbox
     $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
@@ -730,7 +731,15 @@ function gui_mode{
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 
-    
+    # VLCPlayer Checkbox
+    $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
+    $VLCPlayerBox.text = "VLC Player"
+    $VLCPlayerBox.width = 95
+    $VLCPlayerBox.height = 20
+    $VLCPlayerBox.autosize = $true
+    $VLCPlayerBox.location = New-Object System.Drawing.Point(780,45)
+    $form.Controls.Add($VLCPlayerBox)
+	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
 	
 	# deviceTRUST Checkbox
     $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
@@ -738,7 +747,7 @@ function gui_mode{
     $deviceTRUSTBox.width = 95
     $deviceTRUSTBox.height = 20
     $deviceTRUSTBox.autosize = $true
-    $deviceTRUSTBox.location = New-Object System.Drawing.Point(780,45)
+    $deviceTRUSTBox.location = New-Object System.Drawing.Point(780,70)
     $form.Controls.Add($deviceTRUSTBox)
 	$deviceTRUSTBox.Checked =  $SoftwareSelection.deviceTRUST
 	
@@ -748,7 +757,7 @@ function gui_mode{
     $KeePassBox.width = 95
     $KeePassBox.height = 20
     $KeePassBox.autosize = $true
-    $KeePassBox.location = New-Object System.Drawing.Point(780,70)
+    $KeePassBox.location = New-Object System.Drawing.Point(780,95)
     $form.Controls.Add($KeePassBox)
 	$KeePassBox.Checked =  $SoftwareSelection.KeePass
 	
@@ -758,7 +767,7 @@ function gui_mode{
     $KeePassXCBox.width = 95
     $KeePassXCBox.height = 20
     $KeePassXCBox.autosize = $true
-    $KeePassXCBox.location = New-Object System.Drawing.Point(780,95)
+    $KeePassXCBox.location = New-Object System.Drawing.Point(780,120)
     $form.Controls.Add($KeePassXCBox)
 	$KeePassXCBox.Checked =  $SoftwareSelection.KeePassXC
 
@@ -768,7 +777,7 @@ function gui_mode{
     $TreeSizeFreeBox.width = 95
     $TreeSizeFreeBox.height = 20
     $TreeSizeFreeBox.autosize = $true
-    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(780,120)
+    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(780,145)
     $form.Controls.Add($TreeSizeFreeBox)
 	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
 	
@@ -778,7 +787,7 @@ function gui_mode{
     $ShareXBox.width = 95
     $ShareXBox.height = 20
     $ShareXBox.autosize = $true
-    $ShareXBox.location = New-Object System.Drawing.Point(780,145)
+    $ShareXBox.location = New-Object System.Drawing.Point(780,170)
     $form.Controls.Add($ShareXBox)
 	$ShareXBox.Checked =  $SoftwareSelection.ShareX
 	
@@ -788,7 +797,7 @@ function gui_mode{
     $ImageGlassBox.width = 95
     $ImageGlassBox.height = 20
     $ImageGlassBox.autosize = $true
-    $ImageGlassBox.location = New-Object System.Drawing.Point(780,170)
+    $ImageGlassBox.location = New-Object System.Drawing.Point(780,195)
     $form.Controls.Add($ImageGlassBox)
 	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
 	
@@ -798,7 +807,7 @@ function gui_mode{
     $FileZillaBox.width = 95
     $FileZillaBox.height = 20
     $FileZillaBox.autosize = $true
-    $FileZillaBox.location = New-Object System.Drawing.Point(780,195)
+    $FileZillaBox.location = New-Object System.Drawing.Point(780,220)
     $form.Controls.Add($FileZillaBox)
 	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
 
@@ -808,7 +817,7 @@ function gui_mode{
     $WinRARBoxDe.width = 95
     $WinRARBoxDe.height = 20
     $WinRARBoxDe.autosize = $true
-    $WinRARBoxDe.location = New-Object System.Drawing.Point(780,220)
+    $WinRARBoxDe.location = New-Object System.Drawing.Point(780,245)
     $form.Controls.Add($WinRARBoxDe)
 	$WinRARBoxDe.Checked =  $SoftwareSelection.WinRARDe
 
@@ -818,7 +827,7 @@ function gui_mode{
     $WinRARBoxEn.width = 95
     $WinRARBoxEn.height = 20
     $WinRARBoxEn.autosize = $true
-    $WinRARBoxEn.location = New-Object System.Drawing.Point(780,245)
+    $WinRARBoxEn.location = New-Object System.Drawing.Point(780,270)
     $form.Controls.Add($WinRARBoxEn)
 	$WinRARBoxEn.Checked =  $SoftwareSelection.WinRAREn
 	
@@ -828,7 +837,7 @@ function gui_mode{
     $FoxitReaderBox.width = 95
     $FoxitReaderBox.height = 20
     $FoxitReaderBox.autosize = $true
-    $FoxitReaderBox.location = New-Object System.Drawing.Point(780,270)
+    $FoxitReaderBox.location = New-Object System.Drawing.Point(780,295)
     $form.Controls.Add($FoxitReaderBox)
 	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
 	
@@ -893,6 +902,7 @@ function gui_mode{
 		$VcRedistBox.checked = $True
         $MSSQLManagementStudioENBox.checked = $True
         $MSSQLManagementStudioDEBox.checked = $True
+		$MicrosoftOpenJDKBox.checked = $True
 		$OracleJava8Box.checked = $True
 		$OracleJava8_32Box.checked = $True
 		$TreeSizeFreeBox.checked = $True
@@ -963,6 +973,7 @@ function gui_mode{
 		$VcRedistBox.checked = $False
         $MSSQLManagementStudioENBox.checked = $False
         $MSSQLManagementStudioENBox.checked = $False
+		$MicrosoftOpenJDKBox.checked = $False
 		$OracleJava8Box.checked = $False
 		$OracleJava8_32Box.checked = $False
 		$TreeSizeFreeBox.checked = $False
@@ -1035,6 +1046,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VcRedist" -Value $VcRedistBox.checked -Force
         Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsEN" -Value $MSSQLManagementStudioENBox.checked -Force
         Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsDE" -Value $MSSQLManagementStudioDEBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MicrosoftOpenJDK" -Value $MicrosoftOpenJDKBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8" -Value $OracleJava8Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8_32" -Value $OracleJava8_32Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "TreeSizeFree" -Value $TreeSizeFreeBox.checked -Force
@@ -1268,7 +1280,7 @@ If ($NewerVersion -eq $false) {
 }
 Else {
         # There is a new Evergreen Script Version
-        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer!"
+        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer available!"
         Write-Output ""
 		$wshell = New-Object -ComObject Wscript.Shell
             $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
@@ -1689,6 +1701,19 @@ IF ($SoftwareSelection.MSSsmsDE -eq $true)
 		catch {
 			Write-Host -ForegroundColor Red "Installing MS SQL MGMT Studio DE"
 			Write-Host -ForegroundColor Red "Error launching script 'Install MS SQL MGMT Studio DE': $($Error[0])"
+			Write-Output ""
+			}
+	}
+	
+# Install MS openJDK 21
+IF ($SoftwareSelection.MicrosoftOpenJDK -eq $true)
+	{
+		try {
+			& "$SoftwareFolder\Install MS openJDK21.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS openJDK 21"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS openJDK 21': $($Error[0])"
 			Write-Output ""
 			}
 	}

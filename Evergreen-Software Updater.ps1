@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.11
+Version: 2.11.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -61,6 +61,7 @@ Version: 2.11
 24/04/25: Added MS .NET DesktopRuntime 8.4.0 for Remote Desktop Manager
 24/05/02: Fixed KeePass, 7-Zip and OneDrive
 24/07/22: Fixed Citrix WorkspaceApp, Sharefile, 7-Zip and VLC Player, added NEW MS Teams 2.x
+24/07/23: Fixed FileZilla, replaced openJDK with Microsoft openJDK 
 #>
 
 
@@ -479,8 +480,6 @@ function gui_mode{
 	# Citrix VM Tools Checkbox
     $Citrix_VMToolsBox = New-Object system.Windows.Forms.CheckBox
     $Citrix_VMToolsBox.text = "Citrix VM Tools (Windows)"
-	# $CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
-    # $Citrix_VMToolsBox.Font = $CustomFont
     $Citrix_VMToolsBox.width = 95
     $Citrix_VMToolsBox.height = 20
     $Citrix_VMToolsBox.autosize = $true
@@ -698,15 +697,15 @@ function gui_mode{
     $form.Controls.Add($VcRedistBox)
 	$VcRedistBox.Checked = $SoftwareSelection.VcRedist
 	
-	# deviceTRUST CheckBox
-    $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
-    $deviceTRUSTBox.text = "deviceTRUST"
-    $deviceTRUSTBox.width = 95
-    $deviceTRUSTBox.height = 20
-    $deviceTRUSTBox.autosize = $true
-    $deviceTRUSTBox.location = New-Object System.Drawing.Point(250,395)
-    $form.Controls.Add($deviceTRUSTBox)
-	$deviceTRUSTBox.Checked = $SoftwareSelection.deviceTRUST
+	# MicrosoftOpenJDK Checkbox
+    $MicrosoftOpenJDKBox = New-Object system.Windows.Forms.CheckBox
+    $MicrosoftOpenJDKBox.text = "Microsoft OpenJDK 21"
+    $MicrosoftOpenJDKBox.width = 95
+    $MicrosoftOpenJDKBox.height = 20
+    $MicrosoftOpenJDKBox.autosize = $true
+    $MicrosoftOpenJDKBox.location = New-Object System.Drawing.Point(250,395)
+    $form.Controls.Add($MicrosoftOpenJDKBox)
+	$MicrosoftOpenJDKBox.Checked =  $SoftwareSelection.MicrosoftOpenJDK
 	
 	# OracleJava8 x64 Checkbox
     $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
@@ -728,16 +727,16 @@ function gui_mode{
     $form.Controls.Add($OracleJava8_32Box)
 	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
 	
-	# OpenJDK Checkbox
-    $OpenJDKBox = New-Object system.Windows.Forms.CheckBox
-    $OpenJDKBox.text = "Open JDK"
-    $OpenJDKBox.width = 95
-    $OpenJDKBox.height = 20
-    $OpenJDKBox.autosize = $true
-    $OpenJDKBox.location = New-Object System.Drawing.Point(685,45)
-    $form.Controls.Add($OpenJDKBox)
-	$OpenJDKBox.Checked =  $SoftwareSelection.OpenJDK
-	
+	# deviceTRUST CheckBox
+    $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
+    $deviceTRUSTBox.text = "deviceTRUST"
+    $deviceTRUSTBox.width = 95
+    $deviceTRUSTBox.height = 20
+    $deviceTRUSTBox.autosize = $true
+    $deviceTRUSTBox.location = New-Object System.Drawing.Point(685,45)
+    $form.Controls.Add($deviceTRUSTBox)
+	$deviceTRUSTBox.Checked = $SoftwareSelection.deviceTRUST
+		
 	# VLCPlayer Checkbox
     $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
     $VLCPlayerBox.text = "VLC Player"
@@ -972,7 +971,7 @@ function gui_mode{
 		$CiscoWebExVDIBox.checked = $True
 		$WinRARBox.checked = $True
 		#$CiscoWebExDesktopBox.checked = $True
-		$OpenJDKBox.checked = $True
+		$MicrosoftOpenJDKBox.checked = $True
 		$GreenshotBox.checked = $True
 		$OracleJava8Box.checked = $True
 		$OracleJava8_32Box.checked = $True
@@ -1037,7 +1036,7 @@ function gui_mode{
 		$CiscoWebExVDIBox.checked = $False
 		$WinRARBox.checked = $False
 		#$CiscoWebExDesktopBox.checked = $False
-		$OpenJDKBox.checked = $False
+		$MicrosoftOpenJDKBox.checked = $False
 		$GreenshotBox.checked = $False
 		$OracleJava8Box.checked = $False
 		$OracleJava8_32Box.checked = $False
@@ -1090,7 +1089,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDDesktopAgent" -Value $MSWVDDesktopAgentBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDRTCService" -Value $MSWVDRTCServiceBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDBootLoader" -Value $MSWVDBootLoaderBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "openJDK" -Value $OpenJDKBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MicrosoftOpenJDK" -Value $MicrosoftOpenJDKBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Greenshot" -Value $GreenshotBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8" -Value $OracleJava8Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8_32" -Value $OracleJava8_32Box.checked -Force
@@ -1779,12 +1778,6 @@ IF ($SoftwareSelection.VLCPlayer -eq $true) {
 IF ($SoftwareSelection.FileZilla -eq $true) {
 	$Product = "FileZilla"
 	$PackageName = "FileZilla"
-	Try {
-	$FileZilla = Get-EvergreenApp -Name FileZilla -ErrorAction Stop
-	} catch {
-		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
-		}
-	$Version = $FileZilla.Version
 	$URLFilezilla = "https://patchmypc.com/freeupdater/definitions/definitions.xml"
 	$webRequestFilezilla = Invoke-WebRequest -UseBasicParsing -Uri ($URLFilezilla) -SessionVariable websession
 	$regexAppFilezilla = "<FileZillax64Download>.*"
@@ -1792,7 +1785,10 @@ IF ($SoftwareSelection.FileZilla -eq $true) {
     $UrlFilezilla = $UrlFilezilla.Split('"<')
     $UrlFilezilla = $UrlFilezilla.Split('">')
 	$UrlFilezilla = $UrlFilezilla[2]
-	#$URL = $FileZilla.uri
+	$FileZillaFileName = [System.IO.Path]::GetFileName($URLFilezilla)
+	if ($FileZillaFileName -match '_([0-9.]+)_([a-zA-Z0-9-]+)\.exe') {
+		$Version = $matches[1]
+    }
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -2391,7 +2387,6 @@ IF ($SoftwareSelection.MSTeams -eq $true) {
 IF ($SoftwareSelection.NEWMSTeams -eq $true) {
 	$Product = "MS Teams 2"
 	$PackageName = "MSTeams-x64"
-    Write-Host -ForegroundColor Yellow "Download Microsoft Teams 2 Bootstrapper"
 	Try {
 	$NEWTeams = Get-EvergreenApp -Name MicrosoftTeams -WarningAction silentlyContinue | Where-Object { $_.Architecture -eq "x64" -and $_.Release -eq "Enterprise" -and $_.Type -eq "msix"}
 	} catch {
@@ -2414,7 +2409,7 @@ IF ($SoftwareSelection.NEWMSTeams -eq $true) {
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version" ´n
 		Try {
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
 		} catch {
@@ -3400,39 +3395,33 @@ IF ($SoftwareSelection.deviceTRUST -eq $true) {
 }
 
 
-# Download openJDK
-IF ($SoftwareSelection.OpenJDK -eq $true) {
-	$Product = "open JDK 8"
-	$PackageName = "OpenJDK"
+# Download Microsoft openJDK 21
+IF ($SoftwareSelection.MicrosoftOpenJDK -eq $true) {
+	$Product = "Microsoft OpenJDK 21"
+	$PackageName = "MicrosoftOpenJDK"
 	Try {
-	$OpenJDK = Get-EvergreenApp -Name OpenJDK | Where-Object {$_.Architecture -eq "x64" -and $_.URI -like "*msi*" -and $_.Version -like "1.8*"} | Sort-Object -Property Version -Descending | Select-Object -First 1 -ErrorAction Stop
+	$MicrosoftOpenJDK = Get-EvergreenApp -Name MicrosoftOpenJDK21 | Where-Object {$_.Architecture -eq "x64"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	IF ($OpenJDK.Version -eq "RateLimited") {
-		$VersionOpenJDK = $null
-		}
-	ELSE {
-		$VersionOpenJDK = $OpenJDK.Version
-		[Version]$VersionOpenJDK = $VersionOpenJDK -replace ".{6}$"
-	}
-	$URL = $OpenJDK.uri
+	[Version]$VersionMicrosoftOpenJDK = $MicrosoftOpenJDK.version
+	$URL = $MicrosoftOpenJDK.uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	[Version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"
-	Write-Host "Download Version: $VersionOpenJDK"
+	Write-Host "Download Version: $VersionMicrosoftOpenJDK"
 	Write-Host "Current Version: $CurrentVersion"
-	IF ($VersionOpenJDK) {
-		IF ($VersionOpenJDK -gt $CurrentVersion) {
+	IF ($VersionMicrosoftOpenJDK) {
+		IF ($VersionMicrosoftOpenJDK -gt $CurrentVersion) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionOpenJDK.log"
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionMicrosoftOpenJDK.log"
 		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionOpenJDK"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionOpenJDK"
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionMicrosoftOpenJDK"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionMicrosoftOpenJDK"
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Try {
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
