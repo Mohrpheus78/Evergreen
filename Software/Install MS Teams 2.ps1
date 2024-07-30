@@ -196,6 +196,10 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
         }
 				
         Start-Sleep 5
+
+		$TeamsVersionPath = (Get-ChildItem -Path "C:\Program Files\WindowsApps" -Filter "MSTeams_*" -Directory).Fullname | Sort-Object Name
+		Write-Host -ForegroundColor Yellow "Register Teams version as environment variable"
+		[Environment]::SetEnvironmentVariable("TeamsVersionPath", $TeamsVersionPath, "Machine")
 		
         }
 		Write-Host -ForegroundColor Green "...ready"
