@@ -86,6 +86,7 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	"/includeSSON"
 	"/ENABLE_SSON=Yes"
 	"/InstallEmbeddedBrowser=N"
+	"/installMSTeamsPlugin"
 	)
 	
 	Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime 6.0.20 (Prerequisite for current Workspace App)"

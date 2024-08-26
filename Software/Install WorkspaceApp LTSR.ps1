@@ -85,7 +85,25 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	"/ALLOWSAVEPWD=S"
 	"/includeSSON"
 	"/ENABLE_SSON=Yes"
+	"/InstallEmbeddedBrowser=N"
+	"/installMSTeamsPlugin"
 	)
+
+	Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime 6.0.20 (Prerequisite for current Workspace App)"
+	DS_WriteLog "I" "Installing MS DotNet Desktop Runtime (Prerequisite for current Workspace App)" $LogFile
+	IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Windows Desktop Runtime - 8.0.6 (x86)"})) {
+		try {
+			Start-Process -FilePath "$PSScriptRoot\Citrix\WorkspaceApp\Windows\LTSR\windowsdesktop-runtime-8.0.6-win-x86.exe" -ArgumentList "/quiet /noreboot" –NoNewWindow -wait
+			DS_WriteLog "-" "" $LogFile
+			Write-Host -ForegroundColor Green " ... ready!"
+			Write-Output "" 
+		} catch {
+			DS_WriteLog "E" "Error installing MS DotNet Desktop Runtime (error: $($Error[0]))" $LogFile
+			Write-Host -ForegroundColor Red "Error installing MS DotNet Desktop Runtime (error: $($Error[0])), MS DotNet Desktop Runtime is a new requirement for WorkspaceApp, make sure it's available in the software folder!"
+			BREAK
+			}
+	}
+
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try	{
