@@ -52,7 +52,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 	$Java = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Java*Update* (64-bit)"}).DisplayVersion
 	IF ([string]::ISNullOrEmpty( $Java) -eq $False) {
-	$Subfolder = (Get-ChildItem -Path "C:\Program Files\Java").Name
+	$Subfolder = (Get-ChildItem -Path "C:\Program Files\Java").Name | Select-Object -First 1
 	$Java = Get-Content -Path "C:\Program Files\Java\$Subfolder\release" -TotalCount 1
 	$Java = $Java -replace ("JAVA_VERSION=","")
 	$Java = $Java.TrimEnd('"')
