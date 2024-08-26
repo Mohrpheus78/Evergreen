@@ -88,7 +88,7 @@ IF ($Frage -eq 'y') {
 			DS_WriteLog "I" "Installing $Product" $LogFile
 			Write-Host -ForegroundColor Yellow "Installing $Product $VersionWEM On-Prem"
 			try	{
-				Start-Process "$PSScriptRoot\Citrix\WEM\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=0 AgentCacheLocation=D:\WEMCache InfrastructureServer=$WEMServer' –NoNewWindow -Wait
+				Start-Process "$PSScriptRoot\Citrix\WEM\Citrix Workspace Environment Management Agent.exe" -ArgumentList '/quiet Cloud=0 InfrastructureServer=$WEMServer' –NoNewWindow -Wait
 				DS_WriteLog "-" "" $LogFile
 				write-Host -ForegroundColor Green "...ready"
 				Write-Output ""
