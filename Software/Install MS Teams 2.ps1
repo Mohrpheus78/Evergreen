@@ -218,6 +218,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	Write-Host -ForegroundColor Yellow "Installing $Product Meeting Add-In"
 	DS_WriteLog "I" "Installing $Product Meeting Add-In" $LogFile
 	msiexec.exe /i "$((Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*').FullName)\MicrosoftTeamsMeetingAddinInstaller.msi" Reboot=ReallySuppress ALLUSERS=1 TARGETDIR="C:\Windows\Microsoft\TeamsMeetingAddin" /qn
+	Start-Sleep 10
 	$appX64DLL = (Get-ChildItem -Path "C:\Windows\Microsoft\TeamsMeetingAddin\x64" -Include "Microsoft.Teams.AddinLoader.dll" -Recurse).FullName
     $appX86DLL = (Get-ChildItem -Path "C:\Windows\Microsoft\TeamsMeetingAddin\x86" -Include "Microsoft.Teams.AddinLoader.dll" -Recurse).FullName
     Start-Process -FilePath "$env:WinDir\SysWOW64\regsvr32.exe" -ArgumentList "/s /n /i:user `"$appX64DLL`"" -ErrorAction SilentlyContinue
