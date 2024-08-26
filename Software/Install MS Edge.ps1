@@ -121,7 +121,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 			Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue | Out-Null
 			}
 		# Disable Active Setup
-		Write-Host "Disable active setup regkyes for Edge"
+		Write-Host "Disable active setup regkeys for Edge"
 		$EdgeKey = (Get-Childitem -recurse "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components" -Exclude 'AutorunsDisabled' | Get-Itemproperty | Where-Object { $_  -match 'Edge' }).PSChildName | Select-Object -First 1
 		IF ($EdgeKey) {
 			Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\$EdgeKey" -EA SilentlyContinue
