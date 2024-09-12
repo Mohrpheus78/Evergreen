@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.11.3
+Version: 2.11.4
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -64,6 +64,7 @@ Version: 2.11.3
 24/07/23: Fixed FileZilla, replaced openJDK with Microsoft openJDK 
 24/07/23: Added Zoom VDI client and Citrix HDX plugin, added ControlUp console and ControlUp DX client for Windows
 24/08/26: Changed Citrix WorkspaceApp LTSR (.NET Desktop runtime)
+24/09/12: Fix for Chrome version bug, version now provided by PatchmyPC
 #>
 
 
@@ -1265,7 +1266,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.11.3"
+	[version]$EvergreenVersion = "2.11.4"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1653,24 +1654,31 @@ IF ($SoftwareSelection.GoogleChrome -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$Version = $Chrome.Version
+	# $Version = $Chrome.Version
+	$URLChrome = "https://patchmypc.com/freeupdater/definitions/definitions.xml"
+	$webRequestChrome = Invoke-WebRequest -UseBasicParsing -Uri ($URLChrome) -SessionVariable websession
+	$regexAppChrome = "<ChromeVer>([A-Za-z0-9]+(\.[A-Za-z0-9]+)+)</ChromeVer>"
+	$UrlChrome = $webRequestChrome.RawContent | Select-String -Pattern $regexAppChrome -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+    $UrlChrome = $UrlChrome.Split('"<')
+    $UrlChrome = $UrlChrome.Split('">')
+	$VersionChrome = $UrlChrome[2]
 	$URL = $Chrome.uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"
-	Write-Host "Download Version: $Version"
+	Write-Host "Download Version: $VersionChrome"
 	Write-Host "Current Version: $CurrentVersion"
-	IF ($Version) {
-		IF (!($CurrentVersion -eq $Version)) {
+	IF ($VersionChrome) {
+		IF (!($CurrentVersion -eq $VersionChrome)) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionChrome.log"
 		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionChrome"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionChrome"
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Try {
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
@@ -2249,58 +2257,6 @@ IF ($SoftwareSelection.AdobeReaderDCx64_MUI -eq $true) {
 			Write-Output ""
 		}
 	}
-
-
-<#
-# Download Adobe Reader DC x64 MUI Update
-IF ($SoftwareSelection.AdobeReaderDCx64_MUI -eq $true) {
-	$Product = "Adobe Reader DC x64 MUI"
-	$PackageName = "Adobe_DC_MUI_x64_Update"
-	$InstallerType = "msp"
-	$Source = "$PackageName" + "." + "$InstallerType"
-	Try {
-	$URLVersionAdobe = "https://patchmypc.com/freeupdater/definitions/definitions.xml"
-	$webRequestAdobe = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionAdobe) -SessionVariable websession
-	$regexAppVersionAdobe = "<AcrobatReaderDCVer>.*"
-	$webVersionAdobe = $webRequestAdobe.RawContent | Select-String -Pattern $regexAppVersionAdobe -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-	$VersionAdobe = $webVersionAdobe.Trim("<AcrobatReaderDCVer>").Trim("</AcrobatReaderDCVer>")
-	$VersionAdobeTrim = $VersionAdobe -replace ("\.","")
-	$VersionAdobeDownload = ("AcroRdrDCx64Upd" + "$VersionAdobeTrim" + "_MUI" + ".msp")
-	} catch {
-		Write-Warning "Failed to find update of $Product"
-		}
-	$URL = "https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/$VersionAdobeTrim/$VersionAdobeDownload"
-	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
-	Write-Host -ForegroundColor Yellow "Download $Product"
-	Write-Host "Download Version: $VersionAdobe"
-	Write-Host "Current Version: $CurrentVersion"
-	IF ($VersionAdobe) {
-		IF (!($CurrentVersion -eq $VersionAdobe)) {
-		Write-Host -ForegroundColor Green "Update available"
-		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionAdobe.log"
-		Remove-Item "$SoftwareFolder\$Product\*" -Include *.msp, *.log, Version.txt, Download* -Recurse
-		Start-Transcript $LogPS | Out-Null
-		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionAdobe"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionAdobe"
-		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-		Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-		Write-Host "Stop logging"
-		Stop-Transcript | Out-Null
-		Write-Output ""
-		}
-		ELSE {
-		Write-Host -ForegroundColor Yellow "No new version available"
-		Write-Output ""
-		}
-	}
-	ELSE {
-		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
-		Write-Output ""
-	}
-}
-#>
 
 
 # Download FSLogix
