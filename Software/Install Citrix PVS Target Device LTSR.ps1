@@ -56,10 +56,13 @@ if ($noGUI -eq $False) {
 		IF ($Frage -eq 'y') {
 
 			# Installation PVS Target LTSR
-			$PVS = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Citrix Provisioning Target Device*"}).DisplayName
+			$PVS = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Citrix Provisioning Target Device*"}).DisplayVersion
+			$PVS = [version]$PVS
 			# $PVS = [version]$PVS.Split("x64 ")[9]
-			$VersionPVS = (Get-Item "$PSScriptRoot\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe").VersionInfo.ProductName
+			$VersionPVS = (Get-Item "$PSScriptRoot\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe").VersionInfo.ProductVersion
+			$VersionPVS = [version]$VersionPVS
 			# $VersionPVS = [version]$VersionPVS.Split("x64 ")[9]
+			$DisplayPVS = (Get-Item "$PSScriptRoot\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe").VersionInfo.ProductName
 
 			IF (!(Test-Path "$PSScriptRoot\Citrix\LTSR\PVS")) {
 				Write-Host ""
@@ -68,11 +71,11 @@ if ($noGUI -eq $False) {
 				BREAK 
 			}
 
-			IF ($PVS -ne $VersionPVS) {
+			IF ($PVS -lt $VersionPVS) {
 				try	{
-					DS_WriteLog "I" "Installing $Product $VersionPVS" $LogFile
+					DS_WriteLog "I" "Installing DisplayPVS" $LogFile
 					Write-Output ""
-					Write-Host -ForegroundColor Yellow "Installing $Product $VersionPVS"
+					Write-Host -ForegroundColor Yellow "Installing DisplayPVS"
 					Start-Process "$PSScriptRoot\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
 					# Remove Status Tray from autostart
 					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name StatusTray -Force -EA SilentlyContinue
@@ -84,7 +87,7 @@ if ($noGUI -eq $False) {
 					Restart-Computer
 				} catch {
 					DS_WriteLog "-" "" $LogFile
-					DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
+					DS_WriteLog "E" "Error installing DisplayPVS (Error: $($Error[0]))" $LogFile
 					Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
 					Write-Output ""    
 					}
