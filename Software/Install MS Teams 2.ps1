@@ -148,7 +148,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
     } 
     If ($OS -Like "*Windows Server 2019*") {
 		try {
-			Write-Host "Windows Server 2019 detected. Installation without teamsbootstrapper.exe"
+			Write-Host "Windows Server 2019 detected, installation without teamsbootstrapper.exe"
 			Start-Process -wait -NoNewWindow -FilePath DISM.exe -Args "/Online /Add-ProvisionedAppxPackage /PackagePath:""$PSScriptRoot\$Product\MSTeams-x64.msix"" /SkipLicense"
 		} catch {
 			DS_WriteLog "-" "" $LogFile
@@ -158,7 +158,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		}	
     } else {
 		if ($OS -Like "*Windows Server 2022*") {
-			Write-Host "Windows Server 2022 detected. Installation with teamsbootstrapper.exe"
+			Write-Host "Windows Server 2022 detected, installation with teamsbootstrapper.exe"
 			try {
 				$Teams_bootstraper_exe = "$PSScriptRoot\$Product\teamsbootstrapper.exe"
 				$New_Teams_MSIX = "$PSScriptRoot\$Product\MSTeams-x64.msix"
@@ -171,7 +171,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 			}	
 		}
         if ($OS -Like "*Windows 10*") {
-			Write-Host "Windows 10 detected. Installation without teamsbootstrapper.exe"
+			Write-Host "Windows 10 detected, installation without teamsbootstrapper.exe"
 			try {
 				Start-Process -wait -NoNewWindow -FilePath DISM.exe -Args "/Online /Add-ProvisionedAppxPackage /PackagePath:""$PSScriptRoot\$Product\MSTeams-x64.msix"" /SkipLicense"
 			} catch {
@@ -182,7 +182,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 			}	
 		}
 		if ($OS -Like "*Windows 11*") {
-			Write-Host "Windows 11 detected. Installation with teamsbootstrapper.exe"
+			Write-Host "Windows 11 detected, installation with teamsbootstrapper.exe"
 			try {
 				$Teams_bootstraper_exe = "$PSScriptRoot\$Product\teamsbootstrapper.exe"
 				$New_Teams_MSIX = "$PSScriptRoot\$Product\MSTeams-x64.msix"
