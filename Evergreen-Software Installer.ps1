@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.17.5
+Version: 2.17.6
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -1202,7 +1202,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.17.5"
+	[version]$EvergreenVersion = "2.17.6"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1290,8 +1290,12 @@ Else {
             $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
             If ($AnswerPending -eq "6") {
 				$update = @'
-                Remove-Item -Path "$PSScriptRoot\Evergreen-Software Installer.ps1" -Force 
+                Remove-Item -Path "$PSScriptRoot\Evergreen-Software Installer.ps1" -Force
+				IF (!(Test-Path "$SoftwareFolder\MS Teams 2")) {
+					New-Item -Path "$SoftwareFolder\MS Teams 2" -ItemType Directory | Out-Null
+					}
                 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Installer.ps1")
+				Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/refs/heads/main/Software/MS%20Teams%202/NEW%20MS%20Teams%20Settings.ps1 -OutFile ("$PSScriptRoot\MS Teams 2\" + "NEW MS Teams Settings.ps1")
 				$TempFolder = "$PSScriptRoot\SoftwareTemp"
 				IF (!(Test-Path $TempFolder)) {
 					New-Item -Path $TempFolder -ItemType Directory -EA SilentlyContinue | Out-Null
