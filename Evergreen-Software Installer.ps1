@@ -1295,7 +1295,7 @@ Else {
 					New-Item -Path "$SoftwareFolder\MS Teams 2" -ItemType Directory | Out-Null
 					}
                 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Installer.ps1")
-				Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/refs/heads/main/Software/MS%20Teams%202/NEW%20MS%20Teams%20Settings.ps1 -OutFile ("$PSScriptRoot\Software\MS Teams 2\" + "NEW MS Teams Settings.ps1")
+				Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/refs/heads/main/Software/MS%20Teams%202/NEW%20MS%20Teams%20Settings.ps1 -OutFile ("$SoftwareFolder\MS Teams 2\" + "NEW MS Teams Settings.ps1")
 				$TempFolder = "$PSScriptRoot\SoftwareTemp"
 				IF (!(Test-Path $TempFolder)) {
 					New-Item -Path $TempFolder -ItemType Directory -EA SilentlyContinue | Out-Null
