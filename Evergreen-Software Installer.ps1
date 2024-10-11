@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.17.6
+Version: 2.17.7
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -71,6 +71,7 @@ Version: 2.17.6
 24/08/26: Added new MS Teams plugin for Citrix WorkspaceApp, added MS .NET Desktop runtime for WSA LTSR
 24/08/26: Changed Oracle Java version check
 24/09/19: Changed PVS target device version check
+24/10/11: Changed WorkspaceApp LTSR .NET Desktop Runtime to version 8.0.10, added Teams 2.0 logon script
 #>
 
 Param (
@@ -1202,7 +1203,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.17.6"
+	[version]$EvergreenVersion = "2.17.7"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
