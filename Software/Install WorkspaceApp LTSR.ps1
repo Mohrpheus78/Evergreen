@@ -89,9 +89,9 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	"/installMSTeamsPlugin"
 	)
 
-	Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime 8.0.10 (Prerequisite for current Workspace App)"
-	DS_WriteLog "I" "Installing MS DotNet Desktop Runtime (Prerequisite for current Workspace App)" $LogFile
 	IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Windows Desktop Runtime - 8.0.10 (x86)"})) {
+		Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime 8.0.10 (Prerequisite for current Workspace App)"
+		DS_WriteLog "I" "Installing MS DotNet Desktop Runtime (Prerequisite for current Workspace App)" $LogFile
 		try {
 			Start-Process -FilePath "$PSScriptRoot\Citrix\WorkspaceApp\Windows\LTSR\windowsdesktop-runtime-8.0.10-win-x86.exe" -ArgumentList "/quiet /noreboot" –NoNewWindow -wait
 			DS_WriteLog "-" "" $LogFile
