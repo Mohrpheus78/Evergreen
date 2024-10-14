@@ -90,7 +90,7 @@ else {
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-	[version]$FoxitReader = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Foxit Reader*"}).DisplayVersion 
+	[version]$FoxitReader = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Foxit*"}).DisplayVersion 
 
 	IF ($FoxitReader -lt $Version) {
 
