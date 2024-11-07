@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.11.5
+Version: 2.11.6
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -66,6 +66,7 @@ Version: 2.11.5
 24/08/26: Changed Citrix WorkspaceApp LTSR (.NET Desktop runtime)
 24/09/12: Fix for Chrome version bug, version now provided by PatchmyPC
 24/10/11: Changed WorkspaceApp LTSR .NET Desktop Runtime to version 8.0.10, added Teams 2.0 logon script
+24/11/07: Changed CiscoWebEx, currently not available
 #>
 
 
@@ -834,6 +835,8 @@ function gui_mode{
 	# Cisco WebEx VDI Plugin Checkbox
     $CiscoWebExVDIBox = New-Object system.Windows.Forms.CheckBox
     $CiscoWebExVDIBox.text = "Cisco WebEx VDI Plugin"
+	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
+    $CiscoWebExVDIBox.Font = $CustomFont
     $CiscoWebExVDIBox.width = 95
     $CiscoWebExVDIBox.height = 20
     $CiscoWebExVDIBox.autosize = $true
@@ -1267,7 +1270,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.11.5"
+	[version]$EvergreenVersion = "2.11.6"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -3124,7 +3127,7 @@ IF ($SoftwareSelection.CitrixVMTools -eq $true) {
     [Version]$VersionCitrixVMTools  = $webVersionCitrixVMTools
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
-	$URL = "https://downloads.xenserver.com/vm-tools-windows/$VersionCitrixVMTools/$Source"
+	$URL = "https://downloads.xenserver.com/vm-tools-windows/$VersionCitrixVMTools/managementagent-9.4.0-x64.msi"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $VersionCitrixVMTools"
@@ -4206,12 +4209,12 @@ IF ($SoftwareSelection.ZoomVMWare -eq $true) {
 	}
 }
 
-
+<#
 # Download Cisco WebEx Desktop
 IF ($SoftwareSelection.CiscoWebExDesktop -eq $true) {
 $Product = "Cisco WebEx Desktop"
 $PackageName = "WebEx"
-$CiscoWebExDesktop = Get-EvergreenApp -Name CiscoWebEx | Where-Object {$_.Type -eq "Desktop"}
+$CiscoWebExDesktop = Get-NevergreenApp -Name CiscoWebEx | Where-Object {$_.Language -eq "Multi" -and $_.Name -eq "Cisco Webex"}
 $Version = $CiscoWebExDesktop.Version
 $URL = $CiscoWebExDesktop.uri
 $InstallerType = "msi"
@@ -4244,6 +4247,10 @@ Write-Output ""
 # Download Cisco WebEx VDI Plugin
 IF ($SoftwareSelection.CiscoWebExVDI -eq $true) {
 	$Product = "Cisco WebEx VDI Plugin"
+	Write-Host -ForegroundColor Red "$Product currently not available in Evergreen downloader, try again later!"
+	Write-Output ""
+	<#
+	
 	$PackageName = "WebExVDIPlugin"
 	$URLVersionWebExVDI = "https://www.webex.com/downloads/teams-vdi.html"
 	$webRequestWebExVDI = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionWebExVDI) -SessionVariable websession
@@ -4294,6 +4301,7 @@ IF ($SoftwareSelection.CiscoWebExVDI -eq $true) {
 		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
 		Write-Output ""
 	}
+	#>
 }
 
 

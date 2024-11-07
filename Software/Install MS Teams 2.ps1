@@ -59,12 +59,6 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		
 	}
 	If ($TeamsNew -ne $Version) {
-	if (!(Get-AppxPackage *MSTeams*)) {	
-	Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to install the NEW MS Teams client? The old client will be uninstalled, otherwise please uncheck in the selection! Please check Teams after installation before production use!"
-	Write-Host ""
-	}
-		$Frage = Read-Host "( y / n )"
-		IF ($Frage -eq 'y') {	
 		
 		If (Test-Path -Path "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\") {
 			$UninstallTeams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).UninstallString
@@ -236,7 +230,6 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	Write-Host -ForegroundColor Green "...ready"
 	Write-Output ""		
  	
-	}
 	}
 	# Stop, if no new version is available
 	Else {

@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.17.8
+Version: 2.17.9
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -73,6 +73,7 @@ Version: 2.17.8
 24/09/19: Changed PVS target device version check
 24/10/11: Changed WorkspaceApp LTSR .NET Desktop Runtime to version 8.0.10, added Teams 2.0 logon script
 24/10/14: Changed Foxit Reader version check, display NEW Teams update question only once, if migrating from old Teams
+24/11/06: Changed MS Teams 2 update question
 #>
 
 Param (
@@ -516,7 +517,7 @@ function gui_mode{
 	
 	# MSTeams 2 Checkbox
     $NEWMSTeamsBox = New-Object system.Windows.Forms.CheckBox
-    $NEWMSTeamsBox.text = "Microsoft Teams 2.x (BETA!))"
+    $NEWMSTeamsBox.text = "NEW Microsoft Teams 2.x"
     $NEWMSTeamsBox.width = 95
     $NEWMSTeamsBox.height = 20
     $NEWMSTeamsBox.autosize = $true
@@ -1204,7 +1205,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.17.8"
+	[version]$EvergreenVersion = "2.17.9"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
