@@ -62,6 +62,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	IF (Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*') {
 		try {
 			Add-AppPackage -Register -DisableDevelopmentMode "$((Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*').FullName)\AppXManifest.xml" -EA SilentlyContinue
+			Start-Sleep -Seconds 10
 		} catch {
 			Write-Error "Error registering MS Teams AppXPackage: $_"
 		}
@@ -209,6 +210,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		try {
 			Write-Host -ForegroundColor Yellow "Register MS Teams AppPackage"
 			Add-AppPackage -Register -DisableDevelopmentMode "$((Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*').FullName)\AppXManifest.xml" -EA SilentlyContinue
+			Start-Sleep -Seconds 5
 		} catch {
 			Write-Error "Error registering MS Teams AppPackage: $_"
 		}
