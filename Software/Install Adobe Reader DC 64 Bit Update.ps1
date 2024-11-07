@@ -60,10 +60,12 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		$mspArgs = "/P `"$PSScriptRoot\$Product\Adobe_DC_MUI_x64_Update.msp`" /quiet /qn"
 		Start-Process -FilePath msiexec.exe -ArgumentList $mspArgs -Wait
 		# Disale update service and scheduled task
-		Start-Sleep 5
-		Stop-Service AdobeARMservice
-		Set-Service AdobeARMservice -StartupType Disabled
-		Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
+		if (Get-Service -Name AdobeARMservice) {
+			Start-Sleep 5
+			Stop-Service AdobeARMservice
+			Set-Service AdobeARMservice -StartupType Disabled
+			Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
+		}
 		DS_WriteLog "-" "" $LogFile
 		write-Host -ForegroundColor Green "...ready"
 		Write-Output ""

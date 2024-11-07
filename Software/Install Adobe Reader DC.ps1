@@ -95,10 +95,12 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 
 		IF (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Adobe Acrobat Reader MUI*"}) {
 		# Disale update service and scheduled task
-		Start-Sleep 5
-		Stop-Service AdobeARMservice
-		Set-Service AdobeARMservice -StartupType Disabled
-		Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
+		if (Get-Service -Name AdobeARMservice) {
+			Start-Sleep 5
+			Stop-Service AdobeARMservice
+			Set-Service AdobeARMservice -StartupType Disabled
+			Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
+		}
 		}
 	}
 

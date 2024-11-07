@@ -58,8 +58,15 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		$TeamsNew = $TeamsNew -replace '^(\d+\.\d+\.\d+).*$', '$1'
 		
 	}
-	If ($TeamsNew -ne $Version) {
-		
+	# Register MS Teams AppPackage
+	IF (Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*') {
+		try {
+			Add-AppPackage -Register -DisableDevelopmentMode "$((Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*').FullName)\AppXManifest.xml" -EA SilentlyContinue
+		} catch {
+			Write-Error "Error registering MS Teams AppXPackage: $_"
+		}
+	}
+	If ($TeamsNew -ne $Version) {	
 		If (Test-Path -Path "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\") {
 			$UninstallTeams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).UninstallString
         }
@@ -142,17 +149,17 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	If ($OS -Like "*Windows Server 2016*") {
 		Write-Host -ForegroundColor Red "Windows Server 2016 detected. No installation possible!"
     } 
-    If ($OS -Like "*Windows Server 2019*") {
-		try {
-			Write-Host "Windows Server 2019 detected. Installation without teamsbootstrapper.exe"
-			Start-Process -wait -NoNewWindow -FilePath DISM.exe -Args "/Online /Add-ProvisionedAppxPackage /PackagePath:""$PSScriptRoot\$Product\MSTeams-x64.msix"" /SkipLicense"
-		} catch {
-			DS_WriteLog "-" "" $LogFile
-			DS_WriteLog "E" "Error installing $Product for Windows Server 2019 (Error: $($Error[0]))" $LogFile
-			Write-Host -ForegroundColor Red "Error installing $Product for Windows Server 2019 (Error: $($Error[0]))"
-			Write-Output ""    
-		}	
-    } else {
+		If ($OS -Like "*Windows Server 2019*") {
+			try {
+				Write-Host "Windows Server 2019 detected. Installation without teamsbootstrapper.exe"
+				Start-Process -wait -NoNewWindow -FilePath DISM.exe -Args "/Online /Add-ProvisionedAppxPackage /PackagePath:""$PSScriptRoot\$Product\MSTeams-x64.msix"" /SkipLicense"
+			} catch {
+				DS_WriteLog "-" "" $LogFile
+				DS_WriteLog "E" "Error installing $Product for Windows Server 2019 (Error: $($Error[0]))" $LogFile
+				Write-Host -ForegroundColor Red "Error installing $Product for Windows Server 2019 (Error: $($Error[0]))"
+				Write-Output ""    
+			}	
+		}
 		if ($OS -Like "*Windows Server 2022*") {
 			Write-Host "Windows Server 2022 detected. Installation with teamsbootstrapper.exe"
 			try {
@@ -192,12 +199,31 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
         }
 				
         Start-Sleep 5
-
+		
+		# Create environment variable
 		$TeamsVersionPath = (Get-ChildItem -Path "C:\Program Files\WindowsApps" -Filter "MSTeams_*" -Directory).Fullname | Sort-Object Name
 		Write-Host -ForegroundColor Yellow "Register Teams version as environment variable"
 		[Environment]::SetEnvironmentVariable("TeamsVersionPath", $TeamsVersionPath, "Machine")
 		
-        }
+		# Register MS Teams AppXPackage
+		try {
+			Write-Host -ForegroundColor Yellow "Register MS Teams AppPackage"
+			Add-AppPackage -Register -DisableDevelopmentMode "$((Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*').FullName)\AppXManifest.xml" -EA SilentlyContinue
+		} catch {
+			Write-Error "Error registering MS Teams AppPackage: $_"
+		}
+		
+		# Create scheduled task for registering MS Teams AppXPackage
+		Write-Host -ForegroundColor Yellow "Create scheduled task for registering MS Teams AppXPackage"
+		$Options = @(
+		"-command"
+		"{Add-AppPackage -Register -DisableDevelopmentMode '$((Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*').FullName)\AppXManifest.xml'}"
+		)
+		$Trigger = New-JobTrigger -AtLogOn
+		$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "$Options"
+		$User = "NT AUTHORITY\SYSTEM"
+		Register-ScheduledTask -TaskName 'Register MS Teams AppXPackage' -User $User -Action $Action -Trigger $Trigger -EA SilentlyContinue | Out-Null
+		
 		Write-Host -ForegroundColor Green "...ready"
 		Write-Output ""
 	
