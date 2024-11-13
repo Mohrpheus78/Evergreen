@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.11.6
+Version: 2.11.7
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -67,6 +67,7 @@ Version: 2.11.6
 24/09/12: Fix for Chrome version bug, version now provided by PatchmyPC
 24/10/11: Changed WorkspaceApp LTSR .NET Desktop Runtime to version 8.0.10, added Teams 2.0 logon script
 24/11/07: Changed CiscoWebEx, currently not available
+24/11/13: Changed pdf24Creator download link
 #>
 
 
@@ -1270,7 +1271,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.11.6"
+	[version]$EvergreenVersion = "2.11.7"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1540,10 +1541,10 @@ IF ($SoftwareSelection.pdf24Creator -eq $true) {
 	$regexAppVersionPDF2 = "\d\d\.\d\d\.\d+"
     $webVersionPDF24 = $webRequest.RawContent | Select-String -Pattern $regexAppVersionPDF2 -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1 -Skip 1
     [version]$VersionPDF24 = $webVersionPDF24
-    $regexAppVersionDL = "pdf24-creator-.*.msi"
-    $webVersionPDF24 = $webRequest.RawContent | Select-String -Pattern $regexAppVersionDL -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
-    $VersionPDF24DL = $webVersionPDF24.Split('"<')[0]
-    $URL = "https://download.pdf24.org/$VersionPDF24DL"
+    #$regexAppVersionDL = "pdf24-creator-.*.msi"
+    #$webVersionPDF24 = $webRequest.RawContent | Select-String -Pattern $regexAppVersionDL -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+    #$VersionPDF24DL = $webVersionPDF24.Split('"<')[0]
+    $URL = "https://download.pdf24.org/pdf24-creator-$webVersionPDF24-x64.msi"
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
