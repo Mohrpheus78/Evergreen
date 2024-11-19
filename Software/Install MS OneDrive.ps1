@@ -53,6 +53,12 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$OneDrive = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*OneDrive*"}).DisplayVersion
 	IF ($OneDrive -ne $Version) {
 
+	# Delete all scheduled reporting tasks
+	$OneDriveReportingTasks = Get-ScheduledTask -EA SilentlyContinue | Where-Object {$_.TaskName -like "OneDrive Reporting*"} | Select-Object -ExpandProperty TaskName
+		foreach ($TaskName in $OneDriveReportingTasks) {
+			schtasks /delete /tn "$TaskName" /f
+		}
+
 	# Installation OneDrive
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
@@ -76,14 +82,10 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 				}
 	}
 
-	# Delete all scheduled reporting tasks
-	# Unregister-ScheduledTask -EA SilentlyContinue -Confirm:$false | Where-Object {$_.TaskName -like "OneDrive Reporting*"}
-
 	IF ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*OneDrive*"}).DisplayVersion) {
 		$OneDriveTasks= (Get-ScheduledTask -EA SilentlyContinue | Where-Object {$_.TaskName -like "OneDrive*"}).TaskName
 		foreach ($Task in $OneDriveTasks) {
-			Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue | Out-Null
-			Unregister-ScheduledTask -TaskName $Task -Confirm:$False | Out-Null
+			Disable-ScheduledTask -EA SilentlyContinue -TaskName $Task | Out-Null
 			}
 		If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\OneDrive")) {
 			New-Item "HKLM:\SOFTWARE\Policies\Microsoft" -Name "OneDrive" -Force | Out-Null

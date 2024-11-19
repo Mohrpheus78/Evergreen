@@ -93,7 +93,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	IF ($Chrome -lt $Version) {
 
 	# Delete all scheduled tasks
-	# Unregister-ScheduledTask -EA SilentlyContinue -Confirm:$false | Where-Object {$_.TaskName -like "GoogleUpdaterTaskSystem*"}
+	Unregister-ScheduledTask -EA SilentlyContinue -Confirm:$false | Where-Object {$_.TaskName -like "GoogleUpdaterTaskSystem*"}
 
 	# Google Chrome
 	Write-Host -ForegroundColor Yellow "Installing $Product"
