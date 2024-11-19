@@ -79,7 +79,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
         $UninstallTeams = $UninstallTeams -Replace("MsiExec.exe /I","")
 		If ($UninstallTeams) {
 			Write-Host -ForegroundColor Yellow "Uninstall old Teams"
-			DS_WriteLog "I" "Uninstall old Teams" $LogFile
+			DS_WriteLog "I" "Uninstall old MS Teams machine wide installer" $LogFile
 			try {
 				Start-Process -FilePath msiexec.exe -ArgumentList "/X $UninstallTeams /qn" -wait
 				Start-Sleep 3

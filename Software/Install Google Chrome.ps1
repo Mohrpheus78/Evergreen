@@ -92,6 +92,9 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Chrome = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Google Chrome"}).DisplayVersion
 	IF ($Chrome -lt $Version) {
 
+	# Delete all scheduled tasks
+	Unregister-ScheduledTask -EA SilentlyContinue -Confirm:$false | Where-Object {$_.TaskName -like "GoogleUpdaterTaskSystem*"}
+
 	# Google Chrome
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
@@ -116,7 +119,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	Start-Sleep -s 3
 	Write-Host "Disable scheduled update tasks for Chrome"
 	try {
-		$ChromeTasks = (Get-ScheduledTask | Where-Object {$_.TaskName -like "GoogleUpdate*"})
+		$ChromeTasks = (Get-ScheduledTask -EA SilentlyContinue | Where-Object {$_.TaskName -like "GoogleUpdate*"})
 		foreach ($Task in $ChromeTasks) {
 			Disable-ScheduledTask -TaskName $Task.Taskname -TaskPath $Task.TaskPath | Out-Null
 			}

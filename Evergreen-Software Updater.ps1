@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.11.7
+Version: 2.11.8
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -68,6 +68,7 @@ Version: 2.11.7
 24/10/11: Changed WorkspaceApp LTSR .NET Desktop Runtime to version 8.0.10, added Teams 2.0 logon script
 24/11/07: Changed CiscoWebEx, currently not available
 24/11/13: Changed pdf24Creator download link
+24/11/19: Changed VLC Player version and download information to PatchMyPC
 #>
 
 
@@ -1271,7 +1272,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.11.7"
+	[version]$EvergreenVersion = "2.11.8"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1767,21 +1768,39 @@ IF ($SoftwareSelection.MSEdge -eq $true) {
 IF ($SoftwareSelection.VLCPlayer -eq $true) {
 	$Product = "VLC Player"
 	$PackageName = "VLC-Player"
+	<#
 	Try {
 	$VLC = Get-EvergreenApp -Name VideoLanVlcPlayer | Where-Object {$_.Architecture -eq "x64" -and $_.Type -eq "msi"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$Version = $VLC.Version
-	$URL = $VLC.uri
+	#>
+	Try {
+		$URLVLC = "https://patchmypc.com/freeupdater/definitions/definitions.xml"
+		$webRequestVLC = Invoke-WebRequest -UseBasicParsing -Uri ($URLVLC) -SessionVariable websession
+		$regexAppVLC = "<VLCVer>([A-Za-z0-9]+(\.[A-Za-z0-9]+)+)</VLCVer>"
+		$VerVLC = $webRequestVLC.RawContent | Select-String -Pattern $regexAppVLC -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+		$VerVLC = $VerVLC.Split('"<')
+		$VerVLC = $VerVLC.Split('">')
+		$VersionVLC = $VerVLC[2]
+		$regexVLCURL = "<VLCx64Download>.*"
+		$DLURLVLC = $webRequestVLC.RawContent | Select-String -Pattern $regexVLCURL -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+		$DLURLVLC = $DLURLVLC.Split('"<')
+		$DLURLVLC = $DLURLVLC.Split('">')
+		$URL = $DLURLVLC[2]
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	[version]$Version = $VersionVLC
+	#$URL = $VLC.uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
-	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	[version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product" 
 	Write-Host "Download Version: $Version"
 	Write-Host "Current Version: $CurrentVersion"
 	IF ($Version) {
-		IF (!($CurrentVersion -eq $Version)) {
+		IF ($Version -gt $CurrentVersion) {
 		Write-Host -ForegroundColor Green "Update available" 
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"

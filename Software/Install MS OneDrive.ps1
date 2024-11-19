@@ -76,8 +76,11 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 				}
 	}
 
+	# Delete all scheduled reporting tasks
+	Unregister-ScheduledTask -EA SilentlyContinue -Confirm:$false | Where-Object {$_.TaskName -like "OneDrive Reporting*"}
+
 	IF ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*OneDrive*"}).DisplayVersion) {
-		$OneDriveTasks= (Get-ScheduledTask | Where-Object {$_.TaskName -like "OneDrive*"}).TaskName
+		$OneDriveTasks= (Get-ScheduledTask -EA SilentlyContinue | Where-Object {$_.TaskName -like "OneDrive*"}).TaskName
 		foreach ($Task in $OneDriveTasks) {
 			Disable-ScheduledTask -TaskName $Task -EA SilentlyContinue | Out-Null
 			Unregister-ScheduledTask -TaskName $Task -Confirm:$False | Out-Null

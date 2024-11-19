@@ -90,7 +90,7 @@ else {
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 	[version]$VLC = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*VLC*"}).DisplayVersion
-	IF ($VLC) {$VLC = $VLC -replace ".{2}$"}
+	# IF ($VLC) {$VLC = $VLC -replace ".{2}$"}
 	IF ($VLC -lt $Version) {
 
 	# VLC Player
