@@ -54,10 +54,12 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	IF ($OneDrive -ne $Version) {
 
 	# Delete all scheduled reporting tasks
+	<#
 	$OneDriveReportingTasks = Get-ScheduledTask -EA SilentlyContinue | Where-Object {$_.TaskName -like "OneDrive Reporting*"} | Select-Object -ExpandProperty TaskName
 		foreach ($TaskName in $OneDriveReportingTasks) {
 			schtasks /delete /tn "$TaskName" /f
 		}
+	#>
 
 	# Installation OneDrive
 	Write-Host -ForegroundColor Yellow "Installing $Product"
