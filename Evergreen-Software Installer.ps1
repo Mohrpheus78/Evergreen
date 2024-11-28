@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.17.13
+Version: 2.17.14
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -76,7 +76,10 @@ Version: 2.17.13
 24/11/06: Changed MS Teams 2 update question
 24/11/07: Register MS Teams for all users, including admins, changed Adobe update task check
 24/11/19: Better approach to delete/disable OneDrive and Chrome update tasks, check if Windows search failure tasks are present if installing FSLogix
+24/11/29: Changed uninstall procedure for MS Teams 2.x if OS is Server 2019 or Windows 10, removed mRemote NG
+# Notes
 #>
+
 
 Param (
 		[Parameter(
@@ -680,15 +683,15 @@ function gui_mode{
 	$CiscoWebExDesktopBox.Checked =  $SoftwareSelection.CiscoWebExDesktop
 	#>
 	
-	# mRemoteNG Checkbox
-    $mRemoteNGBox = New-Object system.Windows.Forms.CheckBox
-    $mRemoteNGBox.text = "mRemoteNG"
-    $mRemoteNGBox.width = 95
-    $mRemoteNGBox.height = 20
-    $mRemoteNGBox.autosize = $true
-    $mRemoteNGBox.location = New-Object System.Drawing.Point(390,470)
-    $form.Controls.Add($mRemoteNGBox)
-	$mRemoteNGBox.Checked =  $SoftwareSelection.mRemoteNG
+	# FoxitReader Checkbox
+    $FoxitReaderBox = New-Object system.Windows.Forms.CheckBox
+    $FoxitReaderBox.text = "Foxit Reader"
+    $FoxitReaderBox.width = 95
+    $FoxitReaderBox.height = 20
+    $FoxitReaderBox.autosize = $true
+    $FoxitReaderBox.location = New-Object System.Drawing.Point(390,470)
+    $form.Controls.Add($FoxitReaderBox)
+	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
 	
 	# RemoteDesktopManager Checkbox
     $RemoteDesktopManagerBox = New-Object system.Windows.Forms.CheckBox
@@ -840,16 +843,6 @@ function gui_mode{
     $form.Controls.Add($WinRARBoxEn)
 	$WinRARBoxEn.Checked =  $SoftwareSelection.WinRAREn
 	
-	# FoxitReader Checkbox
-    $FoxitReaderBox = New-Object system.Windows.Forms.CheckBox
-    $FoxitReaderBox.text = "Foxit Reader"
-    $FoxitReaderBox.width = 95
-    $FoxitReaderBox.height = 20
-    $FoxitReaderBox.autosize = $true
-    $FoxitReaderBox.location = New-Object System.Drawing.Point(780,295)
-    $form.Controls.Add($FoxitReaderBox)
-	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
-	
 	<#
 	# Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
@@ -899,7 +892,6 @@ function gui_mode{
 		$Citrix_HypervisorToolsBox.checked = $False
 		$KeePassBox.checked = $True
 		$KeePassXCBox.checked = $True
-		$mRemoteNGBox.checked = $True
 		$MSEdgeBox.checked = $True
 		$MSOneDriveBox.checked = $True
 		$MSTeamsBox.checked = $True
@@ -970,7 +962,6 @@ function gui_mode{
 		$Citrix_HypervisorToolsBox.checked = $False
 		$KeePassBox.checked = $False
 		$KeePassXCBox.checked = $False
-		$mRemoteNGBox.checked = $False
 		$MSEdgeBox.checked = $False
 		$MSOneDriveBox.checked = $False
 		$MSTeamsBox.checked = $False
@@ -1043,7 +1034,6 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixHypervisorTools" -Value $Citrix_HypervisorToolsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePass" -Value $KeePassBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePassXC" -Value $KeePassXCBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "mRemoteNG" -Value $mRemoteNGBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSEdge" -Value $MSEdgeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOneDrive" -Value $MSOneDriveBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSTeams" -Value $MSTeamsBox.checked -Force
@@ -1207,7 +1197,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.17.13"
+	[version]$EvergreenVersion = "2.17.14"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1558,19 +1548,6 @@ IF ($SoftwareSelection.KeePassXC -eq $true)
 		catch {
 			Write-Host -ForegroundColor Red "Installing KeePassXC"
 			Write-Host -ForegroundColor Red "Error launching script 'Install KeePassXC': $($Error[0])"
-			Write-Output ""
-			}
-	}
-
-# Install mRemoteNG
-IF ($SoftwareSelection.mRemoteNG -eq $true)
-	{
-		try {
-			& "$SoftwareFolder\Install mRemoteNG.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing mRemoteNG"
-			Write-Host -ForegroundColor Red "Error launching script 'Install mRemoteNG ': $($Error[0])"
 			Write-Output ""
 			}
 	}

@@ -51,6 +51,7 @@ DS_WriteLog "-" "" $LogFile
 
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
+	$OS = (Get-WmiObject Win32_OperatingSystem).Caption
 	$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 	$Version = $Version -replace '^(\d+\.\d+\.\d+).*$', '$1'
 	IF (Get-AppxPackage *MSTeams*) {
@@ -125,8 +126,12 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	Write-Host -ForegroundColor Yellow "Uninstalling $Product"
 	DS_WriteLog "I" "Uninstalling $Product" $LogFile
 	try {
-		Start-Process -FilePath "$PSScriptRoot\$Product\teamsbootstrapper.exe" -ArgumentList "-x"
-        #Get-AppxPackage *MSTeams* -AllUsers | Remove-AppxPackage -AllUsers | Out-Null
+		If ($OS -Like "*Windows Server 2022*" -or $OS -like "Windows 11*") {
+			Start-Process -FilePath "$PSScriptRoot\$Product\teamsbootstrapper.exe" -ArgumentList "-x"
+		}
+		If ($OS -Like "*Windows Server 2019*" -or $OS -like "Windows 10*") {
+			Get-AppxPackage *MSTeams* -AllUsers | Remove-AppxPackage -AllUsers | Out-Null
+		}
         Start-Sleep 20
 		DS_WriteLog "-" "" $LogFile
 		Write-Host -ForegroundColor Green " ...ready!" 
@@ -142,7 +147,6 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	# MS Teams 2 installation
 	Write-Host -ForegroundColor Yellow "Installing $Product, please wait..."
 	DS_WriteLog "I" "Installing $Product" $LogFile
-	$OS = (Get-WmiObject Win32_OperatingSystem).Caption
 	New-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\Appx -Name AllowAllTrustedApps -Value 1 -PropertyType DWORD -Force | Out-Null
     New-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\Appx -Name AllowDevelopmentWithoutDevLicense -Value 1 -PropertyType DWORD -Force | Out-Null
     New-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\Appx -Name BlockNonAdminUserInstall -Value 0 -PropertyType DWORD -Force | Out-Null
