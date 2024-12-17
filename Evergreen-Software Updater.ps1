@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.11.8
+Version: 2.11.10
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -69,6 +69,7 @@ Version: 2.11.8
 24/11/07: Changed CiscoWebEx, currently not available
 24/11/13: Changed pdf24Creator download link
 24/11/19: Changed VLC Player version and download information to PatchMyPC
+24/12/16: Changed .NET Desktop Runtime for CR WorkspaceApp to version 8.10
 #>
 
 
@@ -1272,7 +1273,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.11.8"
+	[version]$EvergreenVersion = "2.11.10"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1967,9 +1968,9 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 	Write-Host -ForegroundColor Yellow "Download $Product CR"
 	Write-Host "Download Version: $Version"
 	Write-Host "Current Version: $CurrentVersion"
-	IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-6.0.20-win-x86.exe")) {
+	IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.10-win-x86.exe")) {
 			Try {
-			Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/0413b619-3eb2-4178-a78e-8d1aafab1a01/5247f08ea3c13849b68074a2142fbf31/windowsdesktop-runtime-6.0.20-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\Current\windowsdesktop-runtime-6.0.20-win-x86.exe"
+			Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/9836a475-66af-47eb-a726-8046c47ce6d5/ccb7d60db407a6d022a856852ef9e763/windowsdesktop-runtime-8.0.10-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.10-win-x86.exe"
 			} catch {
 			throw $_.Exception.Message
 			}
