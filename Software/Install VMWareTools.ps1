@@ -53,19 +53,21 @@ DS_WriteLog "-" "" $LogFile
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 	$VMWareTools = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*VMWare Tools*"}).DisplayVersion
-	$VMWareTools = $VMWareTools.substring(0,6)
+	# $VMWareTools = $VMWareTools.substring(0,6)
 	IF ($VMWareTools -ne $Version) {
 
 	# VMWareTools Install
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
-	if (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft Visual C++ 2015-2019*"})) {
-		Write-Host -ForegroundColor Red "Microsoft Visual C++ 2015-2019 Redistributable missing! A reboot is required to install VMWare Tools, call VMWare installer again after reboot!"
-	}
+	
 	try	{
-		Start-Process "$PSScriptRoot\$Product\VMWareTools.exe" -ArgumentList '/S /v "/qn REBOOT=R'  –NoNewWindow -Wait
+		Copy-Item -Path "$PSScriptRoot\$Product\VMWareTools.exe" -Destination "$ENV:TEMP" -Force
+		Start-Process "$ENV:TEMP\VMWareTools.exe" -ArgumentList '/S /v "/qn REBOOT=R'  –NoNewWindow -Wait
+		Start-Sleep -Seconds 5
+		Remove-Item -Path "$ENV:TEMP\VMWareTools.exe" -Force
 		DS_WriteLog "-" "" $LogFile
 		Write-Host -ForegroundColor Green "...ready"
+		Write-Host -ForegroundColor Red "Server needs to reboot after installation!"
 		Write-Output ""
 		} catch {
 			DS_WriteLog "-" "" $LogFile

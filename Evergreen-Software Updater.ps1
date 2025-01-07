@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.11.10
+Version: 2.11.11
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -70,6 +70,8 @@ Version: 2.11.10
 24/11/13: Changed pdf24Creator download link
 24/11/19: Changed VLC Player version and download information to PatchMyPC
 24/12/16: Changed .NET Desktop Runtime for CR WorkspaceApp to version 8.10
+25/01/03: Changed WinSCP and WINRAR download and version source, removed ShareFile
+# Notes
 #>
 
 
@@ -507,7 +509,9 @@ function gui_mode{
 	
 	# Sharefile Checkbox
     $SharefileBox = New-Object system.Windows.Forms.CheckBox
-    $SharefileBox.text = "Citrix Sharefile"
+    $SharefileBox.text = "Sharefile"
+	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
+    $SharefileBox.Font = $CustomFont
     $SharefileBox.width = 95
     $SharefileBox.height = 20
     $SharefileBox.autosize = $true
@@ -1273,7 +1277,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.11.10"
+	[version]$EvergreenVersion = "2.11.11"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1451,6 +1455,13 @@ ELSE {
 	Write-Output ""
 }
 
+# Release notes
+$scriptContent = Get-Content -Path "$PSScriptRoot\Evergreen-Software Updater.ps1"
+$notesIndex = $scriptContent.IndexOf("# Notes")
+# Find index of the line with "# Notes"
+$lastLineBeforeNotes = $scriptContent[$notesIndex - 1]
+Write-Host -Foregroundcolor Cyan "Last changes: $lastLineBeforeNotes"
+Write-Output ""
 
 # Start logfile Update Log
 Start-Transcript $UpdateLog | Out-Null
@@ -3246,6 +3257,7 @@ IF ($SoftwareSelection.CitrixXenCenter -eq $true) {
 IF ($SoftwareSelection.Sharefile -eq $true) {
 	$Product = "ShareFile"
 	$PackageName = "ShareFile"
+	<#
 	Try {
 	$Sharefile = Get-NevergreenApp -Name CitrixShareFile | Where-Object {$_.Type -eq "msi"} -ErrorAction Stop
 	} catch {
@@ -3291,6 +3303,9 @@ IF ($SoftwareSelection.Sharefile -eq $true) {
 		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
 		Write-Output ""
 	}
+	#>
+	Write-Host -ForegroundColor Red "$Product currently not available in Evergreen downloader, try again later!"
+	Write-Output ""
 }
 
 
@@ -3853,6 +3868,70 @@ IF ($SoftwareSelection.WinSCP -eq $true) {
 	$Product = "WinSCP"
 	$PackageName = "WinSCP"
 	Try {
+		$URLWinSCP = "https://patchmypc.com/freeupdater/definitions/definitions.xml"
+		$webRequestWinSCP = Invoke-WebRequest -UseBasicParsing -Uri ($URLWinSCP) -SessionVariable websession
+		$regexAppWinSCP = "<WinSCPVer>([A-Za-z0-9]+(\.[A-Za-z0-9]+)+)</WinSCPVer>"
+		$UrlWinSCP = $webRequestWinSCP.RawContent | Select-String -Pattern $regexAppWinSCP -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+		$UrlWinSCP = $UrlWinSCP.Split('"<')
+		$UrlWinSCP = $UrlWinSCP.Split('">')
+		$VersionWinSCP = $UrlWinSCP[2]
+		$regexAppWinSCPDL = "<WinSCPDownload>.*"
+		$UrlWinSCPDL = $webRequestWinSCP.RawContent | Select-String -Pattern $regexAppWinSCPDL -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+		$UrlWinSCPDL = $UrlWinSCPDL.Split('"<')
+		$UrlWinSCPDL = $UrlWinSCPDL.Split('">')
+		$UrlWinSCPDL = $UrlWinSCPDL[2]
+
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $VersionWinSCP"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($VersionWinSCP) {
+		IF ($VersionWinSCP -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionWinSCP.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionWinSCP"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionWinSCP"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Try {
+			Get-FileFromWeb -Url $UrlWinSCPDL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
+
+
+<#
+# Download WinSCP
+IF ($SoftwareSelection.WinSCP -eq $true) {
+	$Product = "WinSCP"
+	$PackageName = "WinSCP"
+	Try {
 	$WinSCP = Get-EvergreenApp -Name WinSCP | Where-Object {$_.Type -eq "exe"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
@@ -3899,6 +3978,7 @@ IF ($SoftwareSelection.WinSCP -eq $true) {
 		Write-Output ""
 	}
 }
+#>
 
 
 # Download Putty
@@ -4659,55 +4739,46 @@ IF ($SoftwareSelection.VcRedist -eq $true) {
 IF ($SoftwareSelection.WinRAR -eq $true) {
 	$Product = "WinRAR"
 	$PackageName = "WinRAR"
-	$appURLVersion = "https://www.rarlab.com/download.htm"
-	$webRequest = Invoke-WebRequest -UseBasicParsing -Uri ($appURLVersion) -SessionVariable websession
-	$regexAppVersionDe = "<tr>\n.*\n.*German.*\n.*\n.*.*\n<\/tr>"
-	$regexAppVersionEn = "<tr>\n.*\n.*English.*\n.*\n.*.*\n<\/tr>"
-	$regexAppVersionbeta = 'center\">.*beta.{2}'
-	$webVersionprodde = $webRequest.RawContent | Select-String -Pattern $regexAppVersionDe -AllMatches | ForEach-Object { $_.Matches.Value } | Select-String -NotMatch $regexAppVersionbeta -AllMatches | Select-Object -First 1
-	$installerprodde = $webVersionprodde.Line.Split(">")[2]
-	$installerprodde = $installerprodde.Split('"')[1]
-	$appversionprodde = $webVersionprodde.Line.Split(">")[8]
-	$appversionprodde = $appversionprodde.Split("<")[0]
-	$webVersionbetade = $webRequest.RawContent | Select-String -Pattern $regexAppVersionDe -AllMatches | ForEach-Object { $_.Matches.Value } | Select-String -Pattern $regexAppVersionbeta -AllMatches | Select-Object -First 1
-	
-	$webVersionproden = $webRequest.RawContent | Select-String -Pattern $regexAppVersionEn -AllMatches | ForEach-Object { $_.Matches.Value } | Select-String -NotMatch $regexAppVersionbeta -AllMatches | Select-Object -First 1
-	$installerproden = $webVersionproden.Line.Split(">")[2]
-	$installerproden = $installerproden.Split('"')[1]
-	$webVersionbetaen = $webRequest.RawContent | Select-String -Pattern $regexAppVersionEn -AllMatches | ForEach-Object { $_.Matches.Value } | Select-String -Pattern $regexAppVersionbeta -AllMatches | Select-Object -First 1
-	$URLen = "https://www.rarlab.com" + "$installerproden"
-	$URLde = "https://www.rarlab.com" + "$installerprodde"
+	Try {
+		$URLWinRAR = "https://patchmypc.com/freeupdater/definitions/definitions.xml"
+		$webRequestWinRAR = Invoke-WebRequest -UseBasicParsing -Uri ($URLWinRAR) -SessionVariable websession
+		$regexAppWinRAR = "<WinRARVer>([A-Za-z0-9]+(\.[A-Za-z0-9]+)+)</WinRARVer>"
+		$UrlWinRAR = $webRequestWinRAR.RawContent | Select-String -Pattern $regexAppWinRAR -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+		$UrlWinRAR = $UrlWinRAR.Split('"<')
+		$UrlWinRAR = $UrlWinRAR.Split('">')
+		$VersionWinRAR = $UrlWinRAR[2]
+		$regexAppWinRARDL = "<WinRAR64BitDownload>.*"
+		$UrlWinRARDL = $webRequestWinRAR.RawContent | Select-String -Pattern $regexAppWinRARDL -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+		$UrlWinRARDL = $UrlWinRARDL.Split('"<')
+		$UrlWinRARDL = $UrlWinRARDL.Split('">')
+		$UrlWinRARDL = $UrlWinRARDL[2]
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
 	$InstallerType = "exe"
-	$SourceDe = "$PackageName" + "_de" + "." + "$InstallerType"
-	$SourceEn = "$PackageName" + "_en" + "." + "$InstallerType"
+	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"
-	Write-Host "Download Version: $appversionprodde"
+	Write-Host "Download Version: $VersionWinRAR"
 	Write-Host "Current Version: $CurrentVersion"
-	IF ($appversionprodde) {
-		IF ($appversionprodde -gt $CurrentVersion) {
+	IF ($VersionWinRAR) {
+		IF ($VersionWinRAR -gt $CurrentVersion) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-		$LogPS = "$SoftwareFolder\$Product\" + "$Product $appversionprodde.log"
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionWinRAR.log"
 		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$appversionprodde"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $appversionprodde"
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionWinRAR"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionWinRAR"
 		Try {
-			Get-FileFromWeb -Url $URLde -File ("$SoftwareFolder\$Product\" + ($SourceDe))
-		} catch {
-			throw $_.Exception.Message
-		}
-		start-sleep -s 3
-		Try {
-			Get-FileFromWeb -Url $URLen -File ("$SoftwareFolder\$Product\" + ($SourceEn))
+			Get-FileFromWeb -Url $UrlWinRARDL -File ("$SoftwareFolder\$Product\" + ($Source))
 		} catch {
 			throw $_.Exception.Message
 		}
 		Write-Host "Stop logging"
-		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source_de")) {
-        Write-Host -ForegroundColor Red "Error downloading '$Source_de', try again later or check log file"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
         Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
         }
 		Stop-Transcript | Out-Null
