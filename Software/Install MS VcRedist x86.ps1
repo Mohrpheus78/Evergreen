@@ -59,8 +59,13 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$VcRedist = [string]$VcRedist
 	IF ($VcRedist -lt $Version) {
 		# VcRedist
-		Write-Host -ForegroundColor Yellow "Installing $Product"
-		DS_WriteLog "I" "Installing $Product" $LogFile
+		IF ($SoftwareSelection.VMWareTools -eq $true) {
+			Write-Host -ForegroundColor Yellow "Installing $Product, this is a prerequisite for current VMWare Tools"
+		}
+		Else {
+			Write-Host -ForegroundColor Yellow "Installing $Product"
+			DS_WriteLog "I" "Installing $Product" $LogFile
+		}
 		try	{
 			Start-Process "$PSScriptRoot\$Product\VC_redist_x86.exe" -ArgumentList "/quiet /norestart" –NoNewWindow -Wait
 			DS_WriteLog "-" "" $LogFile

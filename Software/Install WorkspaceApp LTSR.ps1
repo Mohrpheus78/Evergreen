@@ -53,8 +53,8 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt"
 	[version]$MEWV2RT = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Edge WebView*"}).DisplayVersion
 	IF ($MEWV2RT -lt $Version) {
-	Write-Host -ForegroundColor Yellow "Installing MS Edge WebView2 Runtime"
-	DS_WriteLog "I" "Installing MS Edge WebView2 Runtime" $LogFile
+		Write-Host -ForegroundColor Yellow "Installing MS Edge WebView2 Runtime (Prerequisite for Citrix WorkspaceApp)"
+		DS_WriteLog "I" "Installing MS Edge WebView2 Runtime (Prerequisite for Citrix WorkspaceApp)" $LogFile
 	try	{
 		Start-Process -FilePath "$PSScriptRoot\MS Edge WebView2 Runtime\MicrosoftEdgeWebView2RuntimeInstallerX64.exe" -ArgumentList "/silent /install" –NoNewWindow -wait
 		DS_WriteLog "-" "" $LogFile
@@ -90,8 +90,8 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	)
 
 	IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Windows Desktop Runtime - 8.0.10 (x86)"})) {
-		Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime 8.0.10 (Prerequisite for current Workspace App)"
-		DS_WriteLog "I" "Installing MS DotNet Desktop Runtime (Prerequisite for current Workspace App)" $LogFile
+		Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime 8.0.10 (Prerequisite for Citrix WorkspaceApp)"
+		DS_WriteLog "I" "Installing MS DotNet Desktop Runtime (Prerequisite for Citrix WorkspaceApp)" $LogFile
 		try {
 			Start-Process -FilePath "$PSScriptRoot\Citrix\WorkspaceApp\Windows\LTSR\windowsdesktop-runtime-8.0.10-win-x86.exe" -ArgumentList "/quiet /noreboot" –NoNewWindow -wait
 			DS_WriteLog "-" "" $LogFile

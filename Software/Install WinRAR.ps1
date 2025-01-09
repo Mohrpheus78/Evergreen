@@ -58,9 +58,9 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	# WinRAR
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
-		IF ($SoftwareSelection.WinRARDe -eq $true) {
+		IF ($SoftwareSelection.WinRAR -eq $true) {
 			try {
-				Start-Process "$PSScriptRoot\$Product\WinRAR_de.exe" -ArgumentList '/S' -Wait
+				Start-Process "$PSScriptRoot\$Product\WinRAR.exe" -ArgumentList '/S' -Wait
 				DS_WriteLog "-" "" $LogFile
 				Write-Host -ForegroundColor Green "...ready"
 				Write-Output ""
@@ -71,20 +71,6 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 					Write-Output ""    
 					}
 		}
-		IF ($SoftwareSelection.WinRAREn -eq $true) {
-			try {
-				Start-Process "$PSScriptRoot\$Product\WinRAR_en.exe" -ArgumentList '/S' -Wait
-				DS_WriteLog "-" "" $LogFile
-				Write-Host -ForegroundColor Green "...ready"
-				Write-Output ""
-				} catch {
-					DS_WriteLog "-" "" $LogFile
-					DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
-					Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
-					Write-Output ""    
-					}
-		}
-		
 	}
 
 	# Stop, if no new version is available

@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.17.15
+Version: 2.17.16
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -78,6 +78,7 @@ Version: 2.17.15
 24/11/19: Better approach to delete/disable OneDrive and Chrome update tasks, check if Windows search failure tasks are present if installing FSLogix
 24/11/29: Changed uninstall procedure for MS Teams 2.x if OS is Server 2019 or Windows 10, removed mRemote NG
 24/12/16: Changed .NET Desktop Runtime for CR WorkspaceApp to version 8.10
+25/01/03: Added VMWare Tools
 # Notes
 #>
 
@@ -744,15 +745,15 @@ function gui_mode{
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 
-    # VLCPlayer Checkbox
-    $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
-    $VLCPlayerBox.text = "VLC Player"
-    $VLCPlayerBox.width = 95
-    $VLCPlayerBox.height = 20
-    $VLCPlayerBox.autosize = $true
-    $VLCPlayerBox.location = New-Object System.Drawing.Point(780,45)
-    $form.Controls.Add($VLCPlayerBox)
-	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
+   # VMWareTools Checkbox
+    $VMWareToolsBox = New-Object system.Windows.Forms.CheckBox
+    $VMWareToolsBox.text = "VMWare Tools"
+    $VMWareToolsBox.width = 95
+    $VMWareToolsBox.height = 20
+    $VMWareToolsBox.autosize = $true
+    $VMWareToolsBox.location = New-Object System.Drawing.Point(780,45)
+    $form.Controls.Add($VMWareToolsBox)
+	$VMWareToolsBox.Checked =  $SoftwareSelection.VMWareTools
 	
 	# deviceTRUST Checkbox
     $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
@@ -824,25 +825,26 @@ function gui_mode{
     $form.Controls.Add($FileZillaBox)
 	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
 
-	# WinRARDe Checkbox
-    $WinRARBoxDe = New-Object system.Windows.Forms.CheckBox
-    $WinRARBoxDe.text = "WinRAR de"
-    $WinRARBoxDe.width = 95
-    $WinRARBoxDe.height = 20
-    $WinRARBoxDe.autosize = $true
-    $WinRARBoxDe.location = New-Object System.Drawing.Point(780,245)
-    $form.Controls.Add($WinRARBoxDe)
-	$WinRARBoxDe.Checked =  $SoftwareSelection.WinRARDe
+	# WinRAR Checkbox
+    $WinRARBox = New-Object system.Windows.Forms.CheckBox
+    $WinRARBox.text = "WinRAR"
+    $WinRARBox.width = 95
+    $WinRARBox.height = 20
+    $WinRARBox.autosize = $true
+    $WinRARBox.location = New-Object System.Drawing.Point(780,245)
+    $form.Controls.Add($WinRARBox)
+	$WinRARBox.Checked =  $SoftwareSelection.WinRAR
+	
+	# VLCPlayer Checkbox
+    $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
+    $VLCPlayerBox.text = "VLC Player"
+    $VLCPlayerBox.width = 95
+    $VLCPlayerBox.height = 20
+    $VLCPlayerBox.autosize = $true
+    $VLCPlayerBox.location = New-Object System.Drawing.Point(780,270)
+    $form.Controls.Add($VLCPlayerBox)
+	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
 
-	# WinRAREn Checkbox
-    $WinRARBoxEn = New-Object system.Windows.Forms.CheckBox
-    $WinRARBoxEn.text = "WinRAR en"
-    $WinRARBoxEn.width = 95
-    $WinRARBoxEn.height = 20
-    $WinRARBoxEn.autosize = $true
-    $WinRARBoxEn.location = New-Object System.Drawing.Point(780,270)
-    $form.Controls.Add($WinRARBoxEn)
-	$WinRARBoxEn.Checked =  $SoftwareSelection.WinRAREn
 	
 	<#
 	# Zoom Host Checkbox
@@ -918,6 +920,7 @@ function gui_mode{
 		$pdf24CreatorBox.checked = $True
         $FoxitReaderBox.checked = $True
 		$deviceTRUSTBox.checked = $True
+		$VMWareToolsBox.checked = $True
 		$RemoteDesktopManagerBox.checked = $True
 		#$ZoomVDIBox.checked = $True
 		#$ZoomCitrixBox.checked = $True
@@ -988,6 +991,7 @@ function gui_mode{
 		$pdf24CreatorBox.checked = $False
         $FoxitReaderBox.checked = $False
 		$deviceTRUSTBox.checked = $False
+		$VMWareToolsBox.checked = $False
 		$RemoteDesktopManagerBox.checked = $False
 		#$ZoomVDIBox.checked = $False
 		#$ZoomCitrixBox.checked = $False
@@ -1053,13 +1057,13 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ShareX" -Value $ShareXBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VLCPlayer" -Value $VLCPlayerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FileZilla" -Value $FileZillaBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinRARDe" -Value $WinRARBoxDe.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinRAREn" -Value $WinRARBoxEn.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinRAR" -Value $WinRARBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ImageGlass" -Value $ImageGlassBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Greenshot" -Value $GreenshotBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "pdf24Creator" -Value $pdf24CreatorBox.checked -Force
         Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FoxitReader" -Value $FoxitReaderBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "deviceTRUST" -Value $deviceTRUSTBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VMWareTools" -Value $VMWareToolsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "RemoteDesktopManager" -Value $RemoteDesktopManagerBox.checked -Force
 		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVDI" -Value $ZoomVDIBox.checked -Force
 		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomCitrix" -Value $ZoomCitrixBox.checked -Force
@@ -1198,7 +1202,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.17.15"
+	[version]$EvergreenVersion = "2.17.16"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2082,7 +2086,7 @@ IF ($SoftwareSelection.WinSCP -eq $true)
 	}
 
 # Install WinRAR
-IF ($SoftwareSelection.WinRARDe -or $SoftwareSelection.WinRAREn -eq $true)
+IF ($SoftwareSelection.WinRAR -eq $true)
 	{
 		try {
 			& "$SoftwareFolder\Install WinRAR.ps1"
@@ -2092,6 +2096,28 @@ IF ($SoftwareSelection.WinRARDe -or $SoftwareSelection.WinRAREn -eq $true)
 			Write-Host -ForegroundColor Red "Error in launching script 'Install WinSCP': $($Error[0])"
 			Write-Output ""
 			}
+	}
+
+# Install VMWareTools
+IF ($SoftwareSelection.VMWareTools -eq $true)
+	{
+		try {
+			& "$SoftwareFolder\Install MS VcRedist x64"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS VcRedist x64"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS VcRedist x64': $($Error[0])"
+			Write-Output ""
+			}	
+		try {
+			& "$SoftwareFolder\Install MS VcRedist x86"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS VcRedist x86"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS VcRedist x86': $($Error[0])"
+			Write-Output ""
+			}	
+			& "$SoftwareFolder\Install VMWareTools.ps1"
 	}
 	
 # Stop install log

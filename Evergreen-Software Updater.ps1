@@ -853,7 +853,7 @@ function gui_mode{
 	
 	# WinRAR Checkbox
     $WinRARBox = New-Object system.Windows.Forms.CheckBox
-    $WinRARBox.text = "WinRAR (de/en)"
+    $WinRARBox.text = "WinRAR"
     $WinRARBox.width = 95
     $WinRARBox.height = 20
     $WinRARBox.autosize = $true
