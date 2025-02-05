@@ -189,15 +189,15 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 				Write-Output ""    
 			}	
 		}
-		if ($OS -Like "*Windows 11*") {
-			Write-Host "Windows 11 detected. Installation with teamsbootstrapper.exe"
+		if ($OS -Like "*Windows 11*" -or "*Windows Server 2025*") {
+			Write-Host "$OS detected. Installation with teamsbootstrapper.exe"
 			try {
 				$Teams_bootstraper_exe = "$PSScriptRoot\$Product\teamsbootstrapper.exe"
 				$New_Teams_MSIX = "$PSScriptRoot\$Product\MSTeams-x64.msix"
 				& $Teams_bootstraper_exe -p -o $New_Teams_MSIX
 			} catch {
 				DS_WriteLog "-" "" $LogFile
-				DS_WriteLog "E" "Error installing $Product for Windows 10 (Error: $($Error[0]))" $LogFile
+				DS_WriteLog "E" "Error installing $Product for $OS (Error: $($Error[0]))" $LogFile
 				Write-Host -ForegroundColor Red "Error installing $Product for Windows 10 (Error: $($Error[0]))"
 				Write-Output ""    
 			}	
