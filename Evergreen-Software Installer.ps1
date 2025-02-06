@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.17.17
+Version: 2.17.18
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -79,7 +79,7 @@ Version: 2.17.17
 24/11/29: Changed uninstall procedure for MS Teams 2.x if OS is Server 2019 or Windows 10, removed mRemote NG
 24/12/16: Changed .NET Desktop Runtime for CR WorkspaceApp to version 8.10
 25/01/03: Added VMWare Tools
-25/02/05: Added Windows Server 2025 to NEW MS Teamsa as OS
+25/02/05: Added Windows Server 2025 to NEW MS Teamsa as OS, configured MS Teams scheduled task for App-X registration
 # Notes
 #>
 
@@ -1203,7 +1203,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.17.17"
+	[version]$EvergreenVersion = "2.17.18"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {

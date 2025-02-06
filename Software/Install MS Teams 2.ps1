@@ -228,7 +228,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		$Trigger = New-JobTrigger -AtLogOn
 		$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "$Options"
 		$User = "NT AUTHORITY\SYSTEM"
-		Register-ScheduledTask -TaskName 'Register MS Teams AppXPackage' -User $User -Action $Action -Trigger $Trigger -EA SilentlyContinue | Out-Null
+		Register-ScheduledTask -TaskName 'Register MS Teams AppXPackage' -User $User -Action $Action -Trigger $Trigger -Force -EA SilentlyContinue | Out-Null
 		
 		Write-Host -ForegroundColor Green "...ready"
 		Write-Output ""
