@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.11.11
+Version: 2.11.12
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -71,6 +71,7 @@ Version: 2.11.11
 24/11/19: Changed VLC Player version and download information to PatchMyPC
 24/12/16: Changed .NET Desktop Runtime for CR WorkspaceApp to version 8.10
 25/01/03: Changed WinSCP and WINRAR download and version source, removed ShareFile
+25/02/07: Added Microsoft Office LTSC 2024, fixed MS Powershell
 # Notes
 #>
 
@@ -379,13 +380,13 @@ function gui_mode{
 
     # Set the size of your form
     $Form = New-Object system.Windows.Forms.Form
-    $Form.ClientSize = New-Object System.Drawing.Point(970,560)
+    $Form.ClientSize = New-Object System.Drawing.Point(920,590)
     $Form.text = "Software-Updater"
     $Form.TopMost = $false
     $Form.AutoSize = $true
 
     # Set the font of the text to be used within the form
-    $Font = New-Object System.Drawing.Font("Arial",11)
+    $Font = New-Object System.Drawing.Font("Arial",10)
     $Form.Font = $Font
 
     # Software Headline
@@ -396,6 +397,10 @@ function gui_mode{
     $Headline2.height = 10
     $Headline2.location = New-Object System.Drawing.Point(11,4)
     $form.Controls.Add($Headline2)
+	$FontBold = New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)
+	$Headline2.Font = $FontBold
+
+	$form.Controls.Add($Headline2)
 
 	# NotePadPlusPlus Checkbox
     $NotePadPlusPlusBox = New-Object system.Windows.Forms.CheckBox
@@ -568,6 +573,26 @@ function gui_mode{
     $PuttyBox.location = New-Object System.Drawing.Point(11,445)
     $form.Controls.Add($PuttyBox)
 	$PuttyBox.Checked = $SoftwareSelection.Putty
+	
+	# OracleJava8 x64 Checkbox
+    $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
+    $OracleJava8Box.text = "Oracle Java 8/x64"
+    $OracleJava8Box.width = 95
+    $OracleJava8Box.height = 20
+    $OracleJava8Box.autosize = $true
+    $OracleJava8Box.location = New-Object System.Drawing.Point(11,470)
+    $form.Controls.Add($OracleJava8Box)
+	$OracleJava8Box.Checked =  $SoftwareSelection.OracleJava8
+	
+	# OracleJava8 x86 Checkbox
+    $OracleJava8_32Box = New-Object system.Windows.Forms.CheckBox
+    $OracleJava8_32Box.text = "Oracle Java 8/x86"
+    $OracleJava8_32Box.width = 95
+    $OracleJava8_32Box.height = 20
+    $OracleJava8_32Box.autosize = $true
+    $OracleJava8_32Box.location = New-Object System.Drawing.Point(11,495)
+    $form.Controls.Add($OracleJava8_32Box)
+	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
 
     # MS365 Apps Semi Annual Channel Checkbox
     $MS365AppsBox_SAC = New-Object system.Windows.Forms.CheckBox
@@ -609,13 +634,24 @@ function gui_mode{
     $form.Controls.Add($MSOffice2021Box)
 	$MSOffice2021Box.Checked = $SoftwareSelection.MSOffice2021
 	
+	# MS Office2024 Checkbox
+    $MSOffice2024Box = New-Object system.Windows.Forms.CheckBox
+    $MSOffice2024Box.text = "Microsoft Office 2024 (x64/Perpetual VL)"
+    $MSOffice2024Box.width = 95
+    $MSOffice2024Box.height = 20
+    $MSOffice2024Box.autosize = $true
+    $MSOffice2024Box.location = New-Object System.Drawing.Point(250,145)
+    $form.Controls.Add($MSOffice2024Box)
+	$MSOffice2024Box.Checked = $SoftwareSelection.MSOffice2024
+	
+	
 	# MS Sysinternals Checkbox
     $MSSysinternalsBox = New-Object system.Windows.Forms.CheckBox
     $MSSysinternalsBox.text = "Microsoft Sysinternals Suite"
     $MSSysinternalsBox.width = 95
     $MSSysinternalsBox.height = 20
     $MSSysinternalsBox.autosize = $true
-    $MSSysinternalsBox.location = New-Object System.Drawing.Point(250,145)
+    $MSSysinternalsBox.location = New-Object System.Drawing.Point(250,170)
     $form.Controls.Add($MSSysinternalsBox)
 	$MSSysinternalsBox.Checked = $SoftwareSelection.MSSysinternals
 	
@@ -625,7 +661,7 @@ function gui_mode{
     $MSEdgeBox.width = 95
     $MSEdgeBox.height = 20
     $MSEdgeBox.autosize = $true
-    $MSEdgeBox.location = New-Object System.Drawing.Point(250,170)
+    $MSEdgeBox.location = New-Object System.Drawing.Point(250,195)
     $form.Controls.Add($MSEdgeBox)
 	$MSEdgeBox.Checked = $SoftwareSelection.MSEdge
 
@@ -635,7 +671,7 @@ function gui_mode{
     $MSOneDriveBox.width = 95
     $MSOneDriveBox.height = 20
     $MSOneDriveBox.autosize = $true
-    $MSOneDriveBox.location = New-Object System.Drawing.Point(250,195)
+    $MSOneDriveBox.location = New-Object System.Drawing.Point(250,220)
     $form.Controls.Add($MSOneDriveBox)
 	$MSOneDriveBox.Checked = $SoftwareSelection.MSOneDrive
 
@@ -645,7 +681,7 @@ function gui_mode{
     $MSTeamsBox.width = 95
     $MSTeamsBox.height = 20
     $MSTeamsBox.autosize = $true
-    $MSTeamsBox.location = New-Object System.Drawing.Point(250,220)
+    $MSTeamsBox.location = New-Object System.Drawing.Point(250,245)
     $form.Controls.Add($MSTeamsBox)
 	$MSTeamsBox.Checked = $SoftwareSelection.MSTeams
 	
@@ -655,7 +691,7 @@ function gui_mode{
     $NEWMSTeamsBox.width = 95
     $NEWMSTeamsBox.height = 20
     $NEWMSTeamsBox.autosize = $true
-    $NEWMSTeamsBox.location = New-Object System.Drawing.Point(250,245)
+    $NEWMSTeamsBox.location = New-Object System.Drawing.Point(250,270)
     $form.Controls.Add($NEWMSTeamsBox)
 	$NEWMSTeamsBox.Checked = $SoftwareSelection.NEWMSTeams
 	
@@ -665,17 +701,17 @@ function gui_mode{
     $MSPowershellBox.width = 95
     $MSPowershellBox.height = 20
     $MSPowershellBox.autosize = $true
-    $MSPowershellBox.location = New-Object System.Drawing.Point(250,270)
+    $MSPowershellBox.location = New-Object System.Drawing.Point(250,295)
     $form.Controls.Add($MSPowershellBox)
 	$MSPowershellBox.Checked = $SoftwareSelection.MSPowershell
 	
 	# MS DotNet Checkbox
     $MSDotNetBox = New-Object system.Windows.Forms.CheckBox
-    $MSDotNetBox.text = "Microsoft .Net Desktop Runtime"
+    $MSDotNetBox.text = "Microsoft .Net Desktop Runtime 8.x"
     $MSDotNetBox.width = 95
     $MSDotNetBox.height = 20
     $MSDotNetBox.autosize = $true
-    $MSDotNetBox.location = New-Object System.Drawing.Point(250,295)
+    $MSDotNetBox.location = New-Object System.Drawing.Point(250,320)
     $form.Controls.Add($MSDotNetBox)
 	$MSDotNetBox.Checked = $SoftwareSelection.MSDotNetDesktopRuntime
 	
@@ -685,7 +721,7 @@ function gui_mode{
     $MSSQLManagementStudioENBox.width = 95
     $MSSQLManagementStudioENBox.height = 20
     $MSSQLManagementStudioENBox.autosize = $true
-    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(250,320)
+    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(250,345)
     $form.Controls.Add($MSSQLManagementStudioENBox)
 	$MSSQLManagementStudioENBox.Checked = $SoftwareSelection.MSSsmsEN
 	
@@ -695,7 +731,7 @@ function gui_mode{
     $MSSQLManagementStudioDEBox.width = 95
     $MSSQLManagementStudioDEBox.height = 20
     $MSSQLManagementStudioDEBox.autosize = $true
-    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,345)
+    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,370)
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
 	
@@ -705,7 +741,7 @@ function gui_mode{
     $VcRedistBox.width = 95
     $VcRedistBox.height = 20
     $VcRedistBox.autosize = $true
-    $VcRedistBox.location = New-Object System.Drawing.Point(250,370)
+    $VcRedistBox.location = New-Object System.Drawing.Point(250,395)
     $form.Controls.Add($VcRedistBox)
 	$VcRedistBox.Checked = $SoftwareSelection.VcRedist
 	
@@ -715,29 +751,9 @@ function gui_mode{
     $MicrosoftOpenJDKBox.width = 95
     $MicrosoftOpenJDKBox.height = 20
     $MicrosoftOpenJDKBox.autosize = $true
-    $MicrosoftOpenJDKBox.location = New-Object System.Drawing.Point(250,395)
+    $MicrosoftOpenJDKBox.location = New-Object System.Drawing.Point(250,420)
     $form.Controls.Add($MicrosoftOpenJDKBox)
 	$MicrosoftOpenJDKBox.Checked =  $SoftwareSelection.MicrosoftOpenJDK
-	
-	# OracleJava8 x64 Checkbox
-    $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
-    $OracleJava8Box.text = "Oracle Java 8/x64"
-    $OracleJava8Box.width = 95
-    $OracleJava8Box.height = 20
-    $OracleJava8Box.autosize = $true
-    $OracleJava8Box.location = New-Object System.Drawing.Point(250,420)
-    $form.Controls.Add($OracleJava8Box)
-	$OracleJava8Box.Checked =  $SoftwareSelection.OracleJava8
-	
-	# OracleJava8 x86 Checkbox
-    $OracleJava8_32Box = New-Object system.Windows.Forms.CheckBox
-    $OracleJava8_32Box.text = "Oracle Java 8/x86"
-    $OracleJava8_32Box.width = 95
-    $OracleJava8_32Box.height = 20
-    $OracleJava8_32Box.autosize = $true
-    $OracleJava8_32Box.location = New-Object System.Drawing.Point(250,445)
-    $form.Controls.Add($OracleJava8_32Box)
-	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
 	
 	# deviceTRUST CheckBox
     $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
@@ -745,7 +761,7 @@ function gui_mode{
     $deviceTRUSTBox.width = 95
     $deviceTRUSTBox.height = 20
     $deviceTRUSTBox.autosize = $true
-    $deviceTRUSTBox.location = New-Object System.Drawing.Point(685,45)
+    $deviceTRUSTBox.location = New-Object System.Drawing.Point(660,45)
     $form.Controls.Add($deviceTRUSTBox)
 	$deviceTRUSTBox.Checked = $SoftwareSelection.deviceTRUST
 		
@@ -755,7 +771,7 @@ function gui_mode{
     $VLCPlayerBox.width = 95
     $VLCPlayerBox.height = 20
     $VLCPlayerBox.autosize = $true
-    $VLCPlayerBox.location = New-Object System.Drawing.Point(685,70)
+    $VLCPlayerBox.location = New-Object System.Drawing.Point(660,70)
     $form.Controls.Add($VLCPlayerBox)
 	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
 	
@@ -765,7 +781,7 @@ function gui_mode{
     $FileZillaBox.width = 95
     $FileZillaBox.height = 20
     $FileZillaBox.autosize = $true
-    $FileZillaBox.location = New-Object System.Drawing.Point(685,95)
+    $FileZillaBox.location = New-Object System.Drawing.Point(660,95)
     $form.Controls.Add($FileZillaBox)
 	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
 	
@@ -775,7 +791,7 @@ function gui_mode{
     $KeePassBox.width = 95
     $KeePassBox.height = 20
     $KeePassBox.autosize = $true
-    $KeePassBox.location = New-Object System.Drawing.Point(685,120)
+    $KeePassBox.location = New-Object System.Drawing.Point(660,120)
     $form.Controls.Add($KeePassBox)
 	$KeePassBox.Checked = $SoftwareSelection.KeePass
 	
@@ -785,7 +801,7 @@ function gui_mode{
     $KeePassXCBox.width = 95
     $KeePassXCBox.height = 20
     $KeePassXCBox.autosize = $true
-    $KeePassXCBox.location = New-Object System.Drawing.Point(685,145)
+    $KeePassXCBox.location = New-Object System.Drawing.Point(660,145)
     $form.Controls.Add($KeePassXCBox)
 	$KeePassXCBox.Checked = $SoftwareSelection.KeePassXC
 	
@@ -795,7 +811,7 @@ function gui_mode{
     $IGELUniversalManagementSuiteBox.width = 95
     $IGELUniversalManagementSuiteBox.height = 20
     $IGELUniversalManagementSuiteBox.autosize = $true
-    $IGELUniversalManagementSuiteBox.location = New-Object System.Drawing.Point(685,170)
+    $IGELUniversalManagementSuiteBox.location = New-Object System.Drawing.Point(660,170)
     $form.Controls.Add($IGELUniversalManagementSuiteBox)
 	$IGELUniversalManagementSuiteBox.Checked = $SoftwareSelection.IGELUniversalManagementSuite
 	
@@ -805,7 +821,7 @@ function gui_mode{
     $pdf24CreatorBox.width = 95
     $pdf24CreatorBox.height = 20
     $pdf24CreatorBox.autosize = $true
-    $pdf24CreatorBox.location = New-Object System.Drawing.Point(685,195)
+    $pdf24CreatorBox.location = New-Object System.Drawing.Point(660,195)
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 	
@@ -815,7 +831,7 @@ function gui_mode{
     $FoxItReaderBox.width = 95
     $FoxItReaderBox.height = 20
     $FoxItReaderBox.autosize = $true
-    $FoxItReaderBox.location = New-Object System.Drawing.Point(685,220)
+    $FoxItReaderBox.location = New-Object System.Drawing.Point(660,220)
     $form.Controls.Add($FoxItReaderBox)
 	$FoxItReaderBox.Checked =  $SoftwareSelection.FoxItReader
 	
@@ -825,7 +841,7 @@ function gui_mode{
     $ImageGlassBox.width = 95
     $ImageGlassBox.height = 20
     $ImageGlassBox.autosize = $true
-    $ImageGlassBox.location = New-Object System.Drawing.Point(685,245)
+    $ImageGlassBox.location = New-Object System.Drawing.Point(660,245)
     $form.Controls.Add($ImageGlassBox)
 	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
 	
@@ -835,7 +851,7 @@ function gui_mode{
     $ShareXBox.width = 95
     $ShareXBox.height = 20
     $ShareXBox.autosize = $true
-    $ShareXBox.location = New-Object System.Drawing.Point(685,270)
+    $ShareXBox.location = New-Object System.Drawing.Point(660,270)
     $form.Controls.Add($ShareXBox)
 	$ShareXBox.Checked =  $SoftwareSelection.ShareX
 	
@@ -847,7 +863,7 @@ function gui_mode{
     $CiscoWebExVDIBox.width = 95
     $CiscoWebExVDIBox.height = 20
     $CiscoWebExVDIBox.autosize = $true
-    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(685,295)
+    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(660,295)
     $form.Controls.Add($CiscoWebExVDIBox)
 	$CiscoWebExVDIBox.Checked =  $SoftwareSelection.CiscoWebExVDI
 	
@@ -857,7 +873,7 @@ function gui_mode{
     $WinRARBox.width = 95
     $WinRARBox.height = 20
     $WinRARBox.autosize = $true
-    $WinRARBox.location = New-Object System.Drawing.Point(685,320)
+    $WinRARBox.location = New-Object System.Drawing.Point(660,320)
     $form.Controls.Add($WinRARBox)
 	$WinRARBox.Checked =  $SoftwareSelection.WinRAR
 	
@@ -867,7 +883,7 @@ function gui_mode{
     $GreenshotBox.width = 95
     $GreenshotBox.height = 20
     $GreenshotBox.autosize = $true
-    $GreenshotBox.location = New-Object System.Drawing.Point(685,345)
+    $GreenshotBox.location = New-Object System.Drawing.Point(660,345)
     $form.Controls.Add($GreenshotBox)
 	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
 	
@@ -877,7 +893,7 @@ function gui_mode{
     $TreeSizeFreeBox.width = 95
     $TreeSizeFreeBox.height = 20
     $TreeSizeFreeBox.autosize = $true
-    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(685,370)
+    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(660,370)
     $form.Controls.Add($TreeSizeFreeBox)
 	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
 	
@@ -887,7 +903,7 @@ function gui_mode{
     $ControlUpConsoleBox.width = 95
     $ControlUpConsoleBox.height = 20
     $ControlUpConsoleBox.autosize = $true
-    $ControlUpConsoleBox.location = New-Object System.Drawing.Point(685,395)
+    $ControlUpConsoleBox.location = New-Object System.Drawing.Point(660,395)
     $form.Controls.Add($ControlUpConsoleBox)
 	$ControlUpConsoleBox.Checked =  $SoftwareSelection.ControlUpConsole
 	
@@ -897,7 +913,7 @@ function gui_mode{
     $ControlUpRemoteDXBox.width = 95
     $ControlUpRemoteDXBox.height = 20
     $ControlUpRemoteDXBox.autosize = $true
-    $ControlUpRemoteDXBox.location = New-Object System.Drawing.Point(685,420)
+    $ControlUpRemoteDXBox.location = New-Object System.Drawing.Point(660,420)
     $form.Controls.Add($ControlUpRemoteDXBox)
 	$ControlUpRemoteDXBox.Checked =  $SoftwareSelection.ControlUpRemoteDX
 	
@@ -921,7 +937,7 @@ function gui_mode{
     $ZoomVDIBox.width = 95
     $ZoomVDIBox.height = 20
     $ZoomVDIBox.autosize = $true
-    $ZoomVDIBox.location = New-Object System.Drawing.Point(685,445)
+    $ZoomVDIBox.location = New-Object System.Drawing.Point(660,445)
     $form.Controls.Add($ZoomVDIBox)
 	$ZoomVDIBox.Checked =  $SoftwareSelection.ZoomVDI
 	
@@ -933,7 +949,7 @@ function gui_mode{
     $ZoomCitrixBox.width = 95
     $ZoomCitrixBox.height = 20
     $ZoomCitrixBox.autosize = $true
-    $ZoomCitrixBox.location = New-Object System.Drawing.Point(685,470)
+    $ZoomCitrixBox.location = New-Object System.Drawing.Point(660,470)
     $form.Controls.Add($ZoomCitrixBox)
 	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
 	
@@ -947,7 +963,7 @@ function gui_mode{
     $ZoomVMWareBox.width = 95
     $ZoomVMWareBox.height = 20
     $ZoomVMWareBox.autosize = $true
-    $ZoomVMWareBox.location = New-Object System.Drawing.Point(685,295)
+    $ZoomVMWareBox.location = New-Object System.Drawing.Point(660,295)
     $form.Controls.Add($ZoomVMWareBox)
 	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
 	#>
@@ -957,7 +973,7 @@ function gui_mode{
     $SelectButton.text = "Select all"
     $SelectButton.width = 110
     $SelectButton.height = 30
-    $SelectButton.location = New-Object System.Drawing.Point(11,510)
+    $SelectButton.location = New-Object System.Drawing.Point(11,540)
     $SelectButton.Add_Click({
         $NotePadPlusPlusBox.Checked = $True
 		$SevenZipBox.checked = $True
@@ -984,6 +1000,7 @@ function gui_mode{
 		$MS365AppsBox_MEC.checked = $True
 		$MSOffice2019Box.checked = $True
 		$MSOffice2021Box.checked = $True
+		$MSOffice2024Box.checked = $True
 		$MSEdgeBox.checked = $True
 		$MSOneDriveBox.checked = $True
 		$MSTeamsBox.checked = $True
@@ -1024,7 +1041,7 @@ function gui_mode{
     $UnselectButton.text = "Unselect all"
     $UnselectButton.width = 110
     $UnselectButton.height = 30
-    $UnselectButton.location = New-Object System.Drawing.Point(131,510)
+    $UnselectButton.location = New-Object System.Drawing.Point(131,540)
     $UnselectButton.Add_Click({
         $NotePadPlusPlusBox.Checked = $False
 		$SevenZipBox.checked = $False
@@ -1051,6 +1068,7 @@ function gui_mode{
 		$MS365AppsBox_MEC.checked = $False
 		$MSOffice2019Box.checked = $False
 		$MSOffice2021Box.checked = $False
+		$MSOffice2024Box.checked = $False
 		$MSEdgeBox.checked = $False
 		$MSOneDriveBox.checked = $False
 		$MSTeamsBox.checked = $False
@@ -1091,7 +1109,7 @@ function gui_mode{
     $OKButton.text = "OK"
     $OKButton.width = 60
     $OKButton.height = 30
-    $OKButton.location = New-Object System.Drawing.Point(271,510)
+    $OKButton.location = New-Object System.Drawing.Point(271,540)
 	#$OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
     $OKButton.Add_Click({		
 		$SoftwareSelection = New-Object PSObject
@@ -1111,6 +1129,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_MEC" -Value $MS365AppsBox_MEC.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2019" -Value $MSOffice2019Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2021" -Value $MSOffice2021Box.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2024" -Value $MSOffice2024Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePass" -Value $KeePassBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePassXC" -Value $KeePassXCBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "IGELUniversalManagementSuite" -Value $IGELUniversalManagementSuiteBox.checked -Force
@@ -1164,7 +1183,7 @@ function gui_mode{
     $CancelButton.text = "Cancel"
     $CancelButton.width = 80
     $CancelButton.height = 30
-    $CancelButton.location = New-Object System.Drawing.Point(341,510)
+    $CancelButton.location = New-Object System.Drawing.Point(341,540)
 	$CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
     $CancelButton.Add_Click({
         #$Script:download = $true
@@ -1277,7 +1296,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.11.11"
+	[version]$EvergreenVersion = "2.11.12"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2767,12 +2786,74 @@ IF ($SoftwareSelection.MSOffice2021 -eq $true) {
 }
 
 
+# Download MS Office 2024 VL
+IF ($SoftwareSelection.MSOffice2024 -eq $true) {
+	$Product = "MS Office 2024 LTSC"
+	$PackageName = "setup"
+	Try {
+	$MSOffice2024 = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "PerpetualVL2024"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $MSOffice2024.Version
+	$URL = $MSOffice2024.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.log, *.txt -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version. Please wait, this can take a while..."
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		$ConfigurationXMLFile = (Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml).Name
+			if (!(Get-ChildItem -Path "$SoftwareFolder\$Product" -Filter *.xml)) {
+				Write-Output ""
+				Write-Host -ForegroundColor DarkRed "Attention! No configuration file found, Office cannot be downloaded, please create a XML file!" }
+			else {
+				  $UpdateArgs = "/Download `"$SoftwareFolder\$Product\$ConfigurationXMLFile`""
+				  $MSOffice_Update = Start-Process `"$SoftwareFolder\$Product\setup.exe`" -ArgumentList $UpdateArgs -Wait -PassThru
+				  Get-ChildItem -Path "$SoftwareFolder\$Product\Office\Data" | where {$_.LastWriteTime -le $(get-date).Adddays(-40)} | Remove-Item -recurse
+				  }
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Include *.exe, *.txt -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
+
+
 # Download MS Powershell
 IF ($SoftwareSelection.MSPowershell -eq $true) {
 	$Product = "MS Powershell"
 	$PackageName = "Powershell"
 	Try {
-	$MSPowershell = Get-EvergreenApp -Name MicrosoftPowerShell | Where-Object {$_.Architecture -eq "x64" -and $_.Release -eq "Stable"} -ErrorAction Stop
+	$MSPowershell = Get-EvergreenApp -Name MicrosoftPowerShell | Where-Object {$_.Architecture -eq "x64" -and $_.Release -eq "Stable" -and $_.Type -eq "msi"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 	}
