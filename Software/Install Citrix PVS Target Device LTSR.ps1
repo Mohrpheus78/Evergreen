@@ -73,9 +73,10 @@ if ($noGUI -eq $False) {
 
 			IF ($PVS -lt $VersionPVS) {
 				try	{
-					DS_WriteLog "I" "Installing DisplayPVS" $LogFile
+					DS_WriteLog "I" "Installing $DisplayPVS" $LogFile
 					Write-Output ""
-					Write-Host -ForegroundColor Yellow "Installing DisplayPVS"
+					Write-Host -ForegroundColor Yellow "Installing $
+					DisplayPVS"
 					Start-Process "$PSScriptRoot\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
 					# Remove Status Tray from autostart
 					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name StatusTray -Force -EA SilentlyContinue
@@ -87,8 +88,8 @@ if ($noGUI -eq $False) {
 					Restart-Computer
 				} catch {
 					DS_WriteLog "-" "" $LogFile
-					DS_WriteLog "E" "Error installing DisplayPVS (Error: $($Error[0]))" $LogFile
-					Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
+					DS_WriteLog "E" "Error installing $DisplayPVS (Error: $($Error[0]))" $LogFile
+					Write-Host -ForegroundColor Red "Error installing $DisplayPVS (Error: $($Error[0]))"
 					Write-Output ""    
 					}
 		

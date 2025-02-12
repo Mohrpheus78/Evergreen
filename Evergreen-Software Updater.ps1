@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.11.12
+Version: 2.11.13
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -72,6 +72,7 @@ Version: 2.11.12
 24/12/16: Changed .NET Desktop Runtime for CR WorkspaceApp to version 8.10
 25/01/03: Changed WinSCP and WINRAR download and version source, removed ShareFile
 25/02/07: Added Microsoft Office LTSC 2024, fixed MS Powershell
+25/02/12: Changed FSLogix version detection for new FSLogix release
 # Notes
 #>
 
@@ -1296,7 +1297,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.11.12"
+	[version]$EvergreenVersion = "2.11.13"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2321,7 +2322,7 @@ IF ($SoftwareSelection.FSLogix -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	$Version = $FSLogix.Version
+	[version]$Version = '25.0.2'
 	$URL = $FSLogix.uri
 	$InstallerType = "zip"
 	$Source = "$PackageName" + "." + "$InstallerType"
