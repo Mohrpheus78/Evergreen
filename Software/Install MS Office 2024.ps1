@@ -5,7 +5,7 @@
 
 <#
 .SYNOPSIS
-This script installs MS Office 2021 on a MCS/PVS master server/client or wherever you want.
+This script installs MS Office 2024 on a MCS/PVS master server/client or wherever you want.
 		
 .Description
 Use the Software Updater script first, to check if a new version is available! After that use the Software Installer script. If you select this software
@@ -24,7 +24,7 @@ $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "MS Office 2021 LTSC"
+$Product = "MS Office 2024 LTSC"
 
 #========================================================================================================================================
 # Logging
@@ -50,11 +50,11 @@ DS_WriteLog "-" "" $LogFile
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-	[version]$MS365Apps = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Office * 2021*"}).DisplayVersion | Select-Object -First 1
-	[version]$MS365Apps = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Office * 2021*"}).DisplayVersion | Select-Object -First 1
+	[version]$MS365Apps = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Office * 2024*"}).DisplayVersion | Select-Object -First 1
+	[version]$MS365Apps = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Office * 2024*"}).DisplayVersion | Select-Object -First 1
 	IF ($MS365Apps -lt $Version) {
 
-	# Installation MS Office 2021
+	# Installation MS Office 2024
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
 

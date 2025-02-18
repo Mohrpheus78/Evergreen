@@ -54,7 +54,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$MS365Apps = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft Office * 2019*"}).DisplayVersion | Select-Object -First 1
 	IF ($MS365Apps -lt $Version) {
 
-	# Installation MS 365 Apps-Semi Annual Channel
+	# Installation MS Office 2019
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
 

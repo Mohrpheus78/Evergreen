@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.17.19
+Version: 2.18
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -81,6 +81,7 @@ Version: 2.17.19
 25/01/03: Added VMWare Tools
 25/02/05: Added Windows Server 2025 to NEW MS Teamsa as OS, configured MS Teams scheduled task for App-X registration
 25/02/12: Citrix PVS client LTSR display name correction
+25/02/18: New app design, added MS Office 2024 LTSC
 # Notes
 #>
 
@@ -249,10 +250,12 @@ function gui_mode{
     $Form.text = "Software-Installer"
     $Form.TopMost = $false
     $Form.AutoSize = $true
+	$Form.BackColor = [System.Drawing.Color]::White
 
     # Set the font of the text to be used within the form
     $Font = New-Object System.Drawing.Font("Arial",10)
-    $Form.Font = $Font
+	$FontBold = New-Object System.Drawing.Font("Arial", 11.5, [System.Drawing.FontStyle]::Bold)
+    #$Form.Font = $Font
 
     # Software Headline
     $Headline2 = New-Object system.Windows.Forms.Label
@@ -262,7 +265,7 @@ function gui_mode{
     $Headline2.height = 10
     $Headline2.location = New-Object System.Drawing.Point(11,4)
     $form.Controls.Add($Headline2)
-	$FontBold = New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)
+	#$FontBold = New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)
 	$Headline2.Font = $FontBold
 
 	# NotePadPlusPlus Checkbox
@@ -270,6 +273,7 @@ function gui_mode{
     $NotePadPlusPlusBox.text = "NotePad++"
     $NotePadPlusPlusBox.width = 95
     $NotePadPlusPlusBox.height = 20
+	$NotePadPlusPlusBox.Font = $Font
     $NotePadPlusPlusBox.autosize = $true
     $NotePadPlusPlusBox.location = New-Object System.Drawing.Point(11,45)
     $form.Controls.Add($NotePadPlusPlusBox)
@@ -280,6 +284,7 @@ function gui_mode{
     $SevenZipBox.text = "7 Zip"
     $SevenZipBox.width = 95
     $SevenZipBox.height = 20
+	$SevenZipBox.Font = $Font
     $SevenZipBox.autosize = $true
     $SevenZipBox.location = New-Object System.Drawing.Point(11,70)
     $form.Controls.Add($SevenZipBox)
@@ -290,6 +295,7 @@ function gui_mode{
     $AdobeReaderDCBox.text = "Adobe Reader DC MUI x86 (only for Base Install)"
     $AdobeReaderDCBox.width = 95
     $AdobeReaderDCBox.height = 20
+	$AdobeReaderDCBox.Font = $Font
     $AdobeReaderDCBox.autosize = $true
     $AdobeReaderDCBox.location = New-Object System.Drawing.Point(11,95)
     $form.Controls.Add($AdobeReaderDCBox)
@@ -300,6 +306,7 @@ function gui_mode{
     $AdobeReaderDCBoxUpdate.text = "Adobe Reader DC MUI x86 (Updates only)"
     $AdobeReaderDCBoxUpdate.width = 95
     $AdobeReaderDCBoxUpdate.height = 20
+	$AdobeReaderDCBoxUpdate.Font = $Font
     $AdobeReaderDCBoxUpdate.autosize = $true
     $AdobeReaderDCBoxUpdate.location = New-Object System.Drawing.Point(11,120)
     $form.Controls.Add($AdobeReaderDCBoxUpdate)
@@ -310,6 +317,7 @@ function gui_mode{
     $AdobeReaderDCx64Box.text = "Adobe Reader DC MUI x64 (only for Base Install)"
     $AdobeReaderDCx64Box.width = 95
     $AdobeReaderDCx64Box.height = 20
+	$AdobeReaderDCx64Box.Font = $Font
     $AdobeReaderDCx64Box.autosize = $true
     $AdobeReaderDCx64Box.location = New-Object System.Drawing.Point(11,145)
     $form.Controls.Add($AdobeReaderDCx64Box)
@@ -320,20 +328,22 @@ function gui_mode{
     $AdobeReaderDCx64BoxUpdate.text = "Adobe Reader DC MUI x64 Update (Updates only)"
     $AdobeReaderDCx64BoxUpdate.width = 95
     $AdobeReaderDCx64BoxUpdate.height = 20
+	$AdobeReaderDCx64BoxUpdate.Font = $Font
     $AdobeReaderDCx64BoxUpdate.autosize = $true
     $AdobeReaderDCx64BoxUpdate.location = New-Object System.Drawing.Point(11,170)
     $form.Controls.Add($AdobeReaderDCx64BoxUpdate)
 	$AdobeReaderDCx64BoxUpdate.Checked =  $SoftwareSelection.AdobeReaderDCx64Update
 	
-	# Citrix Files Checkbox
-    $CitrixFilesBox = New-Object system.Windows.Forms.CheckBox
-    $CitrixFilesBox.text = "Citrix Files (Autostart disabled)"
-    $CitrixFilesBox.width = 95
-    $CitrixFilesBox.height = 20
-    $CitrixFilesBox.autosize = $true
-    $CitrixFilesBox.location = New-Object System.Drawing.Point(11,195)
-    $form.Controls.Add($CitrixFilesBox)
-	$CitrixFilesBox.Checked =  $SoftwareSelection.CitrixCitrixFiles
+	# VMWareTools Checkbox
+    $VMWareToolsBox = New-Object system.Windows.Forms.CheckBox
+    $VMWareToolsBox.text = "VMWare Tools"
+    $VMWareToolsBox.width = 95
+    $VMWareToolsBox.height = 20
+    $VMWareToolsBox.autosize = $true
+	$VMWareToolsBox.Font = $Font
+    $VMWareToolsBox.location = New-Object System.Drawing.Point(11,195)
+    $form.Controls.Add($VMWareToolsBox)
+	$VMWareToolsBox.Checked =  $SoftwareSelection.VMWareTools
 	
 	# Citrix Hypervisor Tools Checkbox
     $Citrix_HypervisorToolsBox = New-Object system.Windows.Forms.CheckBox
@@ -341,6 +351,7 @@ function gui_mode{
     $Citrix_HypervisorToolsBox.width = 95
     $Citrix_HypervisorToolsBox.height = 20
     $Citrix_HypervisorToolsBox.autosize = $true
+	$Citrix_HypervisorToolsBox.Font = $Font
     $Citrix_HypervisorToolsBox.location = New-Object System.Drawing.Point(11,220)
     $form.Controls.Add($Citrix_HypervisorToolsBox)
 	$Citrix_HypervisorToolsBox.Checked = $SoftwareSelection.CitrixHypervisorTools
@@ -351,6 +362,7 @@ function gui_mode{
     $WorkspaceApp_CRBox.width = 95
     $WorkspaceApp_CRBox.height = 20
     $WorkspaceApp_CRBox.autosize = $true
+	$WorkspaceApp_CRBox.Font = $Font
     $WorkspaceApp_CRBox.location = New-Object System.Drawing.Point(11,245)
     $form.Controls.Add($WorkspaceApp_CRBox)
 	$WorkspaceApp_CRBox.Checked =  $SoftwareSelection.WorkspaceApp_CR
@@ -361,6 +373,7 @@ function gui_mode{
     $WorkspaceApp_LTSRBox.width = 95
     $WorkspaceApp_LTSRBox.height = 20
     $WorkspaceApp_LTSRBox.autosize = $true
+	$WorkspaceApp_LTSRBox.Font = $Font
     $WorkspaceApp_LTSRBox.location = New-Object System.Drawing.Point(11,270)
     $form.Controls.Add($WorkspaceApp_LTSRBox)
 	$WorkspaceApp_LTSRBox.Checked =  $SoftwareSelection.WorkspaceApp_LTSR
@@ -371,6 +384,7 @@ function gui_mode{
     $WorkspaceApp_CR_WebBox.width = 95
     $WorkspaceApp_CR_WebBox.height = 20
     $WorkspaceApp_CR_WebBox.autosize = $true
+	$WorkspaceApp_CR_WebBox.Font = $Font
     $WorkspaceApp_CR_WebBox.location = New-Object System.Drawing.Point(11,295)
     $form.Controls.Add($WorkspaceApp_CR_WebBox)
 	$WorkspaceApp_CR_WebBox.Checked =  $SoftwareSelection.WorkspaceApp_CR_Web
@@ -381,6 +395,7 @@ function gui_mode{
     $WorkspaceApp_LTSR_WebBox.width = 95
     $WorkspaceApp_LTSR_WebBox.height = 20
     $WorkspaceApp_LTSR_WebBox.autosize = $true
+	$WorkspaceApp_LTSR_WebBox.Font = $Font
     $WorkspaceApp_LTSR_WebBox.location = New-Object System.Drawing.Point(11,320)
     $form.Controls.Add($WorkspaceApp_LTSR_WebBox)
 	$WorkspaceApp_LTSR_WebBox.Checked =  $SoftwareSelection.WorkspaceApp_LTSR_Web
@@ -391,6 +406,7 @@ function gui_mode{
     $PVSTargetDevice_LTSRBox.width = 95
     $PVSTargetDevice_LTSRBox.height = 20
     $PVSTargetDevice_LTSRBox.autosize = $true
+	$PVSTargetDevice_LTSRBox.Font = $Font
     $PVSTargetDevice_LTSRBox.location = New-Object System.Drawing.Point(11,345)
     $form.Controls.Add($PVSTargetDevice_LTSRBox)
 	$PVSTargetDevice_LTSRBox.Checked =  $SoftwareSelection.CitrixPVSTargetDevice_LTSR
@@ -401,6 +417,7 @@ function gui_mode{
     $PVSTargetDevice_CRBox.width = 95
     $PVSTargetDevice_CRBox.height = 20
     $PVSTargetDevice_CRBox.autosize = $true
+	$PVSTargetDevice_CRBox.Font = $Font
     $PVSTargetDevice_CRBox.location = New-Object System.Drawing.Point(11,370)
     $form.Controls.Add($PVSTargetDevice_CRBox)
 	$PVSTargetDevice_CRBox.Checked =  $SoftwareSelection.CitrixPVSTargetDevice_CR
@@ -410,7 +427,8 @@ function gui_mode{
     $ServerVDA_LTSRBox.text = "Citrix Server VDA LTSR"
     $ServerVDA_LTSRBox.width = 95
     $ServerVDA_LTSRBox.height = 20
-    $ServerVDA_LTSRBox.autosize = $true
+    $ServerVDA_LTSRBox.Font = $Font
+	$ServerVDA_LTSRBox.autosize = $true
     $ServerVDA_LTSRBox.location = New-Object System.Drawing.Point(11,395)
     $form.Controls.Add($ServerVDA_LTSRBox)
 	$ServerVDA_LTSRBox.Checked =  $SoftwareSelection.CitrixServerVDA_LTSR
@@ -421,6 +439,7 @@ function gui_mode{
     $ServerVDA_CRBox.width = 95
     $ServerVDA_CRBox.height = 20
     $ServerVDA_CRBox.autosize = $true
+	$ServerVDA_CRBox.Font = $Font
     $ServerVDA_CRBox.location = New-Object System.Drawing.Point(11,420)
     $form.Controls.Add($ServerVDA_CRBox)
 	$ServerVDA_CRBox.Checked =  $SoftwareSelection.CitrixServerVDA_CR
@@ -431,6 +450,7 @@ function gui_mode{
     $ServerVDA_PVS_LTSRBox.width = 95
     $ServerVDA_PVS_LTSRBox.height = 20
     $ServerVDA_PVS_LTSRBox.autosize = $true
+	$ServerVDA_PVS_LTSRBox.Font = $Font
     $ServerVDA_PVS_LTSRBox.location = New-Object System.Drawing.Point(11,445)
     $form.Controls.Add($ServerVDA_PVS_LTSRBox)
 	$ServerVDA_PVS_LTSRBox.Checked =  $SoftwareSelection.CitrixServerVDA_PVS_LTSR
@@ -441,6 +461,7 @@ function gui_mode{
     $ServerVDA_PVS_CRBox.width = 95
     $ServerVDA_PVS_CRBox.height = 20
     $ServerVDA_PVS_CRBox.autosize = $true
+	$ServerVDA_PVS_CRBox.Font = $Font
     $ServerVDA_PVS_CRBox.location = New-Object System.Drawing.Point(11,470)
     $form.Controls.Add($ServerVDA_PVS_CRBox)
 	$ServerVDA_PVS_CRBox.Checked =  $SoftwareSelection.CitrixServerVDA_PVS_CR
@@ -451,6 +472,7 @@ function gui_mode{
     $ServerVDA_MCS_LTSRBox.width = 95
     $ServerVDA_MCS_LTSRBox.height = 20
     $ServerVDA_MCS_LTSRBox.autosize = $true
+	$ServerVDA_MCS_LTSRBox.Font = $Font
     $ServerVDA_MCS_LTSRBox.location = New-Object System.Drawing.Point(11,495)
     $form.Controls.Add($ServerVDA_MCS_LTSRBox)
 	$ServerVDA_MCS_LTSRBox.Checked =  $SoftwareSelection.CitrixServerVDA_MCS_LTSR
@@ -461,6 +483,7 @@ function gui_mode{
     $ServerVDA_MCS_CRBox.width = 95
     $ServerVDA_MCS_CRBox.height = 20
     $ServerVDA_MCS_CRBox.autosize = $true
+	$ServerVDA_MCS_CRBox.Font = $Font
     $ServerVDA_MCS_CRBox.location = New-Object System.Drawing.Point(11,520)
     $form.Controls.Add($ServerVDA_MCS_CRBox)
 	$ServerVDA_MCS_CRBox.Checked =  $SoftwareSelection.CitrixServerVDA_MCS_CR
@@ -471,6 +494,7 @@ function gui_mode{
     $WEM_Agent_Box.width = 95
     $WEM_Agent_Box.height = 20
     $WEM_Agent_Box.autosize = $true
+	$WEM_Agent_Box.Font = $Font
     $WEM_Agent_Box.location = New-Object System.Drawing.Point(11,545)
     $form.Controls.Add($WEM_Agent_Box)
 	$WEM_Agent_Box.Checked =  $SoftwareSelection.CitrixWEM_Agent
@@ -481,6 +505,7 @@ function gui_mode{
     $WEM_Agent_PVSBox.width = 95
     $WEM_Agent_PVSBox.height = 20
     $WEM_Agent_PVSBox.autosize = $true
+	$WEM_Agent_PVSBox.Font = $Font
     $WEM_Agent_PVSBox.location = New-Object System.Drawing.Point(11,570)
     $form.Controls.Add($WEM_Agent_PVSBox)
 	$WEM_Agent_PVSBox.Checked =  $SoftwareSelection.CitrixWEM_Agent_PVS
@@ -491,6 +516,7 @@ function gui_mode{
     $WEM_Agent_MCSBox.width = 95
     $WEM_Agent_MCSBox.height = 20
     $WEM_Agent_MCSBox.autosize = $true
+	$WEM_Agent_MCSBox.Font = $Font
     $WEM_Agent_MCSBox.location = New-Object System.Drawing.Point(11,595)
     $form.Controls.Add($WEM_Agent_MCSBox)
 	$WEM_Agent_MCSBox.Checked =  $SoftwareSelection.CitrixWEM_Agent_MCS
@@ -501,6 +527,7 @@ function gui_mode{
     $MSEdgeBox.width = 95
     $MSEdgeBox.height = 20
     $MSEdgeBox.autosize = $true
+	$MSEdgeBox.Font = $Font
     $MSEdgeBox.location = New-Object System.Drawing.Point(420,45)
     $form.Controls.Add($MSEdgeBox)
 	$MSEdgeBox.Checked =  $SoftwareSelection.MSEdge
@@ -511,6 +538,7 @@ function gui_mode{
     $MSOneDriveBox.width = 95
     $MSOneDriveBox.height = 20
     $MSOneDriveBox.autosize = $true
+	$MSOneDriveBox.Font = $Font
     $MSOneDriveBox.location = New-Object System.Drawing.Point(420,70)
     $form.Controls.Add($MSOneDriveBox)
 	$MSOneDriveBox.Checked =  $SoftwareSelection.MSOneDrive
@@ -521,6 +549,7 @@ function gui_mode{
     $MSTeamsBox.width = 95
     $MSTeamsBox.height = 20
     $MSTeamsBox.autosize = $true
+	$MSTeamsBox.Font = $Font
     $MSTeamsBox.location = New-Object System.Drawing.Point(420,95)
     $form.Controls.Add($MSTeamsBox)
 	$MSTeamsBox.Checked =  $SoftwareSelection.MSTeams
@@ -531,6 +560,7 @@ function gui_mode{
     $NEWMSTeamsBox.width = 95
     $NEWMSTeamsBox.height = 20
     $NEWMSTeamsBox.autosize = $true
+	$NEWMSTeamsBox.Font = $Font
     $NEWMSTeamsBox.location = New-Object System.Drawing.Point(420,120)
     $form.Controls.Add($NEWMSTeamsBox)
 	$NEWMSTeamsBox.Checked =  $SoftwareSelection.MSTeams2
@@ -541,6 +571,7 @@ function gui_mode{
     $MS365AppsBox_SAC.width = 95
     $MS365AppsBox_SAC.height = 20
     $MS365AppsBox_SAC.autosize = $true
+	$MS365AppsBox_SAC.Font = $Font
     $MS365AppsBox_SAC.location = New-Object System.Drawing.Point(420,145)
     $form.Controls.Add($MS365AppsBox_SAC)
 	$MS365AppsBox_SAC.Checked = $SoftwareSelection.MS365Apps_SAC
@@ -551,6 +582,7 @@ function gui_mode{
     $MS365AppsBox_MEC.width = 95
     $MS365AppsBox_MEC.height = 20
     $MS365AppsBox_MEC.autosize = $true
+	$MS365AppsBox_MEC.Font = $Font
     $MS365AppsBox_MEC.location = New-Object System.Drawing.Point(420,170)
     $form.Controls.Add($MS365AppsBox_MEC)
 	$MS365AppsBox_MEC.Checked = $SoftwareSelection.MS365Apps_MEC
@@ -561,6 +593,7 @@ function gui_mode{
     $MSOffice2019Box.width = 95
     $MSOffice2019Box.height = 20
     $MSOffice2019Box.autosize = $true
+	$MSOffice2019Box.Font = $Font
     $MSOffice2019Box.location = New-Object System.Drawing.Point(420,195)
     $form.Controls.Add($MSOffice2019Box)
 	$MSOffice2019Box.Checked = $SoftwareSelection.MSOffice2019
@@ -571,9 +604,21 @@ function gui_mode{
     $MSOffice2021Box.width = 95
     $MSOffice2021Box.height = 20
     $MSOffice2021Box.autosize = $true
+	$MSOffice2021Box.Font = $Font
     $MSOffice2021Box.location = New-Object System.Drawing.Point(420,220)
     $form.Controls.Add($MSOffice2021Box)
 	$MSOffice2021Box.Checked = $SoftwareSelection.MSOffice2021
+	
+	# MS Office2024 Checkbox
+    $MSOffice2024Box = New-Object system.Windows.Forms.CheckBox
+    $MSOffice2024Box.text = "Microsoft Office 2024 (x64/Perpetual VL)"
+    $MSOffice2024Box.width = 95
+    $MSOffice2024Box.height = 20
+    $MSOffice2024Box.autosize = $true
+	$MSOffice2024Box.Font = $Font
+    $MSOffice2024Box.location = New-Object System.Drawing.Point(420,245)
+    $form.Controls.Add($MSOffice2024Box)
+	$MSOffice2024Box.Checked = $SoftwareSelection.MSOffice2024
 	
 	# MS VcRedist Checkbox
     $VcRedistBox = New-Object system.Windows.Forms.CheckBox
@@ -581,7 +626,8 @@ function gui_mode{
     $VcRedistBox.width = 95
     $VcRedistBox.height = 20
     $VcRedistBox.autosize = $true
-    $VcRedistBox.location = New-Object System.Drawing.Point(420,245)
+	$VcRedistBox.Font = $Font
+    $VcRedistBox.location = New-Object System.Drawing.Point(420,270)
     $form.Controls.Add($VcRedistBox)
 	$VcRedistBox.Checked = $SoftwareSelection.VcRedist
 
@@ -591,7 +637,8 @@ function gui_mode{
     $MSSQLManagementStudioENBox.width = 95
     $MSSQLManagementStudioENBox.height = 20
     $MSSQLManagementStudioENBox.autosize = $true
-    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(420,270)
+	$MSSQLManagementStudioENBox.Font = $Font
+    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(420,295)
     $form.Controls.Add($MSSQLManagementStudioENBox)
 	$MSSQLManagementStudioENBox.Checked = $SoftwareSelection.MSSsmsEN
 
@@ -601,7 +648,8 @@ function gui_mode{
     $MSSQLManagementStudioDEBox.width = 95
     $MSSQLManagementStudioDEBox.height = 20
     $MSSQLManagementStudioDEBox.autosize = $true
-    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(420,295)
+	$MSSQLManagementStudioDEBox.Font = $Font
+    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(420,320)
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
 	
@@ -611,7 +659,8 @@ function gui_mode{
     $MicrosoftOpenJDKBox.width = 95
     $MicrosoftOpenJDKBox.height = 20
     $MicrosoftOpenJDKBox.autosize = $true
-    $MicrosoftOpenJDKBox.location = New-Object System.Drawing.Point(420,320)
+	$MicrosoftOpenJDKBox.Font = $Font
+    $MicrosoftOpenJDKBox.location = New-Object System.Drawing.Point(420,345)
     $form.Controls.Add($MicrosoftOpenJDKBox)
 	$MicrosoftOpenJDKBox.Checked =  $SoftwareSelection.MicrosoftOpenJDK
 	
@@ -621,7 +670,8 @@ function gui_mode{
     $BISFBox.width = 95
     $BISFBox.height = 20
     $BISFBox.autosize = $true
-    $BISFBox.location = New-Object System.Drawing.Point(420,345)
+	$BISFBox.Font = $Font
+    $BISFBox.location = New-Object System.Drawing.Point(420,370)
     $form.Controls.Add($BISFBox)
 	$BISFBox.Checked =  $SoftwareSelection.BISF
 	
@@ -631,7 +681,8 @@ function gui_mode{
     $FSLogixBox.width = 95
     $FSLogixBox.height = 20
     $FSLogixBox.autosize = $true
-    $FSLogixBox.location = New-Object System.Drawing.Point(420,370)
+	$FSLogixBox.Font = $Font
+    $FSLogixBox.location = New-Object System.Drawing.Point(420,395)
     $form.Controls.Add($FSLogixBox)
 	$FSLogixBox.Checked =  $SoftwareSelection.FSLogix
 	
@@ -641,7 +692,8 @@ function gui_mode{
     $GoogleChromeBox.width = 95
     $GoogleChromeBox.height = 20
     $GoogleChromeBox.autosize = $true
-    $GoogleChromeBox.location = New-Object System.Drawing.Point(420,395)
+	$GoogleChromeBox.Font = $Font
+    $GoogleChromeBox.location = New-Object System.Drawing.Point(420,420)
     $form.Controls.Add($GoogleChromeBox)
 	$GoogleChromeBox.Checked =  $SoftwareSelection.GoogleChrome
 <#	
@@ -651,6 +703,7 @@ function gui_mode{
     $ZoomVMWareBox.width = 95
     $ZoomVMWareBox.height = 20
     $ZoomVMWareBox.autosize = $true
+	$ZoomVMWareBox.Font = $Font
     $ZoomVMWareBox.location = New-Object System.Drawing.Point(420,195)
     $form.Controls.Add($ZoomVMWareBox)
 	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
@@ -661,9 +714,9 @@ function gui_mode{
     $PuttyBox.width = 95
     $PuttyBox.height = 20
     $PuttyBox.autosize = $true
-    $PuttyBox.location = New-Object System.Drawing.Point(420,420)
-	# $PuttyBox.location = New-Object System.Drawing.Point(770,45)
-    $form.Controls.Add($PuttyBox)
+	$PuttyBox.Font = $Font
+    $PuttyBox.location = New-Object System.Drawing.Point(420,445)
+	$form.Controls.Add($PuttyBox)
     $PuttyBox.Checked =  $SoftwareSelection.Putty
 
     # WinSCP Checkbox
@@ -672,7 +725,8 @@ function gui_mode{
     $WinSCPBox.width = 95
     $WinSCPBox.height = 20
     $WinSCPBox.autosize = $true
-    $WinSCPBox.location = New-Object System.Drawing.Point(420,445)
+	$WinSCPBox.Font = $Font
+    $WinSCPBox.location = New-Object System.Drawing.Point(420,470)
     $form.Controls.Add($WinSCPBox)
     $WinSCPBox.Checked =  $SoftwareSelection.WinSCP
 	
@@ -683,20 +737,12 @@ function gui_mode{
     $CiscoWebExDesktopBox.width = 95
     $CiscoWebExDesktopBox.height = 20
     $CiscoWebExDesktopBox.autosize = $true
+	$CiscoWebExDesktopBox.Font = $Font
     $CiscoWebExDesktopBox.location = New-Object System.Drawing.Point(420,320)
     $form.Controls.Add($CiscoWebExDesktopBox)
 	$CiscoWebExDesktopBox.Checked =  $SoftwareSelection.CiscoWebExDesktop
 	#>
 	
-	# FoxitReader Checkbox
-    $FoxitReaderBox = New-Object system.Windows.Forms.CheckBox
-    $FoxitReaderBox.text = "Foxit Reader"
-    $FoxitReaderBox.width = 95
-    $FoxitReaderBox.height = 20
-    $FoxitReaderBox.autosize = $true
-    $FoxitReaderBox.location = New-Object System.Drawing.Point(420,470)
-    $form.Controls.Add($FoxitReaderBox)
-	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
 	
 	# RemoteDesktopManager Checkbox
     $RemoteDesktopManagerBox = New-Object system.Windows.Forms.CheckBox
@@ -704,6 +750,7 @@ function gui_mode{
     $RemoteDesktopManagerBox.width = 95
     $RemoteDesktopManagerBox.height = 20
     $RemoteDesktopManagerBox.autosize = $true
+	$RemoteDesktopManagerBox.Font = $Font
     $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(420,495)
     $form.Controls.Add($RemoteDesktopManagerBox)
 	$RemoteDesktopManagerBox.Checked =  $SoftwareSelection.RemoteDesktopManager
@@ -714,6 +761,7 @@ function gui_mode{
     $OracleJava8Box.width = 95
     $OracleJava8Box.height = 20
     $OracleJava8Box.autosize = $true
+	$OracleJava8Box.Font = $Font
     $OracleJava8Box.location = New-Object System.Drawing.Point(420,520)
     $form.Controls.Add($OracleJava8Box)
 	$OracleJava8Box.Checked =  $SoftwareSelection.OracleJava8
@@ -724,6 +772,7 @@ function gui_mode{
     $OracleJava8_32Box.width = 95
     $OracleJava8_32Box.height = 20
     $OracleJava8_32Box.autosize = $true
+	$OracleJava8_32Box.Font = $Font
     $OracleJava8_32Box.location = New-Object System.Drawing.Point(420,545)
     $form.Controls.Add($OracleJava8_32Box)
 	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
@@ -734,6 +783,7 @@ function gui_mode{
     $GreenshotBox.width = 95
     $GreenshotBox.height = 20
     $GreenshotBox.autosize = $true
+	$GreenshotBox.Font = $Font
     $GreenshotBox.location = New-Object System.Drawing.Point(420,570)
     $form.Controls.Add($GreenshotBox)
 	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
@@ -744,29 +794,32 @@ function gui_mode{
     $pdf24CreatorBox.width = 95
     $pdf24CreatorBox.height = 20
     $pdf24CreatorBox.autosize = $true
+	$pdf24CreatorBox.Font = $Font
     $pdf24CreatorBox.location = New-Object System.Drawing.Point(420,595)
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 
-   # VMWareTools Checkbox
-    $VMWareToolsBox = New-Object system.Windows.Forms.CheckBox
-    $VMWareToolsBox.text = "VMWare Tools"
-    $VMWareToolsBox.width = 95
-    $VMWareToolsBox.height = 20
-    $VMWareToolsBox.autosize = $true
-    $VMWareToolsBox.location = New-Object System.Drawing.Point(810,45)
-    $form.Controls.Add($VMWareToolsBox)
-	$VMWareToolsBox.Checked =  $SoftwareSelection.VMWareTools
-	
 	# deviceTRUST Checkbox
     $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
     $deviceTRUSTBox.text = "deviceTRUST"
     $deviceTRUSTBox.width = 95
     $deviceTRUSTBox.height = 20
     $deviceTRUSTBox.autosize = $true
-    $deviceTRUSTBox.location = New-Object System.Drawing.Point(810,70)
+	$deviceTRUSTBox.Font = $Font
+    $deviceTRUSTBox.location = New-Object System.Drawing.Point(810,45)
     $form.Controls.Add($deviceTRUSTBox)
 	$deviceTRUSTBox.Checked =  $SoftwareSelection.deviceTRUST
+	
+	# VLCPlayer Checkbox
+    $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
+    $VLCPlayerBox.text = "VLC Player"
+    $VLCPlayerBox.width = 95
+    $VLCPlayerBox.height = 20
+    $VLCPlayerBox.autosize = $true
+	$VLCPlayerBox.Font = $Font
+    $VLCPlayerBox.location = New-Object System.Drawing.Point(810,70)
+    $form.Controls.Add($VLCPlayerBox)
+	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
 	
 	# KeePass Checkbox
     $KeePassBox = New-Object system.Windows.Forms.CheckBox
@@ -774,6 +827,7 @@ function gui_mode{
     $KeePassBox.width = 95
     $KeePassBox.height = 20
     $KeePassBox.autosize = $true
+	$KeePassBox.Font = $Font
     $KeePassBox.location = New-Object System.Drawing.Point(810,95)
     $form.Controls.Add($KeePassBox)
 	$KeePassBox.Checked =  $SoftwareSelection.KeePass
@@ -784,6 +838,7 @@ function gui_mode{
     $KeePassXCBox.width = 95
     $KeePassXCBox.height = 20
     $KeePassXCBox.autosize = $true
+	$KeePassXCBox.Font = $Font
     $KeePassXCBox.location = New-Object System.Drawing.Point(810,120)
     $form.Controls.Add($KeePassXCBox)
 	$KeePassXCBox.Checked =  $SoftwareSelection.KeePassXC
@@ -794,6 +849,7 @@ function gui_mode{
     $TreeSizeFreeBox.width = 95
     $TreeSizeFreeBox.height = 20
     $TreeSizeFreeBox.autosize = $true
+	$TreeSizeFreeBox.Font = $Font
     $TreeSizeFreeBox.location = New-Object System.Drawing.Point(810,145)
     $form.Controls.Add($TreeSizeFreeBox)
 	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
@@ -804,6 +860,7 @@ function gui_mode{
     $ShareXBox.width = 95
     $ShareXBox.height = 20
     $ShareXBox.autosize = $true
+	$ShareXBox.Font = $Font
     $ShareXBox.location = New-Object System.Drawing.Point(810,170)
     $form.Controls.Add($ShareXBox)
 	$ShareXBox.Checked =  $SoftwareSelection.ShareX
@@ -814,6 +871,7 @@ function gui_mode{
     $ImageGlassBox.width = 95
     $ImageGlassBox.height = 20
     $ImageGlassBox.autosize = $true
+	$ImageGlassBox.Font = $Font
     $ImageGlassBox.location = New-Object System.Drawing.Point(810,195)
     $form.Controls.Add($ImageGlassBox)
 	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
@@ -824,6 +882,7 @@ function gui_mode{
     $FileZillaBox.width = 95
     $FileZillaBox.height = 20
     $FileZillaBox.autosize = $true
+	$FileZillaBox.Font = $Font
     $FileZillaBox.location = New-Object System.Drawing.Point(810,220)
     $form.Controls.Add($FileZillaBox)
 	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
@@ -834,26 +893,27 @@ function gui_mode{
     $WinRARBox.width = 95
     $WinRARBox.height = 20
     $WinRARBox.autosize = $true
+	$WinRARBox.Font = $Font
     $WinRARBox.location = New-Object System.Drawing.Point(810,245)
     $form.Controls.Add($WinRARBox)
 	$WinRARBox.Checked =  $SoftwareSelection.WinRAR
 	
-	# VLCPlayer Checkbox
-    $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
-    $VLCPlayerBox.text = "VLC Player"
-    $VLCPlayerBox.width = 95
-    $VLCPlayerBox.height = 20
-    $VLCPlayerBox.autosize = $true
-    $VLCPlayerBox.location = New-Object System.Drawing.Point(810,270)
-    $form.Controls.Add($VLCPlayerBox)
-	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
+	# FoxitReader Checkbox
+    $FoxitReaderBox = New-Object system.Windows.Forms.CheckBox
+    $FoxitReaderBox.text = "Foxit Reader"
+    $FoxitReaderBox.width = 95
+    $FoxitReaderBox.height = 20
+    $FoxitReaderBox.autosize = $true
+	$FoxitReaderBox.Font = $Font
+    $FoxitReaderBox.location = New-Object System.Drawing.Point(810,270)
+    $form.Controls.Add($FoxitReaderBox)
+	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
 
-	
 	<#
 	# Zoom Host Checkbox
     $ZoomVDIBox = New-Object system.Windows.Forms.CheckBox
     $ZoomVDIBox.text = "Zoom VDI Host Installer (N/A)"
-	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
+	$CustomFont = [System.Drawing.Font]::new("Arial",10.5, [System.Drawing.FontStyle]::Strikeout)
     $ZoomVDIBox.Font = $CustomFont
     $ZoomVDIBox.width = 95
     $ZoomVDIBox.height = 20
@@ -865,7 +925,7 @@ function gui_mode{
 	# Zoom Citrix client Checkbox
     $ZoomCitrixBox = New-Object system.Windows.Forms.CheckBox
     $ZoomCitrixBox.text = "Zoom Citrix Client (N/A)"
-	$CustomFont = [System.Drawing.Font]::new("Arial",11, [System.Drawing.FontStyle]::Strikeout)
+	$CustomFont = [System.Drawing.Font]::new("Arial",10.5, [System.Drawing.FontStyle]::Strikeout)
     $ZoomCitrixBox.Font = $CustomFont
     $ZoomCitrixBox.width = 95
     $ZoomCitrixBox.height = 20
@@ -880,6 +940,7 @@ function gui_mode{
     $SelectButton.text = "Select all"
     $SelectButton.width = 110
     $SelectButton.height = 30
+	$SelectButton.Font = $Font
     $SelectButton.location = New-Object System.Drawing.Point(11,630)
     $SelectButton.Add_Click({
         $NotePadPlusPlusBox.Checked = $True
@@ -906,6 +967,7 @@ function gui_mode{
 		$MS365AppsBox_MEC.checked = $True
 		$MSOffice2019Box.checked = $True
 		$MSOffice2021Box.checked = $True
+		$MSOffice2024Box.checked = $True
 		$VcRedistBox.checked = $True
         $MSSQLManagementStudioENBox.checked = $True
         $MSSQLManagementStudioDEBox.checked = $True
@@ -940,7 +1002,6 @@ function gui_mode{
 		$WEM_Agent_Box.checked = $True
 		$WEM_Agent_PVSBox.checked = $True
 		$WEM_Agent_MCSBox.checked = $True
-		$CitrixFilesBox.checked = $True
         $PuttyBox.checked = $True
         $WinSCPBox.checked = $True
 		})
@@ -951,6 +1012,7 @@ function gui_mode{
     $UnselectButton.text = "Unselect all"
     $UnselectButton.width = 110
     $UnselectButton.height = 30
+	$UnSelectButton.Font = $Font
     $UnselectButton.location = New-Object System.Drawing.Point(131,630)
     $UnselectButton.Add_Click({
         $NotePadPlusPlusBox.Checked = $False
@@ -977,6 +1039,7 @@ function gui_mode{
 		$MS365AppsBox_MEC.checked = $False
 		$MSOffice2019Box.checked = $False
 		$MSOffice2021Box.checked = $False
+		$MSOffice2024Box.checked = $False
 		$VcRedistBox.checked = $False
         $MSSQLManagementStudioENBox.checked = $False
         $MSSQLManagementStudioENBox.checked = $False
@@ -1011,7 +1074,6 @@ function gui_mode{
 		$WEM_Agent_Box.checked = $False
 		$WEM_Agent_PVSBox.checked = $False
 		$WEM_Agent_MCSBox.checked = $False
-		$CitrixFilesBox.checked = $False
         $PuttyBox.checked = $False
         $WinSCPBox.checked = $False
 		})
@@ -1022,6 +1084,7 @@ function gui_mode{
     $OKButton.text = "OK"
     $OKButton.width = 60
     $OKButton.height = 30
+	$OKButton.Font = $Font
     $OKButton.location = New-Object System.Drawing.Point(271,630)
     $OKButton.Add_Click({
 		#if (!($SoftwareToInstall)) {$SoftwareSelection = New-Object PSObject}
@@ -1050,6 +1113,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_MEC" -Value $MS365AppsBox_MEC.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2019" -Value $MSOffice2019Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2021" -Value $MSOffice2021Box.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOffice2024" -Value $MSOffice2024Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VcRedist" -Value $VcRedistBox.checked -Force
         Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsEN" -Value $MSSQLManagementStudioENBox.checked -Force
         Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsDE" -Value $MSSQLManagementStudioDEBox.checked -Force
@@ -1083,7 +1147,6 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixWEM_Agent" -Value $WEM_Agent_Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixWEM_Agent_PVS" -Value $WEM_Agent_PVSBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixWEM_Agent_MCS" -Value $WEM_Agent_MCSBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixCitrixFiles" -Value $CitrixFilesBox.checked -Force
         Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Putty" -Value $PuttyBox.checked -Force
         Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinSCP" -Value $WinSCPBox.checked -Force
 	
@@ -1098,6 +1161,7 @@ function gui_mode{
     $CancelButton.text = "Cancel"
     $CancelButton.width = 80
     $CancelButton.height = 30
+	$CancelButton.Font = $Font
     $CancelButton.location = New-Object System.Drawing.Point(341,630)
     $CancelButton.Add_Click({
         Write-Host -ForegroundColor Red "Canceled - Nothing happens"
@@ -1205,7 +1269,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.17.19"
+	[version]$EvergreenVersion = "2.18"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1664,6 +1728,20 @@ IF ($SoftwareSelection.MSOffice2021 -eq $true)
 			}
 	}
 	
+# Install MS Office 2024
+IF ($SoftwareSelection.MSOffice2024 -eq $true)
+	{
+		try {
+			& "$SoftwareFolder\Install MS Office 2024.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS Office 2024"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS Office 2024': $($Error[0])"
+			Write-Output ""
+			}
+	}
+	
+	
 # Install MS VcRedist
 IF ($SoftwareSelection.VcRedist -eq $true)
 	{
@@ -2045,19 +2123,6 @@ IF ($SoftwareSelection.CitrixWEM_Agent_MCS -eq $true)
 		catch {
 			Write-Host -ForegroundColor Red "Installing Citrix WEM Agent for MCS"
 			Write-Host -ForegroundColor Red "Error in launching script 'Install Citrix WEM Agent for MCS': $($Error[0])"
-			Write-Output ""
-			}
-	}
-
-# Install Citrix Files
-IF ($SoftwareSelection.CitrixCitrixFiles -eq $true)
-	{
-		try {
-			& "$SoftwareFolder\Install Citrix Files.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing Citrix Files"
-			Write-Host -ForegroundColor Red "Error in launching script 'Install Citrix Files': $($Error[0])"
 			Write-Output ""
 			}
 	}
