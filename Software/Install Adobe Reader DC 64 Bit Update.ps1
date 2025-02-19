@@ -59,22 +59,24 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	try {
 		$mspArgs = "/P `"$PSScriptRoot\$Product\Adobe_DC_MUI_x64_Update.msp`" /quiet /qn"
 		Start-Process -FilePath msiexec.exe -ArgumentList $mspArgs -Wait
-		# Disale update service and scheduled task
-		if (Get-Service -Name AdobeARMservice) {
-			Start-Sleep 5
+	} catch {
+		DS_WriteLog "-" "" $LogFile
+		DS_WriteLog "E" "Error installing $Product Update (Error: $($Error[0]))" $LogFile
+		Write-Host -ForegroundColor Red "Error installing $Product Update (Error: $($Error[0]))"
+		Write-Output "" 
+	}
+		# Disable update service
+		if (Get-Service -Name AdobeARMservice -EA SilentlyContinue) {
+			Start-Sleep 3
 			Stop-Service AdobeARMservice
 			Set-Service AdobeARMservice -StartupType Disabled
-			Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
 		}
+		# Disable scheduled task
+		Get-ScheduledTask -TaskName "Adobe Acrobat Update Task" -EA SilentlyContinue | Disable-ScheduledTask | Out-Null
+
 		DS_WriteLog "-" "" $LogFile
 		write-Host -ForegroundColor Green "...ready"
 		Write-Output ""
-		} catch {
-			DS_WriteLog "-" "" $LogFile
-			DS_WriteLog "E" "Error installing $Product Update (Error: $($Error[0]))" $LogFile
-			Write-Host -ForegroundColor Red "Error installing $Product Update (Error: $($Error[0]))"
-			Write-Output "" 
-			}
 	}
 
 	# Stop, if no new version is available

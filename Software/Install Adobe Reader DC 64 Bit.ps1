@@ -95,28 +95,16 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 			Write-Output "" 
 			}
 
-	<#
-	# Adobe Reader DC Font Pack
-	Write-Host -ForegroundColor Yellow "Installing Font Pack"
-	DS_WriteLog "I" "Installing Font Pack" $LogFile
-	try {
-		$msiArgs = "/I `"$PSScriptRoot\$Product\Font Pack\AcroRdrALSDx64_2200120085_all_DC.msi`"/quiet /qn"
-		Start-Process -FilePath msiexec.exe -ArgumentList $msiArgs -Wait
-		} catch {
-	DS_WriteLog "E" "Error while installing Font Pack (error: $($Error[0]))" $LogFile 
-	}
-	#>
-
 	# Disale update service and scheduled task
-	IF (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Adobe Acrobat (64*"}) {
-		Start-Sleep 5
-			if (Get-Service -Name AdobeARMservice) {
-			Stop-Service AdobeARMservice
-			Set-Service AdobeARMservice -StartupType Disabled
-			Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
+		IF (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Adobe Acrobat (64*"}) {
+			if (Get-Service -Name AdobeARMservice -EA SilentlyContinue) {
+				Start-Sleep 3
+				Stop-Service AdobeARMservice
+				Set-Service AdobeARMservice -StartupType Disabled
+			}
+			Get-ScheduledTask -TaskName "Adobe Acrobat Update Task" -EA SilentlyContinue | Disable-ScheduledTask | Out-Null
 		}
 	}
-}
 
 	# Stop, if no new version is available
 	Else {

@@ -53,7 +53,7 @@ DS_WriteLog "-" "" $LogFile
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 	$VMWareTools = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*VMWare Tools*"}).DisplayVersion
-	# $VMWareTools = $VMWareTools.substring(0,6)
+	$VMWareTools = $VMWareTools.substring(0,6)
 	IF ($VMWareTools -ne $Version) {
 
 	# VMWareTools Install

@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18
+Version: 2.18.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -82,6 +82,7 @@ Version: 2.18
 25/02/05: Added Windows Server 2025 to NEW MS Teamsa as OS, configured MS Teams scheduled task for App-X registration
 25/02/12: Citrix PVS client LTSR display name correction
 25/02/18: New app design, added MS Office 2024 LTSC
+25/02/19: VMWareTools version check, bug with Adobe Reader 64 Bit scheduled update task and service fixed
 # Notes
 #>
 
