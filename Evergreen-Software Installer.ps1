@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.1
+Version: 2.18.2
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -82,7 +82,7 @@ Version: 2.18.1
 25/02/05: Added Windows Server 2025 to NEW MS Teamsa as OS, configured MS Teams scheduled task for App-X registration
 25/02/12: Citrix PVS client LTSR display name correction
 25/02/18: New app design, added MS Office 2024 LTSC
-25/02/19: VMWareTools version check, bug with Adobe Reader 64 Bit scheduled update task and service fixed
+25/02/21: Added Mozilla Firefox
 # Notes
 #>
 
@@ -697,6 +697,17 @@ function gui_mode{
     $GoogleChromeBox.location = New-Object System.Drawing.Point(420,420)
     $form.Controls.Add($GoogleChromeBox)
 	$GoogleChromeBox.Checked =  $SoftwareSelection.GoogleChrome
+	
+	# Firefox Checkbox
+    $FirefoxBox = New-Object system.Windows.Forms.CheckBox
+    $FirefoxBox.text = "Mozilla Firefox"
+    $FirefoxBox.width = 95
+    $FirefoxBox.height = 20
+    $FirefoxBox.autosize = $true
+	$FirefoxBox.Font = $Font
+    $FirefoxBox.location = New-Object System.Drawing.Point(420,445)
+    $form.Controls.Add($FirefoxBox)
+	$FirefoxBox.Checked =  $SoftwareSelection.Firefox
 <#	
 	# Zoom VMWare client Checkbox
     $ZoomVMWareBox = New-Object system.Windows.Forms.CheckBox
@@ -709,17 +720,6 @@ function gui_mode{
     $form.Controls.Add($ZoomVMWareBox)
 	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
 #>
-	# Putty Checkbox
-    $PuttyBox = New-Object system.Windows.Forms.CheckBox
-    $PuttyBox.text = "Putty"
-    $PuttyBox.width = 95
-    $PuttyBox.height = 20
-    $PuttyBox.autosize = $true
-	$PuttyBox.Font = $Font
-    $PuttyBox.location = New-Object System.Drawing.Point(420,445)
-	$form.Controls.Add($PuttyBox)
-    $PuttyBox.Checked =  $SoftwareSelection.Putty
-
     # WinSCP Checkbox
     $WinSCPBox = New-Object system.Windows.Forms.CheckBox
     $WinSCPBox.text = "WinSCP"
@@ -730,6 +730,17 @@ function gui_mode{
     $WinSCPBox.location = New-Object System.Drawing.Point(420,470)
     $form.Controls.Add($WinSCPBox)
     $WinSCPBox.Checked =  $SoftwareSelection.WinSCP
+	
+	# Putty Checkbox
+    $PuttyBox = New-Object system.Windows.Forms.CheckBox
+    $PuttyBox.text = "Putty"
+    $PuttyBox.width = 95
+    $PuttyBox.height = 20
+    $PuttyBox.autosize = $true
+	$PuttyBox.Font = $Font
+    $PuttyBox.location = New-Object System.Drawing.Point(420,495)
+	$form.Controls.Add($PuttyBox)
+    $PuttyBox.Checked =  $SoftwareSelection.Putty
 	
 	<#
 	# CiscoWebExDesktop Checkbox
@@ -743,18 +754,6 @@ function gui_mode{
     $form.Controls.Add($CiscoWebExDesktopBox)
 	$CiscoWebExDesktopBox.Checked =  $SoftwareSelection.CiscoWebExDesktop
 	#>
-	
-	
-	# RemoteDesktopManager Checkbox
-    $RemoteDesktopManagerBox = New-Object system.Windows.Forms.CheckBox
-    $RemoteDesktopManagerBox.text = "Remote Desktop Manager Free"
-    $RemoteDesktopManagerBox.width = 95
-    $RemoteDesktopManagerBox.height = 20
-    $RemoteDesktopManagerBox.autosize = $true
-	$RemoteDesktopManagerBox.Font = $Font
-    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(420,495)
-    $form.Controls.Add($RemoteDesktopManagerBox)
-	$RemoteDesktopManagerBox.Checked =  $SoftwareSelection.RemoteDesktopManager
 	
 	# OracleJava8 Checkbox
     $OracleJava8Box = New-Object system.Windows.Forms.CheckBox
@@ -778,16 +777,16 @@ function gui_mode{
     $form.Controls.Add($OracleJava8_32Box)
 	$OracleJava8_32Box.Checked =  $SoftwareSelection.OracleJava8_32
 	
-	# Greenshot Checkbox
-    $GreenshotBox = New-Object system.Windows.Forms.CheckBox
-    $GreenshotBox.text = "Greenshot"
-    $GreenshotBox.width = 95
-    $GreenshotBox.height = 20
-    $GreenshotBox.autosize = $true
-	$GreenshotBox.Font = $Font
-    $GreenshotBox.location = New-Object System.Drawing.Point(420,570)
-    $form.Controls.Add($GreenshotBox)
-	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
+	# RemoteDesktopManager Checkbox
+    $RemoteDesktopManagerBox = New-Object system.Windows.Forms.CheckBox
+    $RemoteDesktopManagerBox.text = "Remote Desktop Manager Free"
+    $RemoteDesktopManagerBox.width = 95
+    $RemoteDesktopManagerBox.height = 20
+    $RemoteDesktopManagerBox.autosize = $true
+	$RemoteDesktopManagerBox.Font = $Font
+    $RemoteDesktopManagerBox.location = New-Object System.Drawing.Point(420,570)
+    $form.Controls.Add($RemoteDesktopManagerBox)
+	$RemoteDesktopManagerBox.Checked =  $SoftwareSelection.RemoteDesktopManager
 	
 	# pdf24Creator Checkbox
     $pdf24CreatorBox = New-Object system.Windows.Forms.CheckBox
@@ -866,6 +865,17 @@ function gui_mode{
     $form.Controls.Add($ShareXBox)
 	$ShareXBox.Checked =  $SoftwareSelection.ShareX
 	
+	# Greenshot Checkbox
+    $GreenshotBox = New-Object system.Windows.Forms.CheckBox
+    $GreenshotBox.text = "Greenshot"
+    $GreenshotBox.width = 95
+    $GreenshotBox.height = 20
+    $GreenshotBox.autosize = $true
+	$GreenshotBox.Font = $Font
+    $GreenshotBox.location = New-Object System.Drawing.Point(810,195)
+    $form.Controls.Add($GreenshotBox)
+	$GreenshotBox.Checked =  $SoftwareSelection.Greenshot
+	
 	# ImageGlass Checkbox
     $ImageGlassBox = New-Object system.Windows.Forms.CheckBox
     $ImageGlassBox.text = "ImageGlass"
@@ -873,7 +883,7 @@ function gui_mode{
     $ImageGlassBox.height = 20
     $ImageGlassBox.autosize = $true
 	$ImageGlassBox.Font = $Font
-    $ImageGlassBox.location = New-Object System.Drawing.Point(810,195)
+    $ImageGlassBox.location = New-Object System.Drawing.Point(810,220)
     $form.Controls.Add($ImageGlassBox)
 	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
 	
@@ -884,7 +894,7 @@ function gui_mode{
     $FileZillaBox.height = 20
     $FileZillaBox.autosize = $true
 	$FileZillaBox.Font = $Font
-    $FileZillaBox.location = New-Object System.Drawing.Point(810,220)
+    $FileZillaBox.location = New-Object System.Drawing.Point(810,245)
     $form.Controls.Add($FileZillaBox)
 	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
 
@@ -895,7 +905,7 @@ function gui_mode{
     $WinRARBox.height = 20
     $WinRARBox.autosize = $true
 	$WinRARBox.Font = $Font
-    $WinRARBox.location = New-Object System.Drawing.Point(810,245)
+    $WinRARBox.location = New-Object System.Drawing.Point(810,270)
     $form.Controls.Add($WinRARBox)
 	$WinRARBox.Checked =  $SoftwareSelection.WinRAR
 	
@@ -906,7 +916,7 @@ function gui_mode{
     $FoxitReaderBox.height = 20
     $FoxitReaderBox.autosize = $true
 	$FoxitReaderBox.Font = $Font
-    $FoxitReaderBox.location = New-Object System.Drawing.Point(810,270)
+    $FoxitReaderBox.location = New-Object System.Drawing.Point(810,295)
     $form.Controls.Add($FoxitReaderBox)
 	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
 
@@ -953,6 +963,7 @@ function gui_mode{
 		$BISFBox.checked = $True
 		$FSLogixBox.checked = $True
 		$GoogleChromeBox.checked = $True
+		$FirefoxBox.checked = $True
 		$WorkspaceApp_CRBox.checked = $True
 		$WorkspaceApp_LTSRBox.checked = $True
 		$WorkspaceApp_CR_WebBox.checked = $True
@@ -1025,6 +1036,7 @@ function gui_mode{
 		$BISFBox.checked = $False
 		$FSLogixBox.checked = $False
 		$GoogleChromeBox.checked = $False
+		$FirefoxBox.checked = $False
 		$WorkspaceApp_CRBox.checked = $False
 		$WorkspaceApp_LTSRBox.checked = $False
 		$WorkspaceApp_CR_WebBox.checked = $False
@@ -1099,6 +1111,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "BISF" -Value $BISFBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FSLogix" -Value $FSLogixBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "GoogleChrome" -Value $GoogleChromeBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Firefox" -Value $FirefoxBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_CR" -Value $WorkspaceApp_CRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_LTSR" -Value $WorkspaceApp_LTSRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_CR_Web" -Value $WorkspaceApp_CR_WebBox.checked -Force
@@ -1270,7 +1283,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.18.1"
+	[version]$EvergreenVersion = "2.18.2"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1530,6 +1543,19 @@ IF ($SoftwareSelection.GoogleChrome -eq $true)
 		catch {
 			Write-Host -ForegroundColor Red "Installing Google Chrome"
 			Write-Host -ForegroundColor Red "Error launching script 'Install Google Chrome': $($Error[0])"
+			Write-Output ""
+			}
+	}
+	
+# Install Mozilla Firefox
+IF ($SoftwareSelection.Firefox -eq $true)
+	{
+		try {
+			& "$SoftwareFolder\Install Mozilla Firefox.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing Mozilla Firefox"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Mozilla Firefox': $($Error[0])"
 			Write-Output ""
 			}
 	}

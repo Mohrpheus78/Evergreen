@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12
+Version: 2.12.2
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -74,6 +74,7 @@ Version: 2.12
 25/02/07: Added Microsoft Office LTSC 2024, fixed MS Powershell
 25/02/12: Changed FSLogix version detection for new FSLogix release
 25/02/18: New app design
+25/02/21: Added Mozilla Firefox
 # Notes
 #>
 
@@ -814,16 +815,16 @@ function gui_mode{
     $form.Controls.Add($VLCPlayerBox)
 	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
 	
-	# FileZilla Checkbox
-    $FileZillaBox = New-Object system.Windows.Forms.CheckBox
-    $FileZillaBox.text = "FileZilla Client"
-    $FileZillaBox.width = 95
-    $FileZillaBox.height = 20
-    $FileZillaBox.autosize = $true
-	$FileZillaBox.Font = $Font
-    $FileZillaBox.location = New-Object System.Drawing.Point(250,495)
-    $form.Controls.Add($FileZillaBox)
-	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
+	# Firefox Checkbox
+    $FirefoxBox = New-Object system.Windows.Forms.CheckBox
+    $FirefoxBox.text = "Mozilla Firefox"
+    $FirefoxBox.width = 95
+    $FirefoxBox.height = 20
+    $FirefoxBox.autosize = $true
+	$FirefoxBox.Font = $Font
+    $FirefoxBox.location = New-Object System.Drawing.Point(250,495)
+    $form.Controls.Add($FirefoxBox)
+	$FirefoxBox.Checked =  $SoftwareSelection.Firefox
 	
 	# KeePass Checkbox
     $KeePassBox = New-Object system.Windows.Forms.CheckBox
@@ -924,18 +925,16 @@ function gui_mode{
     $form.Controls.Add($ShareXBox)
 	$ShareXBox.Checked =  $SoftwareSelection.ShareX
 	
-	# Cisco WebEx VDI Plugin Checkbox
-    $CiscoWebExVDIBox = New-Object system.Windows.Forms.CheckBox
-    $CiscoWebExVDIBox.text = "Cisco WebEx VDI Plugin"
-	$CustomFont = [System.Drawing.Font]::new("Arial",10, [System.Drawing.FontStyle]::Strikeout)
-    $CiscoWebExVDIBox.Font = $CustomFont
-    $CiscoWebExVDIBox.width = 95
-    $CiscoWebExVDIBox.height = 20
-    $CiscoWebExVDIBox.autosize = $true
-	$CiscoWebExVDIBox.Font = $Font
-    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(660,270)
-    $form.Controls.Add($CiscoWebExVDIBox)
-	$CiscoWebExVDIBox.Checked =  $SoftwareSelection.CiscoWebExVDI
+	# FileZilla Checkbox
+    $FileZillaBox = New-Object system.Windows.Forms.CheckBox
+    $FileZillaBox.text = "FileZilla Client"
+    $FileZillaBox.width = 95
+    $FileZillaBox.height = 20
+    $FileZillaBox.autosize = $true
+	$FileZillaBox.Font = $Font
+    $FileZillaBox.location = New-Object System.Drawing.Point(660,270)
+    $form.Controls.Add($FileZillaBox)
+	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
 	
 	# TreeSizeFree Checkbox
     $TreeSizeFreeBox = New-Object system.Windows.Forms.CheckBox
@@ -1008,6 +1007,19 @@ function gui_mode{
     $form.Controls.Add($ZoomCitrixBox)
 	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
 	
+	# Cisco WebEx VDI Plugin Checkbox
+    $CiscoWebExVDIBox = New-Object system.Windows.Forms.CheckBox
+    $CiscoWebExVDIBox.text = "Cisco WebEx VDI Plugin"
+	$CustomFont = [System.Drawing.Font]::new("Arial",10, [System.Drawing.FontStyle]::Strikeout)
+    $CiscoWebExVDIBox.Font = $CustomFont
+    $CiscoWebExVDIBox.width = 95
+    $CiscoWebExVDIBox.height = 20
+    $CiscoWebExVDIBox.autosize = $true
+	$CiscoWebExVDIBox.Font = $Font
+    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(660,420)
+    $form.Controls.Add($CiscoWebExVDIBox)
+	$CiscoWebExVDIBox.Checked =  $SoftwareSelection.CiscoWebExVDI
+	
 	
 	<#
 	# Zoom VMWare client Checkbox
@@ -1077,6 +1089,7 @@ function gui_mode{
 		$ZoomCitrixBox.checked = $False
 		#$ZoomVMWareBox.checked = $False
 		$VLCPlayerBox.checked = $True
+		$FirefoxBox.checked = $True
 		$FileZillaBox.checked = $True
 		$CiscoWebExVDIBox.checked = $True
 		$WinRARBox.checked = $True
@@ -1146,6 +1159,7 @@ function gui_mode{
 		$ZoomCitrixBox.checked = $False
 		#$ZoomVMWareBox.checked = $False
 		$VLCPlayerBox.checked = $False
+		$FirefoxBox.checked = $False
 		$FileZillaBox.checked = $False
 		$CiscoWebExVDIBox.checked = $False
 		$WinRARBox.checked = $False
@@ -1216,6 +1230,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomCitrix" -Value $ZoomCitrixBox.checked -Force
 		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVMWare" -Value $ZoomVMWareBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VLCPlayer" -Value $VLCPlayerBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Firefox" -Value $FirefoxBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FileZilla" -Value $FileZillaBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExVDI" -Value $CiscoWebExVDIBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinRAR" -Value $WinRARBox.checked -Force
@@ -1355,7 +1370,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12"
+	[version]$EvergreenVersion = "2.12.2"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1924,6 +1939,60 @@ IF ($SoftwareSelection.VLCPlayer -eq $true) {
 	}
 }
 
+# Download Mozilaa Firefox
+IF ($SoftwareSelection.Firefox -eq $true) {
+	$Product = "Mozilla Firefox"
+	$PackageName = "Firefox"
+	Try {
+	$Firefox = Get-EvergreenApp -Name MozillaFirefox | Where-Object {$_.Channel -eq "Current" -and $_.Architecture -eq "x64" -and $_.Type -eq "msi"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	[version]$Version = $Firefox.Version
+	$URL = $Firefox.uri
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	[version]$Version = $Version
+	$InstallerType = "msi"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	[version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product" 
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF ($Version -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available" 
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
 
 # Download FileZilla Client
 IF ($SoftwareSelection.FileZilla -eq $true) {
