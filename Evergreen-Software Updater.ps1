@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.2
+Version: 2.12.3
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -75,6 +75,7 @@ Version: 2.12.2
 25/02/12: Changed FSLogix version detection for new FSLogix release
 25/02/18: New app design
 25/02/21: Added Mozilla Firefox
+25/02/24: Changed FSLogix version to match with installed version
 # Notes
 #>
 
@@ -2449,7 +2450,7 @@ IF ($SoftwareSelection.FSLogix -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	[version]$Version = '25.0.2'
+	[version]$Version = '3.25.202.4223'
 	$URL = $FSLogix.uri
 	$InstallerType = "zip"
 	$Source = "$PackageName" + "." + "$InstallerType"

@@ -92,7 +92,6 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Install\Version.txt") {
 			Write-Host -ForegroundColor Green "...ready"
 			Write-Host -ForegroundColor Red "Server needs to reboot after installation!"
 			Write-Output ""
-			reg add "HKLM\SOFTWARE\FSLogix\Profiles" /v GroupPolicyState /t REG_DWORD /d 0 /f | Out-Null
 			} catch {
 				DS_WriteLog "-" "" $LogFile
 				DS_WriteLog "E" "Error installing FSLogix Apps (Error: $($Error[0]))" $LogFile
@@ -118,7 +117,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Install\Version.txt") {
 		# Windows Search Task importieren bei Windows Server 2019/2022 oder Windows 11
 		IF ((Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft FSLogix Apps"}).DisplayVersion) {
 			IF (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name ProductName | Where-Object {$_.ProductName -match "Windows Server 2019" -or $_.ProductName -like "*Windows 10*"}) {
-				IF (!(Get-ScheduledTask -EA SilentlyContinue | Where-Object {$_.TaskName -eq "Windows Search"}).TaskName) {
+				IF (!(Get-ScheduledTask -EA SilentlyContinue | Where-Object {$_.TaskName -like "Windows Search*"}).TaskName) {
 				Write-Host -ForegroundColor Yellow "Creating scheduled task for Windows Search error"
 				DS_WriteLog "I" "Importing Windows Search Task" $LogFile
 				try {
