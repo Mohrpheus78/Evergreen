@@ -98,8 +98,9 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	# Mozilla Firefox
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
+	$MSI = (Get-ChildItem -Path "$PSScriptRoot\$Product" | Where-Object {$_.Name -like "*.msi"}).Name
 	try {
-		"$PSScriptRoot\$Product\Firefox.msi" | Install-MSIFile
+		"$PSScriptRoot\$Product\$MSI" | Install-MSIFile
 		} catch {
 			DS_WriteLog "-" "" $LogFile
 			DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile

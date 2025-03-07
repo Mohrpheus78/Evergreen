@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.4
+Version: 2.12.5
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -76,6 +76,7 @@ Version: 2.12.4
 25/02/18: New app design
 25/02/21: Added Mozilla Firefox
 25/02/24: Changed FSLogix version to match with installed version
+25/02/07: Added Firefox de/us language
 # Notes
 #>
 
@@ -827,6 +828,28 @@ function gui_mode{
     $form.Controls.Add($FirefoxBox)
 	$FirefoxBox.Checked =  $SoftwareSelection.Firefox
 	
+	# Firefox de Checkbox
+    $FirefoxBoxDE = New-Object system.Windows.Forms.CheckBox
+    $FirefoxBoxDE.text = "de"
+    $FirefoxBoxDE.width = 95
+    $FirefoxBoxDE.height = 20
+    $FirefoxBoxDE.autosize = $true
+	$FirefoxBoxDE.Font = $Font
+    $FirefoxBoxDE.location = New-Object System.Drawing.Point(365,495)
+    $form.Controls.Add($FirefoxBoxDE)
+	$FirefoxBoxDE.Checked =  $SoftwareSelection.FirefoxDE
+	
+	# Firefox en Checkbox
+    $FirefoxBoxEN = New-Object system.Windows.Forms.CheckBox
+    $FirefoxBoxEN.text = "en"
+    $FirefoxBoxEN.width = 95
+    $FirefoxBoxEN.height = 20
+    $FirefoxBoxEN.autosize = $true
+	$FirefoxBoxEN.Font = $Font
+    $FirefoxBoxEN.location = New-Object System.Drawing.Point(410,495)
+    $form.Controls.Add($FirefoxBoxEN)
+	$FirefoxBoxEN.Checked =  $SoftwareSelection.FirefoxEN
+	
 	# KeePass Checkbox
     $KeePassBox = New-Object system.Windows.Forms.CheckBox
     $KeePassBox.text = "KeePass"
@@ -1091,6 +1114,8 @@ function gui_mode{
 		#$ZoomVMWareBox.checked = $False
 		$VLCPlayerBox.checked = $True
 		$FirefoxBox.checked = $True
+		$FirefoxBoxDE.checked = $True
+		$FirefoxBoxEN.checked = $True
 		$FileZillaBox.checked = $True
 		$CiscoWebExVDIBox.checked = $True
 		$WinRARBox.checked = $True
@@ -1161,6 +1186,8 @@ function gui_mode{
 		#$ZoomVMWareBox.checked = $False
 		$VLCPlayerBox.checked = $False
 		$FirefoxBox.checked = $False
+		$FirefoxBoxDE.checked = $False
+		$FirefoxBoxEN.checked = $False
 		$FileZillaBox.checked = $False
 		$CiscoWebExVDIBox.checked = $False
 		$WinRARBox.checked = $False
@@ -1232,6 +1259,8 @@ function gui_mode{
 		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "ZoomVMWare" -Value $ZoomVMWareBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VLCPlayer" -Value $VLCPlayerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Firefox" -Value $FirefoxBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FirefoxDE" -Value $FirefoxBoxDE.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FirefoxEN" -Value $FirefoxBoxEN.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FileZilla" -Value $FileZillaBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExVDI" -Value $CiscoWebExVDIBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinRAR" -Value $WinRARBox.checked -Force
@@ -1371,7 +1400,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.4"
+	[version]$EvergreenVersion = "2.12.5"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1943,16 +1972,20 @@ IF ($SoftwareSelection.VLCPlayer -eq $true) {
 # Download Mozilaa Firefox
 IF ($SoftwareSelection.Firefox -eq $true) {
 	$Product = "Mozilla Firefox"
-	$PackageName = "Firefox"
 	Try {
-	$Firefox = Get-EvergreenApp -Name MozillaFirefox | Where-Object {$_.Channel -eq "Current" -and $_.Architecture -eq "x64" -and $_.Type -eq "msi"} -ErrorAction Stop
+		$Firefox = Get-EvergreenApp -Name MozillaFirefox | Where-Object {$_.Channel -eq "Current" -and $_.Architecture -eq "x64" -and $_.Type -eq "msi"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
-		}
+	}
 	[version]$Version = $Firefox.Version
-	$URL = $Firefox.uri
-	$InstallerType = "msi"
-	$Source = "$PackageName" + "." + "$InstallerType"
+	IF ($SoftwareSelection.FirefoxDE -eq $true) {
+		$URL = 'https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=de'
+		$PackageName = "Firefox_DE"
+	}
+	ELSE {
+		$URL = $Firefox.uri
+		$PackageName = "Firefox"
+	}
 	[version]$Version = $Version
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
@@ -1971,10 +2004,15 @@ IF ($SoftwareSelection.Firefox -eq $true) {
 		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
 		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
-		Try {
-			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
-		} catch {
-			throw $_.Exception.Message
+		IF (($SoftwareSelection.FirefoxEN -eq $true) -or ($SoftwareSelection.FirefoxDE -eq $true)) {
+			Try {
+				Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+			} catch {
+				throw $_.Exception.Message
+			}
+		}
+		ELSE {
+			Write-Host -ForegroundColor Red "Download aborted, please select a language for $Product"
 		}
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {

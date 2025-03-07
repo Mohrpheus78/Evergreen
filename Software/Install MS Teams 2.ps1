@@ -59,15 +59,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		$TeamsNew = $TeamsNew -replace '^(\d+\.\d+\.\d+).*$', '$1'
 		
 	}
-	# Register MS Teams AppPackage
-	IF (Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*') {
-		try {
-			Add-AppPackage -Register -DisableDevelopmentMode "$((Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*').FullName)\AppXManifest.xml" -EA SilentlyContinue
-			Start-Sleep -Seconds 10
-		} catch {
-			Write-Error "Error registering MS Teams AppXPackage: $_"
-		}
-	}
+	
 	If ($TeamsNew -ne $Version) {	
 		If (Test-Path -Path "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\") {
 			$UninstallTeams = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Teams Machine*"}).UninstallString
@@ -221,15 +213,12 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		
 		# Create scheduled task for registering MS Teams AppXPackage
 		Write-Host -ForegroundColor Yellow "Create scheduled task for registering MS Teams AppXPackage"
-		$Options = @(
-		"-command"
-		"{Add-AppPackage -Register -DisableDevelopmentMode '$((Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*').FullName)\AppXManifest.xml'}"
-		)
+		$Options = "-command `"& {Add-AppPackage -Register -DisableDevelopmentMode -Path `"$ENV:TeamsVersionPath\AppXManifest.xml`"}`""
 		$Trigger = New-JobTrigger -AtLogOn
-		$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "$Options"
+		$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $Options
 		$User = "NT AUTHORITY\SYSTEM"
 		Register-ScheduledTask -TaskName 'Register MS Teams AppXPackage' -User $User -Action $Action -Trigger $Trigger -Force -EA SilentlyContinue | Out-Null
-		
+				
 		Write-Host -ForegroundColor Green "...ready"
 		Write-Output ""
 	

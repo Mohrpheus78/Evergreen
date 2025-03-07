@@ -75,8 +75,7 @@ if ($noGUI -eq $False) {
 				try	{
 					DS_WriteLog "I" "Installing $DisplayPVS" $LogFile
 					Write-Output ""
-					Write-Host -ForegroundColor Yellow "Installing $
-					DisplayPVS"
+					Write-Host -ForegroundColor Yellow "Installing $DisplayPVS"
 					Start-Process "$PSScriptRoot\Citrix\LTSR\PVS\Device\PVS_Device_x64.exe" -ArgumentList '/S /v"/qn /norestart' -NoNewWindow -Wait
 					# Remove Status Tray from autostart
 					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name StatusTray -Force -EA SilentlyContinue
