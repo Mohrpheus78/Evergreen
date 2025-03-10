@@ -118,10 +118,10 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	Write-Host -ForegroundColor Yellow "Uninstalling $Product"
 	DS_WriteLog "I" "Uninstalling $Product" $LogFile
 	try {
-		If ($OS -Like "*Windows Server 2022*" -or $OS -like "Windows 11*") {
+		If ($OS -like "*Windows Server 2022*" -or $OS -like "Windows 11*" -or $OS -like "*Windows Server 2025*") {
 			Start-Process -FilePath "$PSScriptRoot\$Product\teamsbootstrapper.exe" -ArgumentList "-x"
 		}
-		If ($OS -Like "*Windows Server 2019*" -or $OS -like "Windows 10*") {
+		If ($OS -like "*Windows Server 2019*" -or $OS -like "Windows 10*") {
 			Get-AppxPackage *MSTeams* -AllUsers | Remove-AppxPackage -AllUsers | Out-Null
 		}
         Start-Sleep 20
@@ -181,7 +181,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 				Write-Output ""    
 			}	
 		}
-		if ($OS -Like "*Windows 11*" -or "*Windows Server 2025*") {
+		if ($OS -like "*Windows 11*" -or $OS -like "*Windows Server 2025*") {
 			Write-Host "$OS detected. Installation with teamsbootstrapper.exe"
 			try {
 				$Teams_bootstraper_exe = "$PSScriptRoot\$Product\teamsbootstrapper.exe"
