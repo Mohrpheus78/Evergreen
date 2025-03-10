@@ -205,7 +205,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		# Register MS Teams AppXPackage
 		try {
 			Write-Host -ForegroundColor Yellow "Register MS Teams AppPackage"
-			Add-AppPackage -Register -DisableDevelopmentMode "$((Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*').FullName)\AppXManifest.xml" -EA SilentlyContinue
+			Add-AppXPackage -Register -DisableDevelopmentMode "$((Get-ChildItem -Path 'C:\Program Files\WindowsApps' -Filter 'MSTeams*').FullName)\AppXManifest.xml" -EA SilentlyContinue
 			Start-Sleep -Seconds 5
 		} catch {
 			Write-Error "Error registering MS Teams AppPackage: $_"
@@ -213,12 +213,13 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		
 		# Create scheduled task for registering MS Teams AppXPackage
 		Write-Host -ForegroundColor Yellow "Create scheduled task for registering MS Teams AppXPackage"
-		$Options = "-command `"& {Add-AppPackage -Register -DisableDevelopmentMode -Path `"$ENV:TeamsVersionPath\AppXManifest.xml`"}`""
+		$PowershellCommand = '& {Add-AppxPackage -Register -DisableDevelopmentMode -Path "$env:TeamsVersionPath\AppXManifest.xml"}'
+		$Options = "-NoProfile -ExecutionPolicy Bypass -Command `"$PowershellCommand`""
 		$Trigger = New-JobTrigger -AtLogOn
 		$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $Options
 		$User = "NT AUTHORITY\SYSTEM"
-		Register-ScheduledTask -TaskName 'Register MS Teams AppXPackage' -User $User -Action $Action -Trigger $Trigger -Force -EA SilentlyContinue | Out-Null
-				
+		Register-ScheduledTask -TaskName 'Register MS Teams AppXPackage' -User $User -Action $Action -Trigger $Trigger -Force -RunLevel Highest -EA SilentlyContinue | Out-Null
+		
 		Write-Host -ForegroundColor Green "...ready"
 		Write-Output ""
 	

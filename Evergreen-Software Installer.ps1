@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.4
+Version: 2.18.5
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -84,7 +84,8 @@ Version: 2.18.4
 25/02/18: New app design, added MS Office 2024 LTSC
 25/02/21: Added Mozilla Firefox
 25/02/24: Changed Windows search failure workaround task
-25/02/07: Added Firefox de/us language, changed MS Teams App-X registration
+25/03/07: Added Firefox de/us language, changed MS Teams App-X registration
+25/03/10: Corrected MS Teams App-X registration
 # Notes
 #>
 
@@ -1285,7 +1286,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.18.4"
+	[version]$EvergreenVersion = "2.18.5"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
