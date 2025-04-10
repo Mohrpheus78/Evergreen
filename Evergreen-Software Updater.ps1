@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.5
+Version: 2.12.6
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -77,6 +77,7 @@ Version: 2.12.5
 25/02/21: Added Mozilla Firefox
 25/02/24: Changed FSLogix version to match with installed version
 25/02/07: Added Firefox de/us language
+25/04/10: Added .NET 9.0 Desktop Runtime (v9.0.4) for Remote Desktop Manager
 # Notes
 #>
 
@@ -1400,7 +1401,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.5"
+	[version]$EvergreenVersion = "2.12.6"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1624,9 +1625,9 @@ IF ($SoftwareSelection.RemoteDesktopManager -eq $true) {
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $VersionRDM"
 	Write-Host "Current Version: $CurrentVersion"
-	IF (!(Test-Path "$SoftwareFolder\$Product\windowsdesktop-runtime-8.0.4-win-x64.exe")) {
+	IF (!(Test-Path "$SoftwareFolder\$Product\windowsdesktop-runtime-9.0.4-win-x64.exe")) {
 		Try {
-		Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/c1d08a81-6e65-4065-b606-ed1127a954d3/14fe55b8a73ebba2b05432b162ab3aa8/windowsdesktop-runtime-8.0.4-win-x64.exe" -OutFile "$SoftwareFolder\$Product\windowsdesktop-runtime-8.0.4-win-x64.exe"
+		Invoke-WebRequest -Uri "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/9.0.4/windowsdesktop-runtime-9.0.4-win-x64.exe" -OutFile "$SoftwareFolder\$Product\windowsdesktop-runtime-9.0.4-win-x64.exe"
 		} catch {
 		throw $_.Exception.Message
 		}

@@ -111,8 +111,6 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	Write-Host "No Update available for $Product"
 	Write-Output ""
 	}
-
-	IF ((Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Edge"} | Select-Object -First 1).DisplayVersion) {
 		# Disable scheduled tasks
 		Write-Host "Disable scheduled update tasks for Edge"
 		Start-Sleep -s 3
@@ -141,7 +139,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 			}
 		}
 		) | Out-Null
-	}
+	
 	DS_WriteLog "-" "" $LogFile
 	write-Host -ForegroundColor Green "...ready"
 	Write-Output ""
