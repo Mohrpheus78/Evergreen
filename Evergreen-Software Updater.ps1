@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.7
+Version: 2.12.8
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -78,7 +78,7 @@ Version: 2.12.7
 25/02/24: Changed FSLogix version to match with installed version
 25/02/07: Added Firefox de/us language
 25/04/10: Added .NET 9.0 Desktop Runtime (v9.0.4) for Remote Desktop Manager
-25/04/14: Added new FSLogix version 25.04
+25/04/14: Added new FSLogix version 25.04, Windows Desktop-Runtime-8.0.11 (for Citrix WorkspaceApp)
 # Notes
 #>
 
@@ -1402,7 +1402,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.7"
+	[version]$EvergreenVersion = "2.12.8"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2167,9 +2167,9 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 	Write-Host -ForegroundColor Yellow "Download $Product CR"
 	Write-Host "Download Version: $Version"
 	Write-Host "Current Version: $CurrentVersion"
-	IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.10-win-x86.exe")) {
+	IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.11-win-x86.exe")) {
 			Try {
-			Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/9836a475-66af-47eb-a726-8046c47ce6d5/ccb7d60db407a6d022a856852ef9e763/windowsdesktop-runtime-8.0.10-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.10-win-x86.exe"
+			Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/6e1f5faf-ee7d-4db0-9111-9e270a458342/4cdcd1af2d6914134308630f048fbdfc/windowsdesktop-runtime-8.0.11-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.11-win-x86.exe"
 			} catch {
 			throw $_.Exception.Message
 			}
@@ -2179,7 +2179,7 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
 		$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
-		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Exclude "windowsdesktop-runtime-6.0.20-win-x86.exe" -Recurse
+		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Exclude "windowsdesktop-runtime-8.0.11-win-x86.exe" -Recurse
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -Value "$Version"
@@ -2279,9 +2279,9 @@ IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 	Write-Host -ForegroundColor Yellow "Download $Product LTSR"
 	Write-Host "Download Version: $Version"
 	Write-Host "Current Version: $CurrentVersion"
-	IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.10-win-x86.exe")) {
+	IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.11-win-x86.exe")) {
 			Try {
-			Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/9836a475-66af-47eb-a726-8046c47ce6d5/ccb7d60db407a6d022a856852ef9e763/windowsdesktop-runtime-8.0.10-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.10-win-x86.exe"
+			Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/6e1f5faf-ee7d-4db0-9111-9e270a458342/4cdcd1af2d6914134308630f048fbdfc/windowsdesktop-runtime-8.0.11-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.11-win-x86.exe"
 			} catch {
 			throw $_.Exception.Message
 			}
@@ -2291,7 +2291,7 @@ IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -ItemType Directory | Out-Null}
 		$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + "$Product $Version.log"
-		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\LTSR\*" -Exclude "windowsdesktop-runtime-8.0.10-win-x86.exe" -Recurse
+		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\LTSR\*" -Exclude "windowsdesktop-runtime-8.0.11-win-x86.exe" -Recurse
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\Version.txt" -Value "$Version"
