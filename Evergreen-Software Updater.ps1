@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.6
+Version: 2.12.7
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -78,6 +78,7 @@ Version: 2.12.6
 25/02/24: Changed FSLogix version to match with installed version
 25/02/07: Added Firefox de/us language
 25/04/10: Added .NET 9.0 Desktop Runtime (v9.0.4) for Remote Desktop Manager
+25/04/14: Added new FSLogix version 25.04
 # Notes
 #>
 
@@ -1401,7 +1402,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.6"
+	[version]$EvergreenVersion = "2.12.7"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2489,7 +2490,7 @@ IF ($SoftwareSelection.FSLogix -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	[version]$Version = '3.25.202.4223'
+	[version]$Version = '3.25.401.15305'
 	$URL = $FSLogix.uri
 	$InstallerType = "zip"
 	$Source = "$PackageName" + "." + "$InstallerType"
