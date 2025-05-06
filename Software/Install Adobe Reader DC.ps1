@@ -100,6 +100,11 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 			Stop-Service AdobeARMservice
 			Set-Service AdobeARMservice -StartupType Disabled
 			Disable-ScheduledTask -TaskName "Adobe Acrobat Update Task" | Out-Null
+			New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force
+			New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force
+			$AdobePath = "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader"
+			Rename-Item -Path "$AdobePath\AdobeCollabSync.exe" -NewName "$AdobePath\AdobeCollabSync.exe.disable" -EA SilentlyContinue
+			Rename-Item -Path "$AdobePath\FullTrustNotifier.exe" -NewName "$AdobePath\FullTrustNotifier.exe.disable" -EA SilentlyContinue
 		}
 		}
 	}
