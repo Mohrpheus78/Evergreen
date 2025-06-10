@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.8
+Version: 2.12.9
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -79,6 +79,7 @@ Version: 2.12.8
 25/02/07: Added Firefox de/us language
 25/04/10: Added .NET 9.0 Desktop Runtime (v9.0.4) for Remote Desktop Manager
 25/04/14: Added new FSLogix version 25.04, Windows Desktop-Runtime-8.0.11 (for Citrix WorkspaceApp)
+25/06/10: Removed deviceTRUST (now part of VDA 2503), temporarly removed SQL Management Studio (SMSS), fixed download link for XenServer VM Tools
 # Notes
 #>
 
@@ -756,10 +757,12 @@ function gui_mode{
 	# MS SQL Management Studio EN Checkbox
     $MSSQLManagementStudioENBox = New-Object system.Windows.Forms.CheckBox
     $MSSQLManagementStudioENBox.text = "Microsoft SQL Management Studio EN"
+	$CustomFont = [System.Drawing.Font]::new("Arial",10, [System.Drawing.FontStyle]::Strikeout)
     $MSSQLManagementStudioENBox.width = 95
     $MSSQLManagementStudioENBox.height = 20
     $MSSQLManagementStudioENBox.autosize = $true
-	$MSSQLManagementStudioENBox.Font = $Font
+	$MSSQLManagementStudioENBox.Font = $CustomFont
+	# $MSSQLManagementStudioENBox.Font = $Font
     $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(250,345)
     $form.Controls.Add($MSSQLManagementStudioENBox)
 	$MSSQLManagementStudioENBox.Checked = $SoftwareSelection.MSSsmsEN
@@ -767,10 +770,12 @@ function gui_mode{
 	# MS SQL Management Studio DE Checkbox
     $MSSQLManagementStudioDEBox = New-Object system.Windows.Forms.CheckBox
     $MSSQLManagementStudioDEBox.text = "Microsoft SQL Management Studio DE"
+	$CustomFont = [System.Drawing.Font]::new("Arial",10, [System.Drawing.FontStyle]::Strikeout)
     $MSSQLManagementStudioDEBox.width = 95
     $MSSQLManagementStudioDEBox.height = 20
     $MSSQLManagementStudioDEBox.autosize = $true
-	$MSSQLManagementStudioDEBox.Font = $Font
+	$MSSQLManagementStudioDEBox.Font = $CustomFont
+	# $MSSQLManagementStudioDEBox.Font = $Font
     $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,370)
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
@@ -797,16 +802,16 @@ function gui_mode{
     $form.Controls.Add($MicrosoftOpenJDKBox)
 	$MicrosoftOpenJDKBox.Checked =  $SoftwareSelection.MicrosoftOpenJDK
 	
-	# deviceTRUST CheckBox
-    $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
-    $deviceTRUSTBox.text = "deviceTRUST"
-    $deviceTRUSTBox.width = 95
-    $deviceTRUSTBox.height = 20
-    $deviceTRUSTBox.autosize = $true
-	$deviceTRUSTBox.Font = $Font
-    $deviceTRUSTBox.location = New-Object System.Drawing.Point(250,445)
-    $form.Controls.Add($deviceTRUSTBox)
-	$deviceTRUSTBox.Checked = $SoftwareSelection.deviceTRUST
+	# pdf24Creator Checkbox
+    $pdf24CreatorBox = New-Object system.Windows.Forms.CheckBox
+    $pdf24CreatorBox.text = "pdf24Creator"
+    $pdf24CreatorBox.width = 95
+    $pdf24CreatorBox.height = 20
+    $pdf24CreatorBox.autosize = $true
+	$pdf24CreatorBox.Font = $Font
+    $pdf24CreatorBox.location = New-Object System.Drawing.Point(250,445)
+    $form.Controls.Add($pdf24CreatorBox)
+	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 		
 	# VLCPlayer Checkbox
     $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
@@ -907,17 +912,6 @@ function gui_mode{
     $form.Controls.Add($IGELUniversalManagementSuiteBox)
 	$IGELUniversalManagementSuiteBox.Checked = $SoftwareSelection.IGELUniversalManagementSuite
 	
-	# pdf24Creator Checkbox
-    $pdf24CreatorBox = New-Object system.Windows.Forms.CheckBox
-    $pdf24CreatorBox.text = "pdf24Creator"
-    $pdf24CreatorBox.width = 95
-    $pdf24CreatorBox.height = 20
-    $pdf24CreatorBox.autosize = $true
-	$pdf24CreatorBox.Font = $Font
-    $pdf24CreatorBox.location = New-Object System.Drawing.Point(660,170)
-    $form.Controls.Add($pdf24CreatorBox)
-	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
-	
 	# FoxItReader Checkbox
     $FoxItReaderBox = New-Object system.Windows.Forms.CheckBox
     $FoxItReaderBox.text = "FoxIt PDF Reader"
@@ -925,7 +919,7 @@ function gui_mode{
     $FoxItReaderBox.height = 20
     $FoxItReaderBox.autosize = $true
 	$FoxitReaderBox.Font = $Font
-    $FoxItReaderBox.location = New-Object System.Drawing.Point(660,195)
+    $FoxItReaderBox.location = New-Object System.Drawing.Point(660,170)
     $form.Controls.Add($FoxItReaderBox)
 	$FoxItReaderBox.Checked =  $SoftwareSelection.FoxItReader
 	
@@ -936,7 +930,7 @@ function gui_mode{
     $ImageGlassBox.height = 20
     $ImageGlassBox.autosize = $true
 	$ImageGlassBox.Font = $Font
-    $ImageGlassBox.location = New-Object System.Drawing.Point(660,220)
+    $ImageGlassBox.location = New-Object System.Drawing.Point(660,195)
     $form.Controls.Add($ImageGlassBox)
 	$ImageGlassBox.Checked =  $SoftwareSelection.ImageGlass
 	
@@ -947,7 +941,7 @@ function gui_mode{
     $ShareXBox.height = 20
     $ShareXBox.autosize = $true
 	$ShareXBox.Font = $Font
-    $ShareXBox.location = New-Object System.Drawing.Point(660,245)
+    $ShareXBox.location = New-Object System.Drawing.Point(660,220)
     $form.Controls.Add($ShareXBox)
 	$ShareXBox.Checked =  $SoftwareSelection.ShareX
 	
@@ -958,7 +952,7 @@ function gui_mode{
     $FileZillaBox.height = 20
     $FileZillaBox.autosize = $true
 	$FileZillaBox.Font = $Font
-    $FileZillaBox.location = New-Object System.Drawing.Point(660,270)
+    $FileZillaBox.location = New-Object System.Drawing.Point(660,245)
     $form.Controls.Add($FileZillaBox)
 	$FileZillaBox.Checked =  $SoftwareSelection.FileZilla
 	
@@ -969,7 +963,7 @@ function gui_mode{
     $TreeSizeFreeBox.height = 20
     $TreeSizeFreeBox.autosize = $true
 	$TreeSizeFreeBox.Font = $Font
-    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(660,295)
+    $TreeSizeFreeBox.location = New-Object System.Drawing.Point(660,270)
     $form.Controls.Add($TreeSizeFreeBox)
 	$TreeSizeFreeBox.Checked =  $SoftwareSelection.TreeSizeFree
 	
@@ -980,7 +974,7 @@ function gui_mode{
     $ControlUpConsoleBox.height = 20
     $ControlUpConsoleBox.autosize = $true
 	$ControlUpConsoleBox.Font = $Font
-    $ControlUpConsoleBox.location = New-Object System.Drawing.Point(660,320)
+    $ControlUpConsoleBox.location = New-Object System.Drawing.Point(660,295)
     $form.Controls.Add($ControlUpConsoleBox)
 	$ControlUpConsoleBox.Checked =  $SoftwareSelection.ControlUpConsole
 	
@@ -991,7 +985,7 @@ function gui_mode{
     $ControlUpRemoteDXBox.height = 20
     $ControlUpRemoteDXBox.autosize = $true
 	$ControlUpRemoteDXBox.Font = $Font
-    $ControlUpRemoteDXBox.location = New-Object System.Drawing.Point(660,345)
+    $ControlUpRemoteDXBox.location = New-Object System.Drawing.Point(660,320)
     $form.Controls.Add($ControlUpRemoteDXBox)
 	$ControlUpRemoteDXBox.Checked =  $SoftwareSelection.ControlUpRemoteDX
 	
@@ -1016,7 +1010,7 @@ function gui_mode{
     $ZoomVDIBox.height = 20
     $ZoomVDIBox.autosize = $true
 	$ZoomVDIBox.Font = $Font
-    $ZoomVDIBox.location = New-Object System.Drawing.Point(660,370)
+    $ZoomVDIBox.location = New-Object System.Drawing.Point(660,345)
     $form.Controls.Add($ZoomVDIBox)
 	$ZoomVDIBox.Checked =  $SoftwareSelection.ZoomVDI
 	
@@ -1029,7 +1023,7 @@ function gui_mode{
     $ZoomCitrixBox.height = 20
     $ZoomCitrixBox.autosize = $true
 	$ZoomCitrixBox.Font = $Font
-    $ZoomCitrixBox.location = New-Object System.Drawing.Point(660,395)
+    $ZoomCitrixBox.location = New-Object System.Drawing.Point(660,370)
     $form.Controls.Add($ZoomCitrixBox)
 	$ZoomCitrixBox.Checked =  $SoftwareSelection.ZoomCitrix
 	
@@ -1042,7 +1036,7 @@ function gui_mode{
     $CiscoWebExVDIBox.height = 20
     $CiscoWebExVDIBox.autosize = $true
 	$CiscoWebExVDIBox.Font = $Font
-    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(660,420)
+    $CiscoWebExVDIBox.location = New-Object System.Drawing.Point(660,395)
     $form.Controls.Add($CiscoWebExVDIBox)
 	$CiscoWebExVDIBox.Checked =  $SoftwareSelection.CiscoWebExVDI
 	
@@ -1402,7 +1396,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.8"
+	[version]$EvergreenVersion = "2.12.9"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -3131,6 +3125,10 @@ IF ($SoftwareSelection.MSDotNetDesktopRuntime -eq $true) {
 # Download MS SQL Management Studio en
 IF ($SoftwareSelection.MSSsmsEN -eq $true) {
 	$Product = "MS SQL Management Studio EN"
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host -ForegroundColor Red "Download for $Product currently not available, working on a solution for version 21.x"
+	Write-Output ""
+	<#
 	$PackageName = "SSMS-Setup-ENU"
 	Try {
 	$MSSQLManagementStudioEN = Get-NevergreenApp -Name MicrosoftSsms -ErrorAction Stop
@@ -3178,12 +3176,17 @@ IF ($SoftwareSelection.MSSsmsEN -eq $true) {
 		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
 		Write-Output ""
 	}
+	#>
 }
 
 
 # Download MS SQL Management Studio de
 IF ($SoftwareSelection.MSSsmsDE -eq $true) {
 	$Product = "MS SQL Management Studio DE"
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host -ForegroundColor Red "Download for $Product currently not available, working on a solution for version 21.x"
+	Write-Output ""
+	<#
 	$PackageName = "SSMS-Setup-DEU"
 	Try {
 	$MSSQLManagementStudioDE = Get-NevergreenApp -Name MicrosoftSsms -ErrorAction Stop
@@ -3231,6 +3234,7 @@ IF ($SoftwareSelection.MSSsmsDE -eq $true) {
 		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
 		Write-Output ""
 	}
+	#>
 }
 
 # Download MS Sysinternals Suite
@@ -3409,7 +3413,7 @@ IF ($SoftwareSelection.CitrixVMTools -eq $true) {
     [Version]$VersionCitrixVMTools  = $webVersionCitrixVMTools
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
-	$URL = "https://downloads.xenserver.com/vm-tools-windows/$VersionCitrixVMTools/managementagent-9.4.0-x64.msi"
+	$URL = "https://downloads.xenserver.com/vm-tools-windows/9.4.1/managementagent-9.4.1-x64.msi"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $VersionCitrixVMTools"
