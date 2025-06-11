@@ -67,12 +67,15 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		}
 		# Disable scheduled task
 		Get-ScheduledTask -TaskName "Adobe Acrobat Update Task" -EA SilentlyContinue | Disable-ScheduledTask | Out-Null
-		
-		New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force -EA SilentlyContinue
-		New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force -EA SilentlyContinue
-		$AdobePath = "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader"
-		Rename-Item -Path "$AdobePath\AdobeCollabSync.exe" -NewName "$AdobePath\AdobeCollabSync.exe.disable" -EA SilentlyContinue
-		Rename-Item -Path "$AdobePath\FullTrustNotifier.exe" -NewName "$AdobePath\FullTrustNotifier.exe.disable" -EA SilentlyContinue
+
+		$(
+			New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force -EA SilentlyContinue
+			New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force -EA SilentlyContinue
+			$AdobePath = "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader"
+			Rename-Item -Path "$AdobePath\AdobeCollabSync.exe" -NewName "$AdobePath\AdobeCollabSync.exe.disable" -EA SilentlyContinue
+			Rename-Item -Path "$AdobePath\FullTrustNotifier.exe" -NewName "$AdobePath\FullTrustNotifier.exe.disable" -EA SilentlyContinue
+		) | Out-Null
+
 		DS_WriteLog "-" "" $LogFile
 		write-Host -ForegroundColor Green "...ready"
 		Write-Output ""
