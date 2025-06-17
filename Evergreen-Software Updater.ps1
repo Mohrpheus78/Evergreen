@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.9
+Version: 2.12.10
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -80,6 +80,7 @@ Version: 2.12.9
 25/04/10: Added .NET 9.0 Desktop Runtime (v9.0.4) for Remote Desktop Manager
 25/04/14: Added new FSLogix version 25.04, Windows Desktop-Runtime-8.0.11 (for Citrix WorkspaceApp)
 25/06/10: Removed deviceTRUST (now part of VDA 2503), temporarly removed SQL Management Studio (SMSS), fixed download link for XenServer VM Tools
+25/17/26: Fixed MS Edge version check
 # Notes
 #>
 
@@ -1396,7 +1397,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.9"
+	[version]$EvergreenVersion = "2.12.10"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1847,7 +1848,7 @@ IF ($SoftwareSelection.MSEdge -eq $true) {
 	$Product = "MS Edge"
 	$PackageName = "MicrosoftEdgeEnterpriseX64"
 	Try {
-	$Edge = Get-EvergreenApp -Name MicrosoftEdge | Where-Object {$_.Platform -eq "Windows" -and $_.Channel -eq "stable" -and $_.Architecture -eq "x64" -and $_.Release -eq "Enterprise"} -ErrorAction Stop
+	$Edge = Get-EvergreenApp -Name MicrosoftEdge | Where-Object {$_.Channel -eq "stable" -and $_.Architecture -eq "x64" -and $_.Release -eq "Enterprise"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
