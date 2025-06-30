@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.10
+Version: 2.18.11
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -91,6 +91,7 @@ Version: 2.18.10
 25/05/06: Removed Adobe Reader "Try Adobe Acrobat" add and diable AdobeCollabSync
 25/06/10: Added uberAgent and deviceTRUST to Citrix VDA current release
 25/06/11: Removed Adobe Reader "Try Adobe Acrobat" add and diable AdobeCollabSync
+25/06/30: Removed deviceTRUST agent (now part of Citrix VDA)
 # Notes
 #>
 
@@ -807,17 +808,17 @@ function gui_mode{
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 
-	# deviceTRUST Checkbox
-    $deviceTRUSTBox = New-Object system.Windows.Forms.CheckBox
-    $deviceTRUSTBox.text = "deviceTRUST"
-    $deviceTRUSTBox.width = 95
-    $deviceTRUSTBox.height = 20
-    $deviceTRUSTBox.autosize = $true
-	$deviceTRUSTBox.Font = $Font
-    $deviceTRUSTBox.location = New-Object System.Drawing.Point(810,45)
-    $form.Controls.Add($deviceTRUSTBox)
-	$deviceTRUSTBox.Checked =  $SoftwareSelection.deviceTRUST
-	
+	# FoxitReader Checkbox
+    $FoxitReaderBox = New-Object system.Windows.Forms.CheckBox
+    $FoxitReaderBox.text = "Foxit Reader"
+    $FoxitReaderBox.width = 95
+    $FoxitReaderBox.height = 20
+    $FoxitReaderBox.autosize = $true
+	$FoxitReaderBox.Font = $Font
+    $FoxitReaderBox.location = New-Object System.Drawing.Point(810,45)
+    $form.Controls.Add($FoxitReaderBox)
+	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
+
 	# VLCPlayer Checkbox
     $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
     $VLCPlayerBox.text = "VLC Player"
@@ -916,17 +917,7 @@ function gui_mode{
     $WinRARBox.location = New-Object System.Drawing.Point(810,270)
     $form.Controls.Add($WinRARBox)
 	$WinRARBox.Checked =  $SoftwareSelection.WinRAR
-	
-	# FoxitReader Checkbox
-    $FoxitReaderBox = New-Object system.Windows.Forms.CheckBox
-    $FoxitReaderBox.text = "Foxit Reader"
-    $FoxitReaderBox.width = 95
-    $FoxitReaderBox.height = 20
-    $FoxitReaderBox.autosize = $true
-	$FoxitReaderBox.Font = $Font
-    $FoxitReaderBox.location = New-Object System.Drawing.Point(810,295)
-    $form.Controls.Add($FoxitReaderBox)
-	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
+
 
 	<#
 	# Zoom Host Checkbox
@@ -1291,7 +1282,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.18.10"
+	[version]$EvergreenVersion = "2.18.11"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1967,18 +1958,6 @@ IF ($SoftwareSelection.FoxitReader -eq $true)
 			}
 	}
 	
-# Install deviceTRUST
-IF ($SoftwareSelection.deviceTRUST -eq $true)
-	{
-		try {
-			& "$SoftwareFolder\Install deviceTRUST.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing deviceTRUST"
-			Write-Host -ForegroundColor Red "Error launching script 'Install deviceTRUST': $($Error[0])"
-			Write-Output ""
-			}
-	}
 	
 # Install RemoteDesktopManager
 IF ($SoftwareSelection.RemoteDesktopManager -eq $true)

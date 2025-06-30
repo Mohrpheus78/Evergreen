@@ -60,7 +60,8 @@ try {
 	New-Item -Path "C:\Program Files\Adobe\Acrobat DC\Acrobat\RdrApp\DEU" -Type Directory -EA SilentlyContinue | Out-Null
 	Copy-Item "$PSScriptRoot\$Product\Hide Tools\Viewer.aapp" "C:\Program Files\Adobe\Acrobat DC\Acrobat\RdrApp\DEU" -Recurse -Force
 	Copy-Item "$PSScriptRoot\$Product\Hide Tools\Viewer.aapp" "C:\Program Files\Adobe\Acrobat DC\Acrobat\RdrApp\ENU" -Recurse -Force
-	New-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown" -Name bAcroSuppressUpsell -PropertyType DWORD -Value 1 -EA SilentlyContinue | Out-Null
+	New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force | Out-Null -EA SilentlyContinue
+	New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force | Out-Null -EA SilentlyContinue
 	} catch {
 		DS_WriteLog "-" "" $LogFile
 		DS_WriteLog "E" "Error installing $Product (Error: $($Error[0]))" $LogFile
@@ -101,8 +102,8 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 				Start-Sleep 3
 				Stop-Service AdobeARMservice
 				Set-Service AdobeARMservice -StartupType Disabled
-				New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force
-				New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force
+				New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force | Out-Null -EA SilentlyContinue
+				New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force | Out-Null -EA SilentlyContinue
 			}
 			Get-ScheduledTask -TaskName "Adobe Acrobat Update Task" -EA SilentlyContinue | Disable-ScheduledTask | Out-Null
 		}

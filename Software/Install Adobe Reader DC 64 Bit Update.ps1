@@ -70,8 +70,8 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 			Start-Sleep 3
 			Stop-Service AdobeARMservice
 			Set-Service AdobeARMservice -StartupType Disabled
-			New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force
-			New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force
+			New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force | Out-Null -EA SilentlyContinue
+			New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value 1 -PropertyType DWORD -Force | Out-Null -EA SilentlyContinue
 		}
 		# Disable scheduled task
 		Get-ScheduledTask -TaskName "Adobe Acrobat Update Task" -EA SilentlyContinue | Disable-ScheduledTask | Out-Null
