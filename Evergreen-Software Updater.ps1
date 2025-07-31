@@ -2163,9 +2163,9 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 	Write-Host -ForegroundColor Yellow "Download $Product CR"
 	Write-Host "Download Version: $Version"
 	Write-Host "Current Version: $CurrentVersion"
-	IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.18-win-x86.exe")) {
+	IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\Current\windowsdesktop-runtime-8.0.18-win-x86.exe")) {
 			Try {
-			Invoke-WebRequest -Uri "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/8.0.18/windowsdesktop-runtime-8.0.18-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.18-win-x86.exe"
+			Invoke-WebRequest -Uri "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/8.0.18/windowsdesktop-runtime-8.0.18-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\Current\windowsdesktop-runtime-8.0.18-win-x86.exe"
 			} catch {
 			throw $_.Exception.Message
 			}
