@@ -92,7 +92,7 @@ Version: 2.18.13
 25/06/10: Added uberAgent and deviceTRUST to Citrix VDA current release
 25/06/11: Removed Adobe Reader "Try Adobe Acrobat" add and diable AdobeCollabSync
 25/06/30: Removed deviceTRUST agent (now part of Citrix VDA)
-25/07/31: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp
+25/07/31: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp, changed VLC Media Player to EXE version
 # Notes
 #>
 

@@ -1926,7 +1926,7 @@ IF ($SoftwareSelection.VLCPlayer -eq $true) {
 		}
 	[version]$Version = $VersionVLC
 	#$URL = $VLC.uri
-	$InstallerType = "msi"
+	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	[version]$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product" 

@@ -49,43 +49,6 @@ DS_WriteLog "-" "" $LogFile
 #========================================================================================================================================
 
 
-# FUNCTION MSI Installation
-#========================================================================================================================================
-function Install-MSIFile {
-
-[CmdletBinding()]
- Param(
-  [parameter(mandatory=$true,ValueFromPipeline=$true,ValueFromPipelinebyPropertyName=$true)]
-        [ValidateNotNullorEmpty()]
-        [string]$msiFile,
-
-        [parameter()]
-        [ValidateNotNullorEmpty()]
-        [string]$targetDir
- )
-if (!(Test-Path $msiFile)){
-    throw "Path to MSI file ($msiFile) is invalid. Please check name and path"
-}
-$arguments = @(
-    "/i"
-    "`"$msiFile`""
-    "/qn"
-)
-if ($targetDir){
-    if (!(Test-Path $targetDir)){
-        throw "Pfad zum Installationsverzeichnis $($targetDir) ist ungültig. Bitte Pfad und Dateinamen überprüfen!"
-    }
-    $arguments += "INSTALLDIR=`"$targetDir`""
-}
-$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -NoNewWindow -PassThru
-if ($process.ExitCode -eq 0){
-    }
-else {
-    Write-Verbose "Installer Exit Code  $($process.ExitCode) für Datei  $($msifile)"
-}
-}
-#========================================================================================================================================
-
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
@@ -98,6 +61,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
 		"$PSScriptRoot\$Product\VLC-Player.msi" | Install-MSIFile
+		Start-Process "$PSScriptRoot\$Product\VLC-Player.exe" -ArgumentList '/S'  –NoNewWindow -Wait
 		DS_WriteLog "-" "" $LogFile
 		write-Host -ForegroundColor Green "...ready"
 		Write-Output ""
