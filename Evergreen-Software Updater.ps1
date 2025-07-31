@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.10
+Version: 2.12.11
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -80,7 +80,8 @@ Version: 2.12.10
 25/04/10: Added .NET 9.0 Desktop Runtime (v9.0.4) for Remote Desktop Manager
 25/04/14: Added new FSLogix version 25.04, Windows Desktop-Runtime-8.0.11 (for Citrix WorkspaceApp)
 25/06/10: Removed deviceTRUST (now part of VDA 2503), temporarly removed SQL Management Studio (SMSS), fixed download link for XenServer VM Tools
-25/17/26: Fixed MS Edge version check
+25/06/26: Fixed MS Edge version check
+25/07/31: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp
 # Notes
 #>
 
@@ -1397,7 +1398,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.10"
+	[version]$EvergreenVersion = "2.12.11"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2162,9 +2163,9 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 	Write-Host -ForegroundColor Yellow "Download $Product CR"
 	Write-Host "Download Version: $Version"
 	Write-Host "Current Version: $CurrentVersion"
-	IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.11-win-x86.exe")) {
+	IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.18-win-x86.exe")) {
 			Try {
-			Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/6e1f5faf-ee7d-4db0-9111-9e270a458342/4cdcd1af2d6914134308630f048fbdfc/windowsdesktop-runtime-8.0.11-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.11-win-x86.exe"
+			Invoke-WebRequest -Uri "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/8.0.18/windowsdesktop-runtime-8.0.18-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.18-win-x86.exe"
 			} catch {
 			throw $_.Exception.Message
 			}
