@@ -90,7 +90,7 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	)
 	
 	IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Windows Desktop Runtime - 8.0.18 (x86)"})) {
-		Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime 8.0.11 (Prerequisite for Citrix WorkspaceApp)"
+		Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime 8.0.18 (Prerequisite for Citrix WorkspaceApp)"
 		DS_WriteLog "I" "Installing MS DotNet Desktop Runtime (Prerequisite for Citrix WorkspaceApp)" $LogFile
 		try {
 			Start-Process -FilePath "$PSScriptRoot\Citrix\WorkspaceApp\Windows\Current\windowsdesktop-runtime-8.0.18-win-x86.exe" -ArgumentList "/quiet /noreboot" –NoNewWindow -wait
