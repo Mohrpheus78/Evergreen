@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.12
+Version: 2.12.13
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -82,6 +82,7 @@ Version: 2.12.12
 25/06/10: Removed deviceTRUST (now part of VDA 2503), temporarly removed SQL Management Studio (SMSS), fixed download link for XenServer VM Tools
 25/06/26: Fixed MS Edge version check
 25/07/31: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp
+25/08/04: Fixed download failure for .NET Runtime 8.0.18
 # Notes
 #>
 
@@ -1398,7 +1399,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.12"
+	[version]$EvergreenVersion = "2.12.13"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2175,8 +2176,7 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
 		$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
-		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Exclude "windowsdesktop-runtime-8.0.11-win-x86.exe" -Recurse
-		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Exclude "windowsdesktop-runtime-8.0.10-win-x86.exe" -Recurse
+		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Exclude "windowsdesktop-runtime-8.0.18-win-x86.exe" -Recurse
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -Value "$Version"
