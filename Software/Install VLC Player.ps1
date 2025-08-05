@@ -60,7 +60,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
-		"$PSScriptRoot\$Product\VLC-Player.msi" | Install-MSIFile
+		# "$PSScriptRoot\$Product\VLC-Player.msi" | Install-MSIFile
 		Start-Process "$PSScriptRoot\$Product\VLC-Player.exe" -ArgumentList '/S'  –NoNewWindow -Wait
 		DS_WriteLog "-" "" $LogFile
 		write-Host -ForegroundColor Green "...ready"
