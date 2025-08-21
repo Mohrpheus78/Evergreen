@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.14
+Version: 2.18.15
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -1284,7 +1284,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.18.14"
+	[version]$EvergreenVersion = "2.18.15"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1561,54 +1561,54 @@ IF ($SoftwareSelection.Firefox -eq $true)
 			}
 	}
 
-# Install WorkspaceApp Current
+# Install Citrix WorkspaceApp Current
 IF ($SoftwareSelection.WorkspaceApp_CR -eq $true)
 	{
 		try {
-			& "$SoftwareFolder\Install WorkspaceApp Current.ps1"
+			& "$SoftwareFolder\Install Citrix WorkspaceApp Current.ps1"
 			}
 		catch {
-			Write-Host -ForegroundColor Red "Installing WorkspaceApp Current Release"
-			Write-Host -ForegroundColor Red "Error launching script 'Install WorkspaceApp Current': $($Error[0])"
+			Write-Host -ForegroundColor Red "Installing Citrix WorkspaceApp Current Release"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix WorkspaceApp Current': $($Error[0])"
 			Write-Output ""
 			}
 	}
 
-# Install WorkspaceApp LTSR
+# Install Citrix WorkspaceApp LTSR
 IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true)
 	{
 		try {
-			& "$SoftwareFolder\Install WorkspaceApp LTSR.ps1"
+			& "$SoftwareFolder\Install Citrix WorkspaceApp LTSR.ps1"
 			}
 		catch {
-			Write-Host -ForegroundColor Red "Installing WorkspaceApp LTSR"
-			Write-Host -ForegroundColor Red "Error launching script 'Install WorkspaceApp LTSR': $($Error[0])"
+			Write-Host -ForegroundColor Red "Installing Citrix WorkspaceApp LTSR"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix WorkspaceApp LTSR': $($Error[0])"
 			Write-Output ""
 			}
 	}
 	
-# Install WorkspaceApp Current Web
+# Install Citrix WorkspaceApp Current Web
 IF ($SoftwareSelection.WorkspaceApp_CR_Web -eq $true)
 	{
 		try {
-			& "$SoftwareFolder\Install WorkspaceApp Current Web.ps1"
+			& "$SoftwareFolder\Install Citrix WorkspaceApp Current Web.ps1"
 			}
 		catch {
-			Write-Host -ForegroundColor Red "Installing WorkspaceApp Current Release Web"
-			Write-Host -ForegroundColor Red "Error launching script 'Install WorkspaceApp Current Web': $($Error[0])"
+			Write-Host -ForegroundColor Red "Installing Citrix WorkspaceApp Current Release Web"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix WorkspaceApp Current Web': $($Error[0])"
 			Write-Output ""
 			}
 	}
 
-# Install WorkspaceApp LTSR Web
+# Install Citrix WorkspaceApp LTSR Web
 IF ($SoftwareSelection.WorkspaceApp_LTSR_Web -eq $true)
 	{
 		try {
-			& "$SoftwareFolder\Install WorkspaceApp LTSR Web.ps1"
+			& "$SoftwareFolder\Install Citrix  WorkspaceApp LTSR Web.ps1"
 			}
 		catch {
-			Write-Host -ForegroundColor Red "Installing WorkspaceApp LTSR Web"
-			Write-Host -ForegroundColor Red "Error launching script 'Install WorkspaceApp LTSR Web': $($Error[0])"
+			Write-Host -ForegroundColor Red "Installing Citrix WorkspaceApp LTSR Web"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix WorkspaceApp LTSR Web': $($Error[0])"
 			Write-Output ""
 			}
 	}

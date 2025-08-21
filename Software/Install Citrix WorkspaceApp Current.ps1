@@ -87,6 +87,7 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	"/ENABLE_SSON=Yes"
 	"/InstallEmbeddedBrowser=N"
 	"/installMSTeamsPlugin"
+	"startAppProtection"
 	)
 	
 	IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Windows Desktop Runtime - 8.0.18 (x86)"})) {
