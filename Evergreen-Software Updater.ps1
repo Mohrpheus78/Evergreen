@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.14
+Version: 2.12.15
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -84,6 +84,7 @@ Version: 2.12.14
 25/07/31: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp
 25/08/04: Fixed download failure for .NET Runtime 8.0.18
 25/08/21: Removed MS Teams, Sharefile, fixed Google Chrome
+25/08/28: Fixed version issue with MS openJDK
 # Notes
 #>
 
@@ -1370,7 +1371,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.14"
+	[version]$EvergreenVersion = "2.12.15"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -3554,26 +3555,32 @@ IF ($SoftwareSelection.MicrosoftOpenJDK -eq $true) {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
 	$Version = $MicrosoftOpenJDK.version
+		IF ($Version -like "*+*") {
+			$Version = [version]$Version.Replace("+", ".")
+		}
 	$URL = $MicrosoftOpenJDK.uri
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt"
-	IF ($CurrentVersion -like "*+*") {
-		$CurrentVersion = [version]$CurrentVersion.Replace("+", ".")
-	}
+		IF ((Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -Raw).Trim().Length -eq 0) {
+			Remove-Item -Path "$SoftwareFolder\$Product\Version.txt" -Force
+		}
+		IF ($CurrentVersion -like "*+*") {
+			$CurrentVersion = [version]$CurrentVersion.Replace("+", ".")
+		}
 	Write-Host -ForegroundColor Yellow "Download $Product"
-	Write-Host "Download Version: $VersionMicrosoftOpenJDK"
+	Write-Host "Download Version: $Version"
 	Write-Host "Current Version: $CurrentVersion"
 	IF ($version) {
-		IF ($version -gt $CurrentVersion) {
+		IF (!($CurrentVersion -eq $Version)) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
-		$LogPS = "$SoftwareFolder\$Product\" + "$Product $VersionMicrosoftOpenJDK.log"
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
 		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
-		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$VersionMicrosoftOpenJDK"
-		Write-Host -ForegroundColor Yellow "Starting Download of $Product $VersionMicrosoftOpenJDK"
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		Try {
 			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
