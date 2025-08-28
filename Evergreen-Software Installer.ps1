@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.15
+Version: 2.18.16
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -1284,7 +1284,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.18.15"
+	[version]$EvergreenVersion = "2.18.16"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1604,7 +1604,7 @@ IF ($SoftwareSelection.WorkspaceApp_CR_Web -eq $true)
 IF ($SoftwareSelection.WorkspaceApp_LTSR_Web -eq $true)
 	{
 		try {
-			& "$SoftwareFolder\Install Citrix  WorkspaceApp LTSR Web.ps1"
+			& "$SoftwareFolder\Install Citrix WorkspaceApp LTSR Web.ps1"
 			}
 		catch {
 			Write-Host -ForegroundColor Red "Installing Citrix WorkspaceApp LTSR Web"
