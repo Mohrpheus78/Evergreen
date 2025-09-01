@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.16
+Version: 2.18.17
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -94,6 +94,7 @@ Version: 2.18.16
 25/06/30: Removed deviceTRUST agent (now part of Citrix VDA)
 25/07/31: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp, changed VLC Media Player to EXE version
 25/08/05: Fixed a VLC install error
+25/09/01: Updated VDA scripts for version 2507 and feature CR versions
 # Notes
 #>
 
@@ -1284,7 +1285,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.18.16"
+	[version]$EvergreenVersion = "2.18.17"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {

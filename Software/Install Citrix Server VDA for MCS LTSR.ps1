@@ -51,7 +51,7 @@ DS_WriteLog "-" "" $LogFile
 
 # Ask again
 if ($noGUI -eq $False) {
-	Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix VDA, otherwise please uncheck in the selection!"
+	Write-host -ForegroundColor Gray -BackgroundColor DarkRed "Do you want to update the Citrix VDA, otherwise please uncheck in the selection! Attention, only VDA 2507 LTSR supported, for older LTSR versions manually update the VDA!"
 	Write-Host ""
 	$Frage = Read-Host "( y / n )"
 	IF ($Frage -eq 'y') {
@@ -71,7 +71,7 @@ if ($noGUI -eq $False) {
 			try	{
 				DS_WriteLog "I" "Installing $Product $VersionVDA" $LogFile
 				Write-Host -ForegroundColor Yellow "Installing $Product"
-				Start-Process "$PSScriptRoot\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Citrix Telemetry Service"",""Citrix Rendezvous V2"",""Citrix VDA Upgrade Agent"" /includeadditional ""Citrix MCS IODriver"" /COMPONENTS VDA /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /ENABLE_REAL_TIME_TRANSPORT /enable_hdx_tls_dtls /enable_ss_ports /mastermcsimage" –NoNewWindow -Wait
+				Start-Process "$PSScriptRoot\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Citrix Telemetry Service"",""Citrix VDA Upgrade Agent"",""Citrix Workspace Environment Management Agent"",""Citrix Backup and Restore"" /includeadditional ""Citrix MCS IODriver"" /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /enable_hdx_tls_dtls /ENABLE_REAL_TIME_TRANSPORT /enable_ss_ports /mastermcsimage" –NoNewWindow -Wait
 				DS_WriteLog "-" "" $LogFile
 				Write-Host -ForegroundColor Green " ...ready!" 
 				Write-Output ""
