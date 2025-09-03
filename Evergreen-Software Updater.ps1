@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.16
+Version: 2.12.17
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -1372,7 +1372,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.16"
+	[version]$EvergreenVersion = "2.12.17"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2166,9 +2166,9 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 		# MS Team VDI Plugin
 		start-sleep 5
 		Try {
-		Invoke-WebRequest -Uri "https://download.microsoft.com/download/3/0/e/30e54a38-eb74-44dc-9755-36dcac09656d/MsTeamsPluginCitrix.msi" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\Current\MsTeamsPluginCitrix.msi"
+			Invoke-WebRequest -Uri "https://download.microsoft.com/download/3/0/e/30e54a38-eb74-44dc-9755-36dcac09656d/MsTeamsPluginCitrix.msi" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\Current\MsTeamsPluginCitrix.msi"
 		} catch {
-		throw $_.Exception.Message
+			throw $_.Exception.Message
 		}
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\$Source")) {
@@ -2285,9 +2285,9 @@ IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 		# MS Team VDI Plugin
 		start-sleep 5
 		Try {
-		Invoke-WebRequest -Uri "https://download.microsoft.com/download/3/0/e/30e54a38-eb74-44dc-9755-36dcac09656d/MsTeamsPluginCitrix.msi" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\Current\MsTeamsPluginCitrix.msi"
+			Invoke-WebRequest -Uri "https://download.microsoft.com/download/3/0/e/30e54a38-eb74-44dc-9755-36dcac09656d/MsTeamsPluginCitrix.msi" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\LTSR\MsTeamsPluginCitrix.msi"
 		} catch {
-		throw $_.Exception.Message
+			throw $_.Exception.Message
 		}
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\$Source")) {

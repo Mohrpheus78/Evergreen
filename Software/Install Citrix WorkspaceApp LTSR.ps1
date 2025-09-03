@@ -129,6 +129,28 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 			Write-Host -ForegroundColor Red "Error installing $Product (Error: $($Error[0]))"
 			Write-Output ""    
 			}
+
+		# Installation MS Teams VDI Plugin
+		IF (Test-Path -Path "$SoftwareRoot\Citrix\WorkspaceApp\Windows\LTSR\MsTeamsPluginCitrix.msi") {
+			Write-Host -ForegroundColor Yellow "MS Teams VDI Plugin wird installiert, bitte warten..." -NoNewLine
+			DS_WriteLog "I" "MS Teams VDI Plugin wird installiertt" $LogFile
+			try	{
+				$TeamsVDIPlugin = "$SoftwareRoot\Citrix\WorkspaceApp\Windows\LTSR\MsTeamsPluginCitrix.msi"
+				$arguments =@(
+					"/i"
+					"`"$TeamsVDIPlugin`""
+					"/qn"
+				)
+				Start-Process -FilePath msiexec.exe -ArgumentList $arguments -NoNewWindow -wait -PassThru | Out-Null
+				DS_WriteLog "-" "" $LogFile
+				Write-Host -ForegroundColor Green " ... fertig!"`n
+			} catch {
+					DS_WriteLog "-" "" $LogFile
+					DS_WriteLog "E" "Error installing MS Teams VDI Plugin (Error: $($Error[0]))" $LogFile
+					Write-Host -ForegroundColor Red "Error installing MS Teams VDI Plugin (Error: $($Error[0]))"
+					Write-Output ""    
+			}
+		}
 	}
 
 	# Stop, if no new version is available
