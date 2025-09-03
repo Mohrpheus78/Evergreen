@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.15
+Version: 2.12.16
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -85,6 +85,7 @@ Version: 2.12.15
 25/08/04: Fixed download failure for .NET Runtime 8.0.18
 25/08/21: Removed MS Teams, Sharefile, fixed Google Chrome
 25/08/28: Fixed version issue with MS openJDK
+25/09/03: Added MS Teams VDI Plugin to Citrix WorkspaceApp
 # Notes
 #>
 
@@ -1371,7 +1372,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.15"
+	[version]$EvergreenVersion = "2.12.16"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2145,6 +2146,7 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 			throw $_.Exception.Message
 			}
 		}
+
 	IF ($Version) {
 		IF ($Version -gt $CurrentVersion) {
 		Write-Host -ForegroundColor Green "Update available"
@@ -2161,6 +2163,13 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 			throw $_.Exception.Message
 		}
 		Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\Current\CitrixWorkspaceAppWeb.exe" | Out-Null
+		# MS Team VDI Plugin
+		start-sleep 5
+		Try {
+		Invoke-WebRequest -Uri "https://download.microsoft.com/download/3/0/e/30e54a38-eb74-44dc-9755-36dcac09656d/MsTeamsPluginCitrix.msi" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\Current\MsTeamsPluginCitrix.msi"
+		} catch {
+		throw $_.Exception.Message
+		}
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
@@ -2273,6 +2282,13 @@ IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 			throw $_.Exception.Message
 		}
 		Copy-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceApp.exe" -Destination "$SoftwareFolder\Citrix\$Product\Windows\LTSR\CitrixWorkspaceAppWeb.exe" | Out-Null
+		# MS Team VDI Plugin
+		start-sleep 5
+		Try {
+		Invoke-WebRequest -Uri "https://download.microsoft.com/download/3/0/e/30e54a38-eb74-44dc-9755-36dcac09656d/MsTeamsPluginCitrix.msi" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\Current\MsTeamsPluginCitrix.msi"
+		} catch {
+		throw $_.Exception.Message
+		}
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
