@@ -71,7 +71,7 @@ if ($noGUI -eq $False) {
 			try	{
 				DS_WriteLog "I" "Installing $Product $VersionVDA" $LogFile
 				Write-Host -ForegroundColor Yellow "Installing $Product"
-				Start-Process "$PSScriptRoot\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Citrix Telemetry Service"",""Citrix VDA Upgrade Agent"",""Citrix Workspace Environment Management Agent"",""Citrix Backup and Restore"" /includeadditional ""Citrix MCS IODriver"" /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /enable_hdx_tls_dtls /ENABLE_REAL_TIME_TRANSPORT /enable_ss_ports /mastermcsimage" –NoNewWindow -Wait
+				Start-Process "$PSScriptRoot\Citrix\LTSR\CVAD\x64\XenDesktop Setup\XenDesktopVdaSetup.exe" –ArgumentList "/NOREBOOT /exclude ""Citrix Personalization for App-V - VDA"",""Citrix Telemetry Service"",""Citrix VDA Upgrade Agent"",""Citrix Workspace Environment Management Agent"",""Citrix Backup and Restore"" /includeadditional ""Citrix MCS IODriver"" /components vda /disableexperiencemetrics /ENABLE_REMOTE_ASSISTANCE /ENABLE_HDX_PORTS /ENABLE_HDX_UDP_PORTS /enable_hdx_tls_dtls /ENABLE_REAL_TIME_TRANSPORT /enable_ss_ports /mastermcsimage" –NoNewWindow -Wait
 				DS_WriteLog "-" "" $LogFile
 				Write-Host -ForegroundColor Green " ...ready!" 
 				Write-Output ""
