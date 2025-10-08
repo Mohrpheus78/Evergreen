@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.17
+Version: 2.12.19
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -86,6 +86,7 @@ Version: 2.12.17
 25/08/21: Removed MS Teams, Sharefile, fixed Google Chrome
 25/08/28: Fixed version issue with MS openJDK
 25/09/03: Added MS Teams VDI Plugin to Citrix WorkspaceApp
+25/10/08: Temporarly removed MS Sysinternals, new FSLogix version
 # Notes
 #>
 
@@ -687,7 +688,9 @@ function gui_mode{
     $MSSysinternalsBox.width = 95
     $MSSysinternalsBox.height = 20
     $MSSysinternalsBox.autosize = $true
-	$MSSysinternalsBox.Font = $Font
+	$CustomFont = [System.Drawing.Font]::new("Arial",10, [System.Drawing.FontStyle]::Strikeout)
+	$MSSysinternalsBox.Font = $CustomFont
+	#$MSSysinternalsBox.Font = $Font
     $MSSysinternalsBox.location = New-Object System.Drawing.Point(250,170)
     $form.Controls.Add($MSSysinternalsBox)
 	$MSSysinternalsBox.Checked = $SoftwareSelection.MSSysinternals
@@ -1372,7 +1375,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.17"
+	[version]$EvergreenVersion = "2.12.19"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1493,7 +1496,7 @@ $ProgressPreference = 'SilentlyContinue'
 
 IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
 	Start-Transcript $ModulesUpdateLog | Out-Null
-	Write-Host -ForegroundColor Cyan "Installing/updating Evergreen and Nevergreen modules... please wait"
+	Write-Host -ForegroundColor Cyan "Installing/updating Evergreen and Nevergreen... please wait"
 	Write-Output ""
 	IF (!(Test-Path -Path "C:\Program Files\PackageManagement\ProviderAssemblies\nuget")) {
 		Find-PackageProvider -Name 'Nuget' -ForceBootstrap -IncludeDependencies
@@ -1513,6 +1516,7 @@ IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
 	$CurrentEvergreenVersion = (Find-Module -Name Evergreen -Repository PSGallery).Version
 	IF (($LocalEvergreenVersion -lt $CurrentEvergreenVersion)) {
 		Update-Module Evergreen -force
+		Update-Evergreen
 	}
 
 	$LocalNevergreenVersion = (Get-Module -Name Nevergreen -ListAvailable | Select-Object -First 1).Version
@@ -2477,7 +2481,7 @@ IF ($SoftwareSelection.FSLogix -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	[version]$Version = '3.25.401.15305'
+	[version]$Version = '3.25.822.19044'
 	$URL = $FSLogix.uri
 	$InstallerType = "zip"
 	$Source = "$PackageName" + "." + "$InstallerType"
@@ -3182,6 +3186,9 @@ IF ($SoftwareSelection.MSSsmsDE -eq $true) {
 IF ($SoftwareSelection.MSSysinternals -eq $true) {
 	$Product = "MS Sysinternals Suite"
 	$PackageName = "SysinternalsSuite"
+	Write-Host -ForegroundColor Red "Download for $Product currently not available, working on a solution..."
+	Write-Output ""
+	<#	
 	Try {
 	$MSSysinternals = Get-NevergreenApp -Name MicrosoftSysinternals | Where-Object {$_.Name -eq "Microsoft Sysinternals Suite" -and $_.Architecture -eq "Multi"} -ErrorAction Stop
 	} catch {
@@ -3228,6 +3235,7 @@ IF ($SoftwareSelection.MSSysinternals -eq $true) {
 		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
 		Write-Output ""
 	}
+	#>
 }
 
 
