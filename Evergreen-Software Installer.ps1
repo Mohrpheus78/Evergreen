@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.19
+Version: 2.18.20
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -97,21 +97,23 @@ Version: 2.18.19
 25/09/01: Updated VDA scripts for version 2507 and feature CR versions
 25/09/03: Added MS Teams VDI Plugin für WorkspaceApp
 25/09/23: Prevent updates of Citrix WorkspaceApp within VDA Updates
+25/10/09: Added switch SoftwareToRemoteInstall to install Evergreen apps from remote system (seperate scripts)
 # Notes
 #>
 
 
 Param (
-		[Parameter(
-            HelpMessage='Start without Gui',
-            ValuefromPipelineByPropertyName = $true
-        )]
-        [switch]$noGUI,
-		
-		[Parameter(
-			Mandatory = $false
-		)]  
-		[switch]$SoftwareToAutoInstall
+    [Parameter(
+        HelpMessage = 'Start without GUI',
+        ValueFromPipelineByPropertyName = $true
+    )]
+    [switch]$NoGUI,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$SoftwareToAutoInstall,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$SoftwareToRemoteInstall
 )
 
 
@@ -1287,7 +1289,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.18.19"
+	[version]$EvergreenVersion = "2.18.20"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1355,6 +1357,11 @@ $SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername.xml"
 IF ($SoftwareToAutoInstall -eq $True) {
 	$SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername-Auto.xml"
 	}
+<#
+IF ($SoftwareToRemoteInstall -eq $True) {
+	$SoftwareToInstall = "$SoftwareFolder\Software-to-install-$ENV:Computername.xml"
+	}
+#>
 	
 # Check version
 if ($noGUI -eq $False) {
@@ -1442,8 +1449,7 @@ IF ($SoftwareSelection.NotePadPlusPlus -eq $true)
 			& "$SoftwareFolder\Install NotepadPlusPlus.ps1"
 			}
 		catch {
-			Write-Host -ForegroundColor Red "Installing NotePadPlusPlus"
-			Write-Host -ForegroundColor Red "Error launching script 'Install NotepadPlusPlus': $($Error[0])"
+			Write-Host -ForegroundColor Red "NotePadPlusPlus remote installation  not allowed"
 			Write-Output ""
 			}
 	}
@@ -1681,19 +1687,6 @@ IF ($SoftwareSelection.MSOneDrive -eq $true)
 			Write-Output ""
 			}
 	}
-
-# Install MS Teams
-IF ($SoftwareSelection.MSTeams -eq $true)
-	{
-		try {
-			& "$SoftwareFolder\Install MS Teams.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing MS Teams"
-			Write-Host -ForegroundColor Red "Error launching script 'Install MS Teams': $($Error[0])"
-			Write-Output ""
-			}
-	}
 	
 # Install NEW MS Teams
 IF ($SoftwareSelection.MSTeams2 -eq $true)
@@ -1711,65 +1704,95 @@ IF ($SoftwareSelection.MSTeams2 -eq $true)
 # Install MS 365Apps
 IF ($SoftwareSelection.MS365Apps_SAC -eq $true)
 	{
-		try {
-			& "$SoftwareFolder\Install MS 365 Apps SAC.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing MS 365 Apps-Semi Annual Channel"
-			Write-Host -ForegroundColor Red "Error launching script 'Install MS 365 Apps SAC': $($Error[0])"
-			Write-Output ""
+		IF (!($SoftwareToRemoteInstall)) {
+			try {
+				& "$SoftwareFolder\Install MS 365 Apps SAC.ps1"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing MS 365 Apps-Semi Annual Channel"
+				Write-Host -ForegroundColor Red "Error launching script 'Install MS 365 Apps SAC': $($Error[0])"
+				Write-Output ""
+				}
+		}
+		ELSE {
+				Write-Host -ForegroundColor Red "Remote installation of Microsoft 365 Apps allowed"
+				Write-Output ""
 			}
 	}
 	
 # Install MS 365Apps
 IF ($SoftwareSelection.MS365Apps_MEC -eq $true)
 	{
-		try {
-			& "$SoftwareFolder\Install MS 365 Apps MEC.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing MS 365 Apps-Monthly Enterprise Channel"
-			Write-Host -ForegroundColor Red "Error launching script 'Install MS 365 Apps MEC': $($Error[0])"
-			Write-Output ""
+		IF (!($SoftwareToRemoteInstall)) {
+			try {
+				& "$SoftwareFolder\Install MS 365 Apps MEC.ps1"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing MS 365 Apps-Monthly Enterprise Channel"
+				Write-Host -ForegroundColor Red "Error launching script 'Install MS 365 Apps MEC': $($Error[0])"
+				Write-Output ""
+				}
+		}
+		ELSE {
+				Write-Host -ForegroundColor Red "Remote installation of Microsoft 365 Apps allowed"
+				Write-Output ""
 			}
 	}
 	
 # Install MS Office 2019
 IF ($SoftwareSelection.MSOffice2019 -eq $true)
 	{
-		try {
-			& "$SoftwareFolder\Install MS Office 2019.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing MS Office 2019"
-			Write-Host -ForegroundColor Red "Error in launching script 'Install MS Office 2019': $($Error[0])"
-			Write-Output ""
+		IF (!($SoftwareToRemoteInstall)) {
+			try {
+				& "$SoftwareFolder\Install MS Office 2019.ps1"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing MS Office 2019"
+				Write-Host -ForegroundColor Red "Error in launching script 'Install MS Office 2019': $($Error[0])"
+				Write-Output ""
+				}
+		}
+		ELSE {
+				Write-Host -ForegroundColor Red "Remote installation of Microsoft 2019 allowed"
+				Write-Output ""
 			}
 	}
 	
 # Install MS Office 2021
 IF ($SoftwareSelection.MSOffice2021 -eq $true)
 	{
-		try {
-			& "$SoftwareFolder\Install MS Office 2021.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing MS Office 2021"
-			Write-Host -ForegroundColor Red "Error launching script 'Install MS Office 2021': $($Error[0])"
-			Write-Output ""
+		IF (!($SoftwareToRemoteInstall)) {
+			try {
+				& "$SoftwareFolder\Install MS Office 2021.ps1"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing MS Office 2021"
+				Write-Host -ForegroundColor Red "Error launching script 'Install MS Office 2021': $($Error[0])"
+				Write-Output ""
+				}
+		}
+		ELSE {
+				Write-Host -ForegroundColor Red "Remote installation of Microsoft 2021 allowed"
+				Write-Output ""
 			}
 	}
 	
 # Install MS Office 2024
 IF ($SoftwareSelection.MSOffice2024 -eq $true)
 	{
-		try {
-			& "$SoftwareFolder\Install MS Office 2024.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing MS Office 2024"
-			Write-Host -ForegroundColor Red "Error launching script 'Install MS Office 2024': $($Error[0])"
-			Write-Output ""
+		IF (!($SoftwareToRemoteInstall)) {
+			try {
+				& "$SoftwareFolder\Install MS Office 2024.ps1"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing MS Office 2024"
+				Write-Host -ForegroundColor Red "Error launching script 'Install MS Office 2024': $($Error[0])"
+				Write-Output ""
+				}
+		}
+		ELSE {
+				Write-Host -ForegroundColor Red "Remote installation of Microsoft 2024 allowed"
+				Write-Output ""
 			}
 	}
 	
@@ -2033,78 +2056,114 @@ IF ($SoftwareSelection.CitrixPVSTargetDevice_CR -eq $true)
 # Install Citrix Server VDA LTSR
 IF ($SoftwareSelection.CitrixServerVDA_LTSR -eq $true)
 	{
-		try {
-			& "$SoftwareFolder\Install Citrix Server VDA LTSR.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing Citrix Server VDA LTSR"
-			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA LTSR': $($Error[0])"
-			Write-Output ""
+		IF (!($SoftwareToRemoteInstall)) {
+			try {
+				& "$SoftwareFolder\Install Citrix Server VDA LTSR.ps1"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing Citrix Server VDA LTSR"
+				Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA LTSR': $($Error[0])"
+				Write-Output ""
+				}
+		}
+		ELSE {
+				Write-Host -ForegroundColor Red "Remote installation of Citrix Server VDA LTSR not allowed, please install local!"
+				Write-Output ""
 			}
 	}
 
 # Install Citrix Server VDA PVS LTSR
 IF ($SoftwareSelection.CitrixServerVDA_PVS_LTSR -eq $true)
 	{
-		try {
-			& "$SoftwareFolder\Install Citrix Server VDA for PVS LTSR.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing Citrix Server VDA for PVS LTSR"
-			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA for PVS LTSR': $($Error[0])"
-			Write-Output ""
+		IF (!($SoftwareToRemoteInstall)) {
+			try {
+				& "$SoftwareFolder\Install Citrix Server VDA for PVS LTSR.ps1"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing Citrix Server VDA for PVS LTSR"
+				Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA for PVS LTSR': $($Error[0])"
+				Write-Output ""
+				}
+		}
+		ELSE {
+				Write-Host -ForegroundColor Red "Remote installation of Citrix Server VDA LTSR not allowed, please install local!"
+				Write-Output ""
 			}
 	}
 	
 # Install Citrix Server VDA CR/Cloud
 IF ($SoftwareSelection.CitrixServerVDA_CR -eq $true)
 	{
-		try {
-			& "$SoftwareFolder\Install Citrix Server VDA CR.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing Citrix Server VDA CR"
-			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA CR': $($Error[0])"
-			Write-Output ""
+		IF (!($SoftwareToRemoteInstall)) {
+			try {
+				& "$SoftwareFolder\Install Citrix Server VDA CR.ps1"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing Citrix Server VDA CR"
+				Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA CR': $($Error[0])"
+				Write-Output ""
+				}
+		}
+		ELSE {
+				Write-Host -ForegroundColor Red "Remote installation of Citrix Server VDA CR not allowed, please install local!"
+				Write-Output ""
 			}
 	}
 	
 # Install Citrix Server VDA PVS CR/Cloud
 IF ($SoftwareSelection.CitrixServerVDA_PVS_CR -eq $true)
 	{
-		try {
-			& "$SoftwareFolder\Install Citrix Server VDA for PVS CR.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing Citrix Server VDA for PVS CR"
-			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA for PVS CR': $($Error[0])"
-			Write-Output ""
+		IF (!($SoftwareToRemoteInstall)) {
+			try {
+				& "$SoftwareFolder\Install Citrix Server VDA for PVS CR.ps1"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing Citrix Server VDA for PVS CR"
+				Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA for PVS CR': $($Error[0])"
+				Write-Output ""
+				}
+		}
+		ELSE {
+				Write-Host -ForegroundColor Red "Remote installation of Citrix Server VDA CR not allowed, please install local!"
+				Write-Output ""
 			}
 	}
 	
 # Install Citrix Server VDA MCS LTSR
 IF ($SoftwareSelection.CitrixServerVDA_MCS_LTSR -eq $true)
 	{
-		try {
-			& "$SoftwareFolder\Install Citrix Server VDA for MCS LTSR.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing Citrix Server VDA for MCS LTSR"
-			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA for MCS LTSR': $($Error[0])"
-			Write-Output ""
+		IF (!($SoftwareToRemoteInstall)) {
+			try {
+				& "$SoftwareFolder\Install Citrix Server VDA for MCS LTSR.ps1"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing Citrix Server VDA for MCS LTSR"
+				Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Server VDA for MCS LTSR': $($Error[0])"
+				Write-Output ""
+				}
+		}
+		ELSE {
+				Write-Host -ForegroundColor Red "Remote installation of Citrix Server VDA LTSR not allowed, please install local!"
+				Write-Output ""
 			}
 	}
 	
 # Install Citrix Server VDA MCS CR
 IF ($SoftwareSelection.CitrixServerVDA_MCS_CR -eq $true)
 	{
-		try {
-			& "$SoftwareFolder\Install Citrix Server VDA for MCS CR.ps1"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing Citrix Server VDA for MCS CR"
-			Write-Host -ForegroundColor Red "Error in launching script 'Install Citrix Server VDA for MCS CR': $($Error[0])"
-			Write-Output ""
+		IF (!($SoftwareToRemoteInstall)) {
+			try {
+				& "$SoftwareFolder\Install Citrix Server VDA for MCS CR.ps1"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing Citrix Server VDA for MCS CR"
+				Write-Host -ForegroundColor Red "Error in launching script 'Install Citrix Server VDA for MCS CR': $($Error[0])"
+				Write-Output ""
+				}
+		}
+		ELSE {
+				Write-Host -ForegroundColor Red "Remote installation of Citrix Server VDA LTSR not allowed, please install local!"
+				Write-Output ""
 			}
 	}
 	
@@ -2189,23 +2248,29 @@ IF ($SoftwareSelection.WinRAR -eq $true)
 # Install VMWareTools
 IF ($SoftwareSelection.VMWareTools -eq $true)
 	{
-		try {
-			& "$SoftwareFolder\Install MS VcRedist x64"
+		IF (!($SoftwareToRemoteInstall)) {
+			try {
+				& "$SoftwareFolder\Install MS VcRedist x64"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing MS VcRedist x64"
+				Write-Host -ForegroundColor Red "Error launching script 'Install MS VcRedist x64': $($Error[0])"
+				Write-Output ""
+				}	
+			try {
+				& "$SoftwareFolder\Install MS VcRedist x86"
+				}
+			catch {
+				Write-Host -ForegroundColor Red "Installing MS VcRedist x86"
+				Write-Host -ForegroundColor Red "Error launching script 'Install MS VcRedist x86': $($Error[0])"
+				Write-Output ""
+				}	
+				& "$SoftwareFolder\Install VMWareTools.ps1"
+		}
+		ELSE {
+				Write-Host -ForegroundColor Red "Remote installation of VMWare Tools not allowed, please install local!"
+				Write-Output ""
 			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing MS VcRedist x64"
-			Write-Host -ForegroundColor Red "Error launching script 'Install MS VcRedist x64': $($Error[0])"
-			Write-Output ""
-			}	
-		try {
-			& "$SoftwareFolder\Install MS VcRedist x86"
-			}
-		catch {
-			Write-Host -ForegroundColor Red "Installing MS VcRedist x86"
-			Write-Host -ForegroundColor Red "Error launching script 'Install MS VcRedist x86': $($Error[0])"
-			Write-Output ""
-			}	
-			& "$SoftwareFolder\Install VMWareTools.ps1"
 	}
 	
 # Stop install log
