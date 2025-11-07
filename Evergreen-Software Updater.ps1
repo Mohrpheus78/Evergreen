@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.19
+Version: 2.12.20
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -87,6 +87,7 @@ Version: 2.12.19
 25/08/28: Fixed version issue with MS openJDK
 25/09/03: Added MS Teams VDI Plugin to Citrix WorkspaceApp
 25/10/08: Temporarly removed MS Sysinternals, new FSLogix version
+25/11/07: Added Update-Evergreen command
 # Notes
 #>
 
@@ -1375,7 +1376,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.19"
+	[version]$EvergreenVersion = "2.12.20"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1512,12 +1513,15 @@ IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
 		
 		}
 	# Check for Updates
+	Update-Evergreen
+	<#
 	$LocalEvergreenVersion = (Get-Module -Name Evergreen -ListAvailable | Select-Object -First 1).Version
 	$CurrentEvergreenVersion = (Find-Module -Name Evergreen -Repository PSGallery).Version
 	IF (($LocalEvergreenVersion -lt $CurrentEvergreenVersion)) {
 		Update-Module Evergreen -force
 		Update-Evergreen
 	}
+	#>
 
 	$LocalNevergreenVersion = (Get-Module -Name Nevergreen -ListAvailable | Select-Object -First 1).Version
 	$CurrentNevergreenVersion = (Find-Module -Name Nevergreen -Repository PSGallery).Version
