@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.20
+Version: 2.12.21
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -88,6 +88,7 @@ Version: 2.12.20
 25/09/03: Added MS Teams VDI Plugin to Citrix WorkspaceApp
 25/10/08: Temporarly removed MS Sysinternals, new FSLogix version
 25/11/07: Added Update-Evergreen command
+25/12/08: Fixed MS Visual C++ downloads
 # Notes
 #>
 
@@ -1376,7 +1377,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.20"
+	[version]$EvergreenVersion = "2.12.21"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -4792,7 +4793,7 @@ IF ($SoftwareSelection.VcRedist -eq $true) {
 	$Product = "Microsoft Visual C++ Redistributable packages x64"
 	$PackageName = "VC_redist_x64"
 	Try {
-	$VcRedist = Get-VcList | Where-Object {$_.Name -like "*2022*" -and $_.Architecture -eq "x64"}
+	$VcRedist = Get-VcList | Where-Object {$_.Architecture -eq "x64"}
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
@@ -4844,7 +4845,7 @@ IF ($SoftwareSelection.VcRedist -eq $true) {
 	$Product = "Microsoft Visual C++ Redistributable packages x86"
 	$PackageName = "VC_redist_x86"
 	Try {
-	$VcRedist = Get-VcList | Where-Object {$_.Name -like "*2022*" -and $_.Architecture -eq "x86"}
+	$VcRedist = Get-VcList | Where-Object {$_.Architecture -eq "x86"}
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
