@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.21
+Version: 2.12.22
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -89,6 +89,7 @@ Version: 2.12.21
 25/10/08: Temporarly removed MS Sysinternals, new FSLogix version
 25/11/07: Added Update-Evergreen command
 25/12/08: Fixed MS Visual C++ downloads
+26/01/13: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp LTSR, added RD Analyzer
 # Notes
 #>
 
@@ -1027,6 +1028,17 @@ function gui_mode{
     $form.Controls.Add($CiscoWebExVDIBox)
 	$CiscoWebExVDIBox.Checked =  $SoftwareSelection.CiscoWebExVDI
 	
+	# RD Analyzer Checkbox
+    $RDAnalyzerBox = New-Object system.Windows.Forms.CheckBox
+    $RDAnalyzerBox.text = "RD Analyzer"
+	$RDAnalyzerBox.width = 95
+    $RDAnalyzerBox.height = 20
+    $RDAnalyzerBox.autosize = $true
+	$RDAnalyzerBox.Font = $Font
+    $RDAnalyzerBox.location = New-Object System.Drawing.Point(660,370)
+    $form.Controls.Add($RDAnalyzerBox)
+	$RDAnalyzerBox.Checked =  $SoftwareSelection.RDAnalyzer
+	
 	
 	<#
 	# Zoom VMWare client Checkbox
@@ -1099,6 +1111,7 @@ function gui_mode{
 		$FirefoxBoxEN.checked = $True
 		$FileZillaBox.checked = $True
 		$CiscoWebExVDIBox.checked = $True
+		$RDAnalyzerBox.checked = $True
 		$WinRARBox.checked = $True
 		#$CiscoWebExDesktopBox.checked = $True
 		$MicrosoftOpenJDKBox.checked = $True
@@ -1169,6 +1182,7 @@ function gui_mode{
 		$FirefoxBoxEN.checked = $False
 		$FileZillaBox.checked = $False
 		$CiscoWebExVDIBox.checked = $False
+		$RDAnalyzerBox.checked = $False
 		$WinRARBox.checked = $False
 		#$CiscoWebExDesktopBox.checked = $False
 		$MicrosoftOpenJDKBox.checked = $False
@@ -1240,6 +1254,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FirefoxEN" -Value $FirefoxBoxEN.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "FileZilla" -Value $FileZillaBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExVDI" -Value $CiscoWebExVDIBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "RDAnalyzer" -Value $RDAnalyzerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinRAR" -Value $WinRARBox.checked -Force
 		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExDesktop" -Value $CiscoWebExDesktopBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "deviceTRUST" -Value $deviceTRUSTBox.checked -Force
@@ -1377,7 +1392,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.21"
+	[version]$EvergreenVersion = "2.12.22"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2268,9 +2283,9 @@ IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 	Write-Host -ForegroundColor Yellow "Download $Product LTSR"
 	Write-Host "Download Version: $Version"
 	Write-Host "Current Version: $CurrentVersion"
-	IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.11-win-x86.exe")) {
+	IF (!(Test-Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.18-win-x86.exe")) {
 			Try {
-			Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/6e1f5faf-ee7d-4db0-9111-9e270a458342/4cdcd1af2d6914134308630f048fbdfc/windowsdesktop-runtime-8.0.11-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.11-win-x86.exe"
+			Invoke-WebRequest -Uri "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/8.0.18/windowsdesktop-runtime-8.0.18-win-x86.exe" -OutFile "$SoftwareFolder\Citrix\$Product\Windows\LTSR\windowsdesktop-runtime-8.0.18-win-x86.exe"
 			} catch {
 			throw $_.Exception.Message
 			}
@@ -2280,7 +2295,7 @@ IF ($SoftwareSelection.WorkspaceApp_LTSR -eq $true) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -ItemType Directory | Out-Null}
 		$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\LTSR\" + "$Product $Version.log"
-		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\LTSR\*" -Exclude "windowsdesktop-runtime-8.0.11-win-x86.exe" -Recurse
+		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\LTSR\*" -Exclude "windowsdesktop-runtime-8.0.18-win-x86.exe" -Recurse
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\LTSR\Version.txt" -Value "$Version"
@@ -4952,6 +4967,56 @@ IF ($SoftwareSelection.WinRAR -eq $true) {
 	}
 }
 
+# Download RD Analyzer
+IF ($SoftwareSelection.RDAnalyzer -eq $true) {
+	$Product = "RD Analyzer"
+	$PackageName = "RDAnalyzer"
+	Try {
+	$RDAnalyzer = Get-EvergreenApp -Name RDAnalyzer
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $RDAnalyzer.Version
+	$URL = $RDAnalyzer.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF ($Version -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""	
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
 
 # Stop UpdateLog
 Stop-Transcript | Out-Null
