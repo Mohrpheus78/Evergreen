@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.20
+Version: 2.18.21
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -98,6 +98,7 @@ Version: 2.18.20
 25/09/03: Added MS Teams VDI Plugin für WorkspaceApp
 25/09/23: Prevent updates of Citrix WorkspaceApp within VDA Updates
 25/10/09: Added switch SoftwareToRemoteInstall to install Evergreen apps from remote system (seperate scripts)
+26/01/26: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp LTSR
 # Notes
 #>
 
@@ -1289,7 +1290,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.18.20"
+	[version]$EvergreenVersion = "2.18.21"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
