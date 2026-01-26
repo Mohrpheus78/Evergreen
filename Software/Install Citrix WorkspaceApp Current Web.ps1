@@ -78,15 +78,14 @@ IF (Test-Path -Path "$PSScriptRoot\MS Edge WebView2 Runtime\Version.txt") {
 	# Citrix WSA Installation
 	$Options = @(
 	"/silent"
+	"/EnableCEIP=False"
 	"/FORCE_LAA=1"
 	"/AutoUpdateCheck=disabled"
-	"/EnableCEIP=false"
-	"/ALLOWADDSTORE=S"
-	"/ALLOWSAVEPWD=S"
 	"/includeSSON"
 	"/ENABLE_SSON=Yes"
-	"/InstallEmbeddedBrowser=N"
-	"/installMSTeamsPlugin"
+	"/installMSTeamsPlugin=Y"
+	"ADDLOCAL=ReceiverInside,ICA_Client,USB,DesktopViewer,AM,SSON,SelfService,WebHelper"
+	"InstallEPAClient=N"
 	)
 	
 	IF (!(Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Windows Desktop Runtime - 8.0.18 (x86)"})) {
