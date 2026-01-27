@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.23
+Version: 2.12.24
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -90,6 +90,7 @@ Version: 2.12.23
 25/11/07: Added Update-Evergreen command
 25/12/08: Fixed MS Visual C++ downloads
 26/01/13: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp LTSR, added RD Analyzer
+26/01/27: Changed XenServer VM Tools to 9.4.2
 # Notes
 #>
 
@@ -1392,7 +1393,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.23"
+	[version]$EvergreenVersion = "2.12.24"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -3382,7 +3383,7 @@ IF ($SoftwareSelection.CitrixVMTools -eq $true) {
     [Version]$VersionCitrixVMTools  = $webVersionCitrixVMTools
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
-	$URL = "https://downloads.xenserver.com/vm-tools-windows/9.4.1/managementagent-9.4.1-x64.msi"
+	$URL = "https://downloads.xenserver.com/vm-tools-windows/9.4.2/managementagentx64-9.4.2.msi"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $VersionCitrixVMTools"
