@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.23
+Version: 2.18.24
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -100,6 +100,7 @@ Version: 2.18.23
 25/10/09: Added switch SoftwareToRemoteInstall to install Evergreen apps from remote system (seperate scripts)
 26/01/26: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp LTSR, changed command line options for Citrix WorkspaceApp
 26/02/16: Corrected VMWare Tools version
+26/03/11: Added MS Visual Studio Code
 
 # Notes
 #>
@@ -684,6 +685,28 @@ function gui_mode{
     $form.Controls.Add($MicrosoftOpenJDKBox)
 	$MicrosoftOpenJDKBox.Checked =  $SoftwareSelection.MicrosoftOpenJDK
 	
+	# MicrosoftOpenJDK Checkbox
+    $MicrosoftOpenJDKBox = New-Object system.Windows.Forms.CheckBox
+    $MicrosoftOpenJDKBox.text = "Microsoft OpenJDK 21"
+    $MicrosoftOpenJDKBox.width = 95
+    $MicrosoftOpenJDKBox.height = 20
+    $MicrosoftOpenJDKBox.autosize = $true
+	$MicrosoftOpenJDKBox.Font = $Font
+    $MicrosoftOpenJDKBox.location = New-Object System.Drawing.Point(420,345)
+    $form.Controls.Add($MicrosoftOpenJDKBox)
+	$MicrosoftOpenJDKBox.Checked =  $SoftwareSelection.MicrosoftOpenJDK
+	
+	# MSVisualStudioCode  Checkbox
+    $MSVisualStudioCodeBox = New-Object system.Windows.Forms.CheckBox
+    $MSVisualStudioCodeBox.text = "Microsoft Visual Studio Code"
+    $MSVisualStudioCodeBox.width = 95
+    $MSVisualStudioCodeBox.height = 20
+    $MSVisualStudioCodeBox.autosize = $true
+	$MSVisualStudioCodeBox.Font = $Font
+    $MSVisualStudioCodeBox.location = New-Object System.Drawing.Point(420,370)
+    $form.Controls.Add($MSVisualStudioCodeBox)
+	$MSVisualStudioCodeBox.Checked =  $SoftwareSelection.MSVisualStudioCode 
+	
 	# BISF Checkbox
     $BISFBox = New-Object system.Windows.Forms.CheckBox
     $BISFBox.text = "BIS-F"
@@ -691,7 +714,7 @@ function gui_mode{
     $BISFBox.height = 20
     $BISFBox.autosize = $true
 	$BISFBox.Font = $Font
-    $BISFBox.location = New-Object System.Drawing.Point(420,370)
+    $BISFBox.location = New-Object System.Drawing.Point(420,395)
     $form.Controls.Add($BISFBox)
 	$BISFBox.Checked =  $SoftwareSelection.BISF
 	
@@ -702,7 +725,7 @@ function gui_mode{
     $FSLogixBox.height = 20
     $FSLogixBox.autosize = $true
 	$FSLogixBox.Font = $Font
-    $FSLogixBox.location = New-Object System.Drawing.Point(420,395)
+    $FSLogixBox.location = New-Object System.Drawing.Point(420,420)
     $form.Controls.Add($FSLogixBox)
 	$FSLogixBox.Checked =  $SoftwareSelection.FSLogix
 	
@@ -713,20 +736,9 @@ function gui_mode{
     $GoogleChromeBox.height = 20
     $GoogleChromeBox.autosize = $true
 	$GoogleChromeBox.Font = $Font
-    $GoogleChromeBox.location = New-Object System.Drawing.Point(420,420)
+    $GoogleChromeBox.location = New-Object System.Drawing.Point(420,445)
     $form.Controls.Add($GoogleChromeBox)
 	$GoogleChromeBox.Checked =  $SoftwareSelection.GoogleChrome
-	
-	# Firefox Checkbox
-    $FirefoxBox = New-Object system.Windows.Forms.CheckBox
-    $FirefoxBox.text = "Mozilla Firefox"
-    $FirefoxBox.width = 95
-    $FirefoxBox.height = 20
-    $FirefoxBox.autosize = $true
-	$FirefoxBox.Font = $Font
-    $FirefoxBox.location = New-Object System.Drawing.Point(420,445)
-    $form.Controls.Add($FirefoxBox)
-	$FirefoxBox.Checked =  $SoftwareSelection.Firefox
 <#	
 	# Zoom VMWare client Checkbox
     $ZoomVMWareBox = New-Object system.Windows.Forms.CheckBox
@@ -818,16 +830,16 @@ function gui_mode{
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
 
-	# FoxitReader Checkbox
-    $FoxitReaderBox = New-Object system.Windows.Forms.CheckBox
-    $FoxitReaderBox.text = "Foxit Reader"
-    $FoxitReaderBox.width = 95
-    $FoxitReaderBox.height = 20
-    $FoxitReaderBox.autosize = $true
-	$FoxitReaderBox.Font = $Font
-    $FoxitReaderBox.location = New-Object System.Drawing.Point(810,45)
-    $form.Controls.Add($FoxitReaderBox)
-	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
+	# Firefox Checkbox
+    $FirefoxBox = New-Object system.Windows.Forms.CheckBox
+    $FirefoxBox.text = "Mozilla Firefox"
+    $FirefoxBox.width = 95
+    $FirefoxBox.height = 20
+    $FirefoxBox.autosize = $true
+	$FirefoxBox.Font = $Font
+    $FirefoxBox.location = New-Object System.Drawing.Point(810,45)
+    $form.Controls.Add($FirefoxBox)
+	$FirefoxBox.Checked =  $SoftwareSelection.Firefox
 
 	# VLCPlayer Checkbox
     $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
@@ -927,6 +939,17 @@ function gui_mode{
     $WinRARBox.location = New-Object System.Drawing.Point(810,270)
     $form.Controls.Add($WinRARBox)
 	$WinRARBox.Checked =  $SoftwareSelection.WinRAR
+	
+	# FoxitReader Checkbox
+    $FoxitReaderBox = New-Object system.Windows.Forms.CheckBox
+    $FoxitReaderBox.text = "Foxit Reader"
+    $FoxitReaderBox.width = 95
+    $FoxitReaderBox.height = 20
+    $FoxitReaderBox.autosize = $true
+	$FoxitReaderBox.Font = $Font
+    $FoxitReaderBox.location = New-Object System.Drawing.Point(810,295)
+    $form.Controls.Add($FoxitReaderBox)
+	$FoxitReaderBox.Checked =  $SoftwareSelection.FoxitReader
 
 
 	<#
@@ -992,6 +1015,7 @@ function gui_mode{
 		$VcRedistBox.checked = $True
         $MSSQLManagementStudioENBox.checked = $True
         $MSSQLManagementStudioDEBox.checked = $True
+		$MSVisualStudioCodeBox.checked = $True
 		$MicrosoftOpenJDKBox.checked = $True
 		$OracleJava8Box.checked = $True
 		$OracleJava8_32Box.checked = $True
@@ -1065,6 +1089,7 @@ function gui_mode{
 		$VcRedistBox.checked = $False
         $MSSQLManagementStudioENBox.checked = $False
         $MSSQLManagementStudioENBox.checked = $False
+		$MSVisualStudioCodeBox.checked = $False
 		$MicrosoftOpenJDKBox.checked = $False
 		$OracleJava8Box.checked = $False
 		$OracleJava8_32Box.checked = $False
@@ -1141,6 +1166,7 @@ function gui_mode{
         Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsEN" -Value $MSSQLManagementStudioENBox.checked -Force
         Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsDE" -Value $MSSQLManagementStudioDEBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MicrosoftOpenJDK" -Value $MicrosoftOpenJDKBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSVisualStudioCode" -Value $MSVisualStudioCodeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8" -Value $OracleJava8Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8_32" -Value $OracleJava8_32Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "TreeSizeFree" -Value $TreeSizeFreeBox.checked -Force
@@ -1292,7 +1318,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.18.23"
+	[version]$EvergreenVersion = "2.18.24"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1856,6 +1882,19 @@ IF ($SoftwareSelection.MicrosoftOpenJDK -eq $true)
 		catch {
 			Write-Host -ForegroundColor Red "Installing MS openJDK 21"
 			Write-Host -ForegroundColor Red "Error launching script 'Install MS openJDK 21': $($Error[0])"
+			Write-Output ""
+			}
+	}
+	
+# Install MS Visual Studio Code
+IF ($SoftwareSelection.MSVisualStudioCode -eq $true)
+	{
+		try {
+			& "$SoftwareFolder\Install MS Visual Studio Code.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "Installing MS Visual Studio Code"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS Visual Studio Code': $($Error[0])"
 			Write-Output ""
 			}
 	}
