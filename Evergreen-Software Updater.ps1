@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.24
+Version: 2.12.25
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -91,6 +91,7 @@ Version: 2.12.24
 25/12/08: Fixed MS Visual C++ downloads
 26/01/13: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp LTSR, added RD Analyzer
 26/01/27: Changed XenServer VM Tools to 9.4.2
+26/03/11: Added MS Visual Studio Code and MS .Net Runtime 8.x LTS
 # Notes
 #>
 
@@ -755,15 +756,26 @@ function gui_mode{
 	$MSPowershellBox.Checked = $SoftwareSelection.MSPowershell
 	
 	# MS DotNet Checkbox
-    $MSDotNetBox = New-Object system.Windows.Forms.CheckBox
-    $MSDotNetBox.text = "Microsoft .Net Desktop Runtime 8.x"
-    $MSDotNetBox.width = 95
-    $MSDotNetBox.height = 20
-    $MSDotNetBox.autosize = $true
-	$MSDotNetBox.Font = $Font
-    $MSDotNetBox.location = New-Object System.Drawing.Point(250,320)
-    $form.Controls.Add($MSDotNetBox)
-	$MSDotNetBox.Checked = $SoftwareSelection.MSDotNetDesktopRuntime
+    $MSDotNetRuntimeBox = New-Object system.Windows.Forms.CheckBox
+    $MSDotNetRuntimeBox.text = "Microsoft .Net Runtime 8.x"
+    $MSDotNetRuntimeBox.width = 95
+    $MSDotNetRuntimeBox.height = 20
+    $MSDotNetRuntimeBox.autosize = $true
+	$MSDotNetRuntimeBox.Font = $Font
+    $MSDotNetRuntimeBox.location = New-Object System.Drawing.Point(250,320)
+    $form.Controls.Add($MSDotNetRuntimeBox)
+	$MSDotNetRuntimeBox.Checked = $SoftwareSelection.MSDotNetDesktopRuntime
+	
+	# MS DotNet Runtime Checkbox
+    $MSDotNetDesktopRuntimeBox = New-Object system.Windows.Forms.CheckBox
+    $MSDotNetDesktopRuntimeBox.text = "Microsoft .Net Desktop Runtime 8.x"
+    $MSDotNetDesktopRuntimeBox.width = 95
+    $MSDotNetDesktopRuntimeBox.height = 20
+    $MSDotNetDesktopRuntimeBox.autosize = $true
+	$MSDotNetDesktopRuntimeBox.Font = $Font
+    $MSDotNetDesktopRuntimeBox.location = New-Object System.Drawing.Point(250,345)
+    $form.Controls.Add($MSDotNetDesktopRuntimeBox)
+	$MSDotNetDesktopRuntimeBox.Checked = $SoftwareSelection.MSDotNetRuntime
 	
 	# MS SQL Management Studio EN Checkbox
     $MSSQLManagementStudioENBox = New-Object system.Windows.Forms.CheckBox
@@ -774,7 +786,7 @@ function gui_mode{
     $MSSQLManagementStudioENBox.autosize = $true
 	$MSSQLManagementStudioENBox.Font = $CustomFont
 	# $MSSQLManagementStudioENBox.Font = $Font
-    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(250,345)
+    $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(250,370)
     $form.Controls.Add($MSSQLManagementStudioENBox)
 	$MSSQLManagementStudioENBox.Checked = $SoftwareSelection.MSSsmsEN
 	
@@ -787,7 +799,7 @@ function gui_mode{
     $MSSQLManagementStudioDEBox.autosize = $true
 	$MSSQLManagementStudioDEBox.Font = $CustomFont
 	# $MSSQLManagementStudioDEBox.Font = $Font
-    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,370)
+    $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,395)
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
 	
@@ -798,20 +810,20 @@ function gui_mode{
     $MicrosoftOpenJDKBox.height = 20
     $MicrosoftOpenJDKBox.autosize = $true
 	$MicrosoftOpenJDKBox.Font = $Font
-    $MicrosoftOpenJDKBox.location = New-Object System.Drawing.Point(250,395)
+    $MicrosoftOpenJDKBox.location = New-Object System.Drawing.Point(250,420)
     $form.Controls.Add($MicrosoftOpenJDKBox)
 	$MicrosoftOpenJDKBox.Checked =  $SoftwareSelection.MicrosoftOpenJDK
 	
-	# FoxItReader Checkbox
-    $FoxItReaderBox = New-Object system.Windows.Forms.CheckBox
-    $FoxItReaderBox.text = "FoxIt PDF Reader"
-    $FoxItReaderBox.width = 95
-    $FoxItReaderBox.height = 20
-    $FoxItReaderBox.autosize = $true
-	$FoxitReaderBox.Font = $Font
-    $FoxItReaderBox.location = New-Object System.Drawing.Point(250,420)
-    $form.Controls.Add($FoxItReaderBox)
-	$FoxItReaderBox.Checked =  $SoftwareSelection.FoxItReader
+	# MSVisualStudioCode  Checkbox
+    $MSVisualStudioCodeBox = New-Object system.Windows.Forms.CheckBox
+    $MSVisualStudioCodeBox.text = "Microsoft Visual Studio Code"
+    $MSVisualStudioCodeBox.width = 95
+    $MSVisualStudioCodeBox.height = 20
+    $MSVisualStudioCodeBox.autosize = $true
+	$MSVisualStudioCodeBox.Font = $Font
+    $MSVisualStudioCodeBox.location = New-Object System.Drawing.Point(250,445)
+    $form.Controls.Add($MSVisualStudioCodeBox)
+	$MSVisualStudioCodeBox.Checked =  $SoftwareSelection.MSVisualStudioCode 
 	
 	# pdf24Creator Checkbox
     $pdf24CreatorBox = New-Object system.Windows.Forms.CheckBox
@@ -820,20 +832,9 @@ function gui_mode{
     $pdf24CreatorBox.height = 20
     $pdf24CreatorBox.autosize = $true
 	$pdf24CreatorBox.Font = $Font
-    $pdf24CreatorBox.location = New-Object System.Drawing.Point(250,445)
+    $pdf24CreatorBox.location = New-Object System.Drawing.Point(250,470)
     $form.Controls.Add($pdf24CreatorBox)
 	$pdf24CreatorBox.Checked =  $SoftwareSelection.pdf24Creator
-		
-	# VLCPlayer Checkbox
-    $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
-    $VLCPlayerBox.text = "VLC Player"
-    $VLCPlayerBox.width = 95
-    $VLCPlayerBox.height = 20
-    $VLCPlayerBox.autosize = $true
-	$VLCPlayerBox.Font = $Font
-    $VLCPlayerBox.location = New-Object System.Drawing.Point(250,470)
-    $form.Controls.Add($VLCPlayerBox)
-	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
 	
 	# Firefox Checkbox
     $FirefoxBox = New-Object system.Windows.Forms.CheckBox
@@ -853,7 +854,7 @@ function gui_mode{
     $FirefoxBoxDE.height = 20
     $FirefoxBoxDE.autosize = $true
 	$FirefoxBoxDE.Font = $Font
-    $FirefoxBoxDE.location = New-Object System.Drawing.Point(365,495)
+    $FirefoxBoxDE.location = New-Object System.Drawing.Point(375,495)
     $form.Controls.Add($FirefoxBoxDE)
 	$FirefoxBoxDE.Checked =  $SoftwareSelection.FirefoxDE
 	
@@ -864,7 +865,7 @@ function gui_mode{
     $FirefoxBoxEN.height = 20
     $FirefoxBoxEN.autosize = $true
 	$FirefoxBoxEN.Font = $Font
-    $FirefoxBoxEN.location = New-Object System.Drawing.Point(410,495)
+    $FirefoxBoxEN.location = New-Object System.Drawing.Point(425,495)
     $form.Controls.Add($FirefoxBoxEN)
 	$FirefoxBoxEN.Checked =  $SoftwareSelection.FirefoxEN
 	
@@ -1040,6 +1041,28 @@ function gui_mode{
     $form.Controls.Add($RDAnalyzerBox)
 	$RDAnalyzerBox.Checked =  $SoftwareSelection.RDAnalyzer
 	
+	# FoxItReader Checkbox
+    $FoxItReaderBox = New-Object system.Windows.Forms.CheckBox
+    $FoxItReaderBox.text = "FoxIt PDF Reader"
+    $FoxItReaderBox.width = 95
+    $FoxItReaderBox.height = 20
+    $FoxItReaderBox.autosize = $true
+	$FoxitReaderBox.Font = $Font
+    $FoxItReaderBox.location = New-Object System.Drawing.Point(660,395)
+    $form.Controls.Add($FoxItReaderBox)
+	$FoxItReaderBox.Checked =  $SoftwareSelection.FoxItReader
+	
+	# VLCPlayer Checkbox
+    $VLCPlayerBox = New-Object system.Windows.Forms.CheckBox
+    $VLCPlayerBox.text = "VLC Player"
+    $VLCPlayerBox.width = 95
+    $VLCPlayerBox.height = 20
+    $VLCPlayerBox.autosize = $true
+	$VLCPlayerBox.Font = $Font
+    $VLCPlayerBox.location = New-Object System.Drawing.Point(660,420)
+    $form.Controls.Add($VLCPlayerBox)
+	$VLCPlayerBox.Checked =  $SoftwareSelection.VLCPlayer
+	
 	
 	<#
 	# Zoom VMWare client Checkbox
@@ -1092,7 +1115,8 @@ function gui_mode{
 		$MSOneDriveBox.checked = $True
 		$NEWMSTeamsBox.checked = $True
 		$MSPowershellBox.checked = $True
-		$MSDotNetBox.checked = $True
+		$MSDotNetDesktopRuntimeBox.checked = $True
+		$MSDotNetRuntimeBox.checked = $True
 		$MSSQLManagementStudioDEBox.checked = $True
 		$MSSQLManagementStudioENBox.checked = $True
 		$VcRedistBox.checked = $True
@@ -1100,6 +1124,7 @@ function gui_mode{
 		$MSWVDDesktopAgentBox.checked = $True
 		$MSWVDRTCServiceBox.checked = $True
 		$MSWVDBootLoaderBox.checked = $True
+		$MSVisualStudioCodeBox.checked = $True
 		$TreeSizeFreeBox.checked = $True
 		$ControlUpConsoleBox.checked = $True
 		$ControlUpConsoleBox.checked = $True
@@ -1163,7 +1188,8 @@ function gui_mode{
 		$MSOneDriveBox.checked = $False
 		$NEWMSTeamsBox.checked = $False
 		$MSPowershellBox.checked = $False
-		$MSDotNetBox.checked = $False
+		$MSDotNetDesktopRuntimeBox.checked = $False
+		$MSDotNetRuntimeBox.checked = $False
 		$MSSQLManagementStudioDEBox.checked = $False
 		$MSSQLManagementStudioENBox.checked = $False
 		$VcRedistBox.checked = $False
@@ -1171,6 +1197,7 @@ function gui_mode{
 		$MSWVDDesktopAgentBox.checked = $False
 		$MSWVDRTCServiceBox.checked = $False
 		$MSWVDBootLoaderBox.checked = $False
+		$MSVisualStudioCodeBox.checked = $False
 		$TreeSizeFreeBox.checked = $False
 		$ControlUpConsoleBox.checked = $False
 		$ControlUpConsoleBox.checked = $False
@@ -1231,7 +1258,8 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOneDrive" -Value $MSOneDriveBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "NEWMSTeams" -Value $NEWMSTeamsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSPowershell" -Value $MSPowershellBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSDotNetDesktopRuntime" -Value $MSDotNetBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSDotNetDesktopRuntime" -Value $MSDotNetDesktopRuntimeBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSDotNetRuntime" -Value $MSDotNetRuntimeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsEN" -Value $MSSQLManagementStudioENBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsDE" -Value $MSSQLManagementStudioDEBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VcRedist" -Value $VcRedistBox.checked -Force		
@@ -1240,6 +1268,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDRTCService" -Value $MSWVDRTCServiceBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDBootLoader" -Value $MSWVDBootLoaderBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MicrosoftOpenJDK" -Value $MicrosoftOpenJDKBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSVisualStudioCode" -Value $MSVisualStudioCodeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Greenshot" -Value $GreenshotBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8" -Value $OracleJava8Box.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "OracleJava8_32" -Value $OracleJava8_32Box.checked -Force
@@ -1393,7 +1422,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.24"
+	[version]$EvergreenVersion = "2.12.25"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1580,6 +1609,7 @@ $scriptContent = Get-Content -Path "$PSScriptRoot\Evergreen-Software Updater.ps1
 $notesIndex = $scriptContent.IndexOf("# Notes")
 # Find index of the line with "# Notes"
 $lastLineBeforeNotes = $scriptContent[$notesIndex - 1]
+Write-Output ""
 Write-Host -Foregroundcolor Cyan "Last changes: $lastLineBeforeNotes"
 Write-Output ""
 
@@ -2498,11 +2528,11 @@ IF ($SoftwareSelection.FSLogix -eq $true) {
 	$Product = "FSLogix"
 	$PackageName = "FSLogixAppsSetup"
 	Try {
-	$FSLogix = Get-EvergreenApp -Name MicrosoftFSLogixApps | Where-Object {$_.Channel -eq "Production"} -ErrorAction Stop
+	$FSLogix = Get-EvergreenApp -Name MicrosoftFSLogixApps -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	[version]$Version = '3.25.822.19044'
+	[version]$Version = '3.26.126.19110' 
 	$URL = $FSLogix.uri
 	$InstallerType = "zip"
 	$Source = "$PackageName" + "." + "$InstallerType"
@@ -3035,7 +3065,7 @@ IF ($SoftwareSelection.MSPowershell -eq $true) {
 }
 
 
-# Download MS .Net Framework
+# Download MS .Net Desktop Runtime
 IF ($SoftwareSelection.MSDotNetDesktopRuntime -eq $true) {
 	$Product = "MS DotNet Desktop Runtime"
 	$PackageName = "windowsdesktop-runtime-win-x86-runtime"
@@ -3046,6 +3076,59 @@ IF ($SoftwareSelection.MSDotNetDesktopRuntime -eq $true) {
 		}
 	$Version = $MSDotNetDesktopRuntime.Version
 	$URL = $MSDotNetDesktopRuntime.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF (!($CurrentVersion -eq $Version)) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
+
+
+# Download MS .Net Runtime
+IF ($SoftwareSelection.MSDotNetRuntime -eq $true) {
+	$Product = "MS DotNet Runtime"
+	$PackageName = "dotnet-runtime-win-x64-runtime"
+	Try {
+	$MSDotNetRuntime = Get-EvergreenApp -Name Microsoft.NET | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "8.0" -and $_.Installer -eq "runtime"} -ErrorAction Stop
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $MSDotNetRuntime.Version
+	$URL = $MSDotNetRuntime.uri
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -4979,6 +5062,58 @@ IF ($SoftwareSelection.RDAnalyzer -eq $true) {
 		}
 	$Version = $RDAnalyzer.Version
 	$URL = $RDAnalyzer.uri
+	$InstallerType = "exe"
+	$Source = "$PackageName" + "." + "$InstallerType"
+	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
+	Write-Host -ForegroundColor Yellow "Download $Product"
+	Write-Host "Download Version: $Version"
+	Write-Host "Current Version: $CurrentVersion"
+	IF ($Version) {
+		IF ($Version -gt $CurrentVersion) {
+		Write-Host -ForegroundColor Green "Update available"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
+		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
+		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
+		Start-Transcript $LogPS | Out-Null
+		New-Item -Path "$SoftwareFolder\$Product" -Name "Download date $Date.txt" | Out-Null
+		Set-Content -Path "$SoftwareFolder\$Product\Version.txt" -Value "$Version"
+		Write-Host -ForegroundColor Yellow "Starting Download of $Product $Version"
+		Try {
+			Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+		} catch {
+			throw $_.Exception.Message
+		}
+		Write-Host "Stop logging"
+		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
+        Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
+        Remove-Item "$SoftwareFolder\$Product\*" -Exclude *.log -Recurse
+        }
+		Stop-Transcript | Out-Null
+		Write-Output ""
+		}
+		ELSE {
+		Write-Host -ForegroundColor Yellow "No new version available"
+		Write-Output ""	
+		}
+	}
+	ELSE {
+		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
+		Write-Output ""
+	}
+}
+
+
+# Download MSVisualStudioCode 
+IF ($SoftwareSelection.MSVisualStudioCode -eq $true) {
+	$Product = "MS Visual Studio Code"
+	$PackageName = "VSCodeUserSetup-x64"
+	Try {
+	$MSVisualStudioCode  = Get-EvergreenApp -Name MicrosoftVisualStudioCode | Where-Object {$_.Channel -eq 'Stable' -and $_.Platform -eq 'win32-x64'}
+	} catch {
+		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
+		}
+	$Version = $MSVisualStudioCode.Version
+	$URL = $MSVisualStudioCode.uri
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
