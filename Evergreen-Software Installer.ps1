@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.24
+Version: 2.18.25
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -100,7 +100,7 @@ Version: 2.18.24
 25/10/09: Added switch SoftwareToRemoteInstall to install Evergreen apps from remote system (seperate scripts)
 26/01/26: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp LTSR, changed command line options for Citrix WorkspaceApp
 26/02/16: Corrected VMWare Tools version
-26/03/11: Added MS Visual Studio Code
+26/03/11: Added MS Visual Studio Code and MS .Net Runtime 8.x
 
 # Notes
 #>
@@ -564,16 +564,16 @@ function gui_mode{
     $form.Controls.Add($MSOneDriveBox)
 	$MSOneDriveBox.Checked =  $SoftwareSelection.MSOneDrive
 
-    # MSTeams Checkbox
-    $MSTeamsBox = New-Object system.Windows.Forms.CheckBox
-    $MSTeamsBox.text = "Microsoft Teams (Machine-Based VDI Installer)"
-    $MSTeamsBox.width = 95
-    $MSTeamsBox.height = 20
-    $MSTeamsBox.autosize = $true
-	$MSTeamsBox.Font = $Font
-    $MSTeamsBox.location = New-Object System.Drawing.Point(420,95)
-    $form.Controls.Add($MSTeamsBox)
-	$MSTeamsBox.Checked =  $SoftwareSelection.MSTeams
+    # MSDotNetRuntimeBox Checkbox
+    $MSDotNetRuntimeBox = New-Object system.Windows.Forms.CheckBox
+    $MSDotNetRuntimeBox.text = "Microsoft .Net Runtime 8.x"
+    $MSDotNetRuntimeBox.width = 95
+    $MSDotNetRuntimeBox.height = 20
+    $MSDotNetRuntimeBox.autosize = $true
+	$MSDotNetRuntimeBox.Font = $Font
+    $MSDotNetRuntimeBox.location = New-Object System.Drawing.Point(420,95)
+    $form.Controls.Add($MSDotNetRuntimeBox)
+	$MSDotNetRuntimeBox.Checked =  $SoftwareSelection.MSDotNetRuntime
 	
 	# MSTeams 2 Checkbox
     $NEWMSTeamsBox = New-Object system.Windows.Forms.CheckBox
@@ -1005,7 +1005,7 @@ function gui_mode{
 		$KeePassXCBox.checked = $True
 		$MSEdgeBox.checked = $True
 		$MSOneDriveBox.checked = $True
-		$MSTeamsBox.checked = $True
+		$MSDotNetRuntimeBox.checked = $True
 		$NEWMSTeamsBox.checked = $True
 		$MS365AppsBox_SAC.checked = $True
 		$MS365AppsBox_MEC.checked = $True
@@ -1079,7 +1079,7 @@ function gui_mode{
 		$KeePassXCBox.checked = $False
 		$MSEdgeBox.checked = $False
 		$MSOneDriveBox.checked = $False
-		$MSTeamsBox.checked = $False
+		$MSDotNetRuntimeBox.checked = $False
 		$NEWMSTeamsBox.checked = $False
 		$MS365AppsBox_SAC.checked = $False
 		$MS365AppsBox_MEC.checked = $False
@@ -1155,7 +1155,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePassXC" -Value $KeePassXCBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSEdge" -Value $MSEdgeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSOneDrive" -Value $MSOneDriveBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSTeams" -Value $MSTeamsBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSDotNetRuntime" -Value $MSDotNetRuntimeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSTeams2" -Value $NEWMSTeamsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_SAC" -Value $MS365AppsBox_SAC.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MS365Apps_MEC" -Value $MS365AppsBox_MEC.checked -Force
@@ -1318,7 +1318,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.18.24"
+	[version]$EvergreenVersion = "2.18.25"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1895,6 +1895,19 @@ IF ($SoftwareSelection.MSVisualStudioCode -eq $true)
 		catch {
 			Write-Host -ForegroundColor Red "Installing MS Visual Studio Code"
 			Write-Host -ForegroundColor Red "Error launching script 'Install MS Visual Studio Code': $($Error[0])"
+			Write-Output ""
+			}
+	}
+	
+# Install MS .Net Runtime
+IF ($SoftwareSelection.MSDotNetRuntime -eq $true)
+	{
+		try {
+			& "$SoftwareFolder\Install MS DotNet Runtime.ps1"
+			}
+		catch {
+			Write-Host -ForegroundColor Red "MS .Net Runtime 8.x"
+			Write-Host -ForegroundColor Red "Error launching script 'Install MS .Net Runtime 8.x': $($Error[0])"
 			Write-Output ""
 			}
 	}
