@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.25
+Version: 2.12.26
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -92,6 +92,7 @@ Version: 2.12.25
 26/01/13: Added MS .NET 8.0 Desktop Runtime (v8.0.18) for Citrix WorkspaceApp LTSR, added RD Analyzer
 26/01/27: Changed XenServer VM Tools to 9.4.2
 26/03/11: Added MS Visual Studio Code and MS .Net Runtime 8.x LTS
+26/03/16: Added MS SQL Management Studio 22 (Visual Studio Installer)
 # Notes
 #>
 
@@ -780,12 +781,12 @@ function gui_mode{
 	# MS SQL Management Studio EN Checkbox
     $MSSQLManagementStudioENBox = New-Object system.Windows.Forms.CheckBox
     $MSSQLManagementStudioENBox.text = "Microsoft SQL Management Studio EN"
-	$CustomFont = [System.Drawing.Font]::new("Arial",10, [System.Drawing.FontStyle]::Strikeout)
+	#$CustomFont = [System.Drawing.Font]::new("Arial",10, [System.Drawing.FontStyle]::Strikeout)
     $MSSQLManagementStudioENBox.width = 95
     $MSSQLManagementStudioENBox.height = 20
     $MSSQLManagementStudioENBox.autosize = $true
-	$MSSQLManagementStudioENBox.Font = $CustomFont
-	# $MSSQLManagementStudioENBox.Font = $Font
+	#$MSSQLManagementStudioENBox.Font = $CustomFont
+	$MSSQLManagementStudioENBox.Font = $Font
     $MSSQLManagementStudioENBox.location = New-Object System.Drawing.Point(250,370)
     $form.Controls.Add($MSSQLManagementStudioENBox)
 	$MSSQLManagementStudioENBox.Checked = $SoftwareSelection.MSSsmsEN
@@ -793,12 +794,12 @@ function gui_mode{
 	# MS SQL Management Studio DE Checkbox
     $MSSQLManagementStudioDEBox = New-Object system.Windows.Forms.CheckBox
     $MSSQLManagementStudioDEBox.text = "Microsoft SQL Management Studio DE"
-	$CustomFont = [System.Drawing.Font]::new("Arial",10, [System.Drawing.FontStyle]::Strikeout)
+	#$CustomFont = [System.Drawing.Font]::new("Arial",10, [System.Drawing.FontStyle]::Strikeout)
     $MSSQLManagementStudioDEBox.width = 95
     $MSSQLManagementStudioDEBox.height = 20
     $MSSQLManagementStudioDEBox.autosize = $true
-	$MSSQLManagementStudioDEBox.Font = $CustomFont
-	# $MSSQLManagementStudioDEBox.Font = $Font
+	#$MSSQLManagementStudioDEBox.Font = $CustomFont
+	$MSSQLManagementStudioDEBox.Font = $Font
     $MSSQLManagementStudioDEBox.location = New-Object System.Drawing.Point(250,395)
     $form.Controls.Add($MSSQLManagementStudioDEBox)
 	$MSSQLManagementStudioDEBox.Checked = $SoftwareSelection.MSSsmsDE
@@ -1422,7 +1423,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.25"
+	[version]$EvergreenVersion = "2.12.26"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1479,7 +1480,7 @@ Clear-Host
 
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " Software-Updater (Powered by Evergreen-Module) "
-Write-Host -ForegroundColor Gray -BackgroundColor DarkRed "    © D. Mohrmann - Cancom GmbH - BU S&L        "
+Write-Host -ForegroundColor Gray -BackgroundColor DarkRed "    © D. Mohrmann - Cancom GmbH - BU Mitte      "
 Write-Host -ForegroundColor Gray -BackgroundColor DarkRed " ---------------------------------------------- "
 Write-Output ""
 
@@ -3175,17 +3176,16 @@ IF ($SoftwareSelection.MSDotNetRuntime -eq $true) {
 IF ($SoftwareSelection.MSSsmsEN -eq $true) {
 	$Product = "MS SQL Management Studio EN"
 	Write-Host -ForegroundColor Yellow "Download $Product"
-	Write-Host -ForegroundColor Red "Download for $Product currently not available, working on a solution for version 21.x"
-	Write-Output ""
-	<#
-	$PackageName = "SSMS-Setup-ENU"
+	# Write-Host -ForegroundColor Red "Download for $Product currently not available, working on a solution for version 21.x"
+	# Write-Output ""
+	$PackageName = "vs_SSMS"
 	Try {
-	$MSSQLManagementStudioEN = Get-NevergreenApp -Name MicrosoftSsms -ErrorAction Stop
+	$MSSQLManagementStudioEN = Get-EvergreenApp -Name MicrosoftSsms -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
 	$Version = $MSSQLManagementStudioEN.Version
-	$URL = 'https://aka.ms/ssmsfullsetup?clcid=0x409'
+	$URL = $MSSQLManagementStudioEN.URI
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -3208,6 +3208,13 @@ IF ($SoftwareSelection.MSSsmsEN -eq $true) {
 		} catch {
 			throw $_.Exception.Message
 		}
+		Start-sleep -s 5
+		Write-Host -ForegroundColor Yellow "`nCreating layout for offline installation, please wait..."
+		Try {
+			Start-Process -FilePath "$SoftwareFolder\$Product\vs_SSMS.exe" -ArgumentList "--layout `"$SoftwareFolder\$Product\SSMS_Layout`" --lang en-us --quiet --wait" -Wait -WindowStyle Hidden -Verb RunAs
+		} catch {
+			throw $_.Exception.Message
+		}
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
@@ -3225,7 +3232,6 @@ IF ($SoftwareSelection.MSSsmsEN -eq $true) {
 		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
 		Write-Output ""
 	}
-	#>
 }
 
 
@@ -3233,17 +3239,16 @@ IF ($SoftwareSelection.MSSsmsEN -eq $true) {
 IF ($SoftwareSelection.MSSsmsDE -eq $true) {
 	$Product = "MS SQL Management Studio DE"
 	Write-Host -ForegroundColor Yellow "Download $Product"
-	Write-Host -ForegroundColor Red "Download for $Product currently not available, working on a solution for version 21.x"
-	Write-Output ""
-	<#
-	$PackageName = "SSMS-Setup-DEU"
+	# Write-Host -ForegroundColor Red "Download for $Product currently not available, working on a solution for version 21.x"
+	# Write-Output ""
+	$PackageName = "vs_SSMS"
 	Try {
-	$MSSQLManagementStudioDE = Get-NevergreenApp -Name MicrosoftSsms -ErrorAction Stop
+	$MSSQLManagementStudioDE = Get-EvergreenApp -Name MicrosoftSsms -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
 	$Version = $MSSQLManagementStudioDE.Version
-	$URL = 'https://aka.ms/ssmsfullsetup?clcid=0x407'
+	$URL = $MSSQLManagementStudioDE.URI
 	$InstallerType = "exe"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\$Product\Version.txt" -EA SilentlyContinue
@@ -3266,6 +3271,13 @@ IF ($SoftwareSelection.MSSsmsDE -eq $true) {
 		} catch {
 			throw $_.Exception.Message
 		}
+		Start-sleep -s 5
+		Write-Host -ForegroundColor Yellow "Creating layout for offline installation, please wait..."
+		Try {
+			Start-Process -FilePath "$SoftwareFolder\$Product\vs_SSMS.exe" -ArgumentList "--layout `"$SoftwareFolder\$Product\SSMS_Layout`" --lang en-us --quiet --wait" -Wait -WindowStyle Hidden -Verb RunAs
+		} catch {
+			throw $_.Exception.Message
+		}
 		Write-Host "Stop logging"
 		IF (!(Test-Path -Path "$SoftwareFolder\$Product\$Source")) {
         Write-Host -ForegroundColor Red "Error downloading '$Source', try again later or check log file"
@@ -3283,7 +3295,6 @@ IF ($SoftwareSelection.MSSsmsDE -eq $true) {
 		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
 		Write-Output ""
 	}
-	#>
 }
 
 # Download MS Sysinternals Suite

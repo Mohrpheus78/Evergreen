@@ -50,18 +50,14 @@ DS_WriteLog "-" "" $LogFile
 # Check, if a new version is available
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
-	$MSSsmsEN = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft SQL Server Management Studio*"}).DisplayName
-	$MSSsmsEN = $MSSsmsEN -replace '[a-zA-Z]','' -replace '\s','' -replace '-',''
-	IF ([string]::ISNullOrEmpty( $MSSsmsEN) -eq $False) {
-		[version]$MSSsmsEN = [string]$MSSsmsEN
-	}
+	[version]$MSSsmsEN = (Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "SQL Server Management Studio 22"}).DisplayVersion
 	
 	IF ($MSSsmsEN -lt $Version) {
-	# Installation MSSsmsEN++
-	Write-Host -ForegroundColor Yellow "Installing $Product"
+	# Installation MSSsmsEN
+	Write-Host -ForegroundColor Yellow "Installing $Product, this might take a while, please wait..."
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try	{
-		Start-Process "$PSScriptRoot\$Product\SSMS-Setup-ENU.exe" –ArgumentList '/install /passive /quiet /norestart' –NoNewWindow -Wait
+		Start-Process -FilePath "$PSScriptRoot\$Product\SSMS_Layout\vs_SSMS.exe" -ArgumentList "--noWeb --add Microsoft.SqlServer.Workload.SSMS --quiet --norestart --wait" -Wait -WindowStyle Hidden -Verb RunAs
 		DS_WriteLog "-" "" $LogFile
 		Write-Host -ForegroundColor Green " ...ready!" 
 		Write-Output ""
