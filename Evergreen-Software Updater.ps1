@@ -3272,7 +3272,7 @@ IF ($SoftwareSelection.MSSsmsDE -eq $true) {
 			throw $_.Exception.Message
 		}
 		Start-sleep -s 5
-		Write-Host -ForegroundColor Yellow "Creating layout for offline installation, please wait..."
+		Write-Host -ForegroundColor Yellow "`nCreating layout for offline installation, please wait..."
 		Try {
 			Start-Process -FilePath "$SoftwareFolder\$Product\vs_SSMS.exe" -ArgumentList "--layout `"$SoftwareFolder\$Product\SSMS_Layout`" --lang en-us --quiet --wait" -Wait -WindowStyle Hidden -Verb RunAs
 		} catch {
