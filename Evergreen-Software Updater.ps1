@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.26
+Version: 2.12.28
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -1424,7 +1424,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.27"
+	[version]$EvergreenVersion = "2.12.28"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1653,9 +1653,9 @@ IF ($SoftwareSelection.RemoteDesktopManager -eq $true) {
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $VersionRDM"
 	Write-Host "Current Version: $CurrentVersion"
-	IF (!(Test-Path "$SoftwareFolder\$Product\windowsdesktop-runtime-9.0.4-win-x64.exe")) {
+	IF (!(Test-Path "$SoftwareFolder\$Product\windowsdesktop-runtime-10.0.5-win-x64.exe")) {
 		Try {
-		Invoke-WebRequest -Uri "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/9.0.4/windowsdesktop-runtime-9.0.4-win-x64.exe" -OutFile "$SoftwareFolder\$Product\windowsdesktop-runtime-9.0.4-win-x64.exe"
+		Invoke-WebRequest -Uri "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.5/windowsdesktop-runtime-10.0.5-win-x64.exe" -OutFile "$SoftwareFolder\$Product\windowsdesktop-runtime-10.0.5-win-x64.exe"
 		} catch {
 		throw $_.Exception.Message
 		}

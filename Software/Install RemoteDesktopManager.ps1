@@ -91,11 +91,11 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	[version]$RemoteDesktopManager = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Remote Desktop Manager*"}).DisplayVersion | Select-Object -First 1
 	IF ($RemoteDesktopManager -lt $Version) {
 		
-	Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime 9.0.4 (Prerequisite for Remotedesktopmanager)"
-	DS_WriteLog "I" "Installing MS DotNet Desktop Runtime 8.0.4 (Prerequisite for Remotedesktopmanager)" $LogFile
+	Write-Host -ForegroundColor Yellow "Installing MS DotNet Desktop Runtime 10.0.5 (Prerequisite for Remotedesktopmanager)"
+	DS_WriteLog "I" "Installing MS DotNet Desktop Runtime 10.0.5 (Prerequisite for Remotedesktopmanager)" $LogFile
 	IF (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -eq "Microsoft Windows Desktop Runtime - 9.0.4 (x64)"})) {
 		try {
-			Start-Process -FilePath "$PSScriptRoot\$Product\windowsdesktop-runtime-9.0.4-win-x64.exe" -ArgumentList "/quiet /noreboot" –NoNewWindow -wait
+			Start-Process -FilePath "$PSScriptRoot\$Product\windowsdesktop-runtime-10.0.5-win-x64.exe" -ArgumentList "/quiet /noreboot" –NoNewWindow -wait
 			DS_WriteLog "-" "" $LogFile
 			Write-Host -ForegroundColor Green " ... ready!"
 			Write-Output ""
