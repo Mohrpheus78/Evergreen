@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.28
+Version: 2.12.29
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -94,6 +94,7 @@ Version: 2.12.28
 26/03/11: Added MS Visual Studio Code and MS .Net Runtime 8.x LTS
 26/03/16: Added MS SQL Management Studio 22 (Visual Studio Installer)
 26/03/25: Added .NET Desktop Runtime 8.25 for Citrix WorkspaceApp
+26/04/15: Changed Adobe Reader DC Evergreen syntax
 # Notes
 #>
 
@@ -1424,7 +1425,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.28"
+	[version]$EvergreenVersion = "2.12.29"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2424,7 +2425,7 @@ IF ($SoftwareSelection.AdobeReaderDC_MUI -eq $true) {
 	$Product = "Adobe Reader DC MUI"
 	$PackageName = "Adobe_DC_MUI_Update"
 	Try {
-	$Adobe = Get-EvergreenApp -Name AdobeAcrobatDC | Where-Object {$_.Architecture -eq "x86" -and $_.Type -eq "ReaderMUI"} -ErrorAction Stop
+	$Adobe = Get-EvergreenApp -Name AdobeAcrobatDC | Where-Object {$_.Architecture -eq "x86" -and $_.Product -eq "ReaderMUI"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product"
 		}
@@ -2477,7 +2478,7 @@ IF ($SoftwareSelection.AdobeReaderDCx64_MUI -eq $true) {
 	$Product = "Adobe Reader DC x64 MUI"
 	$PackageName = "Adobe_DC_MUI_x64_Update"
 	Try {
-		$Adobe = Get-EvergreenApp -Name AdobeAcrobatDC | Where-Object {$_.Architecture -eq "x64" -and $_.Type -eq "ReaderMUI"} -ErrorAction Stop
+		$Adobe = Get-EvergreenApp -Name AdobeAcrobatDC | Where-Object {$_.Architecture -eq "x64" -and $_.Product -eq "ReaderMUI"} -ErrorAction Stop
 		} catch {
 			Write-Warning "Failed to find update of $Product"
 			}
