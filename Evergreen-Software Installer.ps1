@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.28 
+Version: 2.18.29
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -103,6 +103,7 @@ Version: 2.18.28
 26/03/11: Added MS Visual Studio Code and MS .Net Runtime 8.x
 26/03/16: Added MS SQL Management Studio 22 (Visual Studio Installer)
 26/03/25: Changed Citrix WorkspaceApp to not install Zoom VDI plugin, changed .NET Desktop Runtime to 8.25, added .NET Desktop Runtime 10.0.5 for Remote Desktop Manager
+26/04/29: Changed Citrix Hypervisor Tools to Citrix VM Tools
 # Notes
 #>
 
@@ -367,16 +368,16 @@ function gui_mode{
     $form.Controls.Add($VMWareToolsBox)
 	$VMWareToolsBox.Checked =  $SoftwareSelection.VMWareTools
 	
-	# Citrix Hypervisor Tools Checkbox
-    $Citrix_HypervisorToolsBox = New-Object system.Windows.Forms.CheckBox
-    $Citrix_HypervisorToolsBox.text = "Citrix Hypervisor Tools (Auto Update disabled)"
-    $Citrix_HypervisorToolsBox.width = 95
-    $Citrix_HypervisorToolsBox.height = 20
-    $Citrix_HypervisorToolsBox.autosize = $true
-	$Citrix_HypervisorToolsBox.Font = $Font
-    $Citrix_HypervisorToolsBox.location = New-Object System.Drawing.Point(11,220)
-    $form.Controls.Add($Citrix_HypervisorToolsBox)
-	$Citrix_HypervisorToolsBox.Checked = $SoftwareSelection.CitrixHypervisorTools
+	# Citrix VM Tools Checkbox
+    $CitrixVMToolsBox = New-Object system.Windows.Forms.CheckBox
+    $CitrixVMToolsBox.text = "Citrix VM Tools (Auto Update disabled)"
+    $CitrixVMToolsBox.width = 95
+    $CitrixVMToolsBox.height = 20
+    $CitrixVMToolsBox.autosize = $true
+	$CitrixVMToolsBox.Font = $Font
+    $CitrixVMToolsBox.location = New-Object System.Drawing.Point(11,220)
+    $form.Controls.Add($CitrixVMToolsBox)
+	$CitrixVMToolsBox.Checked = $SoftwareSelection.CitrixVMTools
 
     # Citrix WorkspaceApp_Current_Release Checkbox
     $WorkspaceApp_CRBox = New-Object system.Windows.Forms.CheckBox
@@ -1001,7 +1002,7 @@ function gui_mode{
 		$WorkspaceApp_LTSRBox.checked = $True
 		$WorkspaceApp_CR_WebBox.checked = $True
 		$WorkspaceApp_LTSR_WebBox.checked = $True
-		$Citrix_HypervisorToolsBox.checked = $False
+		$CitrixVMToolsBox.checked = $False
 		$KeePassBox.checked = $True
 		$KeePassXCBox.checked = $True
 		$MSEdgeBox.checked = $True
@@ -1075,7 +1076,7 @@ function gui_mode{
 		$WorkspaceApp_LTSRBox.checked = $False
 		$WorkspaceApp_CR_WebBox.checked = $False
 		$WorkspaceApp_LTSR_WebBox.checked = $False
-		$Citrix_HypervisorToolsBox.checked = $False
+		$CitrixVMToolsBox.checked = $False
 		$KeePassBox.checked = $False
 		$KeePassXCBox.checked = $False
 		$MSEdgeBox.checked = $False
@@ -1151,7 +1152,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_LTSR" -Value $WorkspaceApp_LTSRBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_CR_Web" -Value $WorkspaceApp_CR_WebBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WorkspaceApp_LTSR_Web" -Value $WorkspaceApp_LTSR_WebBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixHypervisorTools" -Value $Citrix_HypervisorToolsBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CitrixVMTools" -Value $CitrixVMToolsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePass" -Value $KeePassBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "KeePassXC" -Value $KeePassXCBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSEdge" -Value $MSEdgeBox.checked -Force
@@ -1319,7 +1320,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.18.28"
+	[version]$EvergreenVersion = "2.18.29"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -1653,15 +1654,15 @@ IF ($SoftwareSelection.WorkspaceApp_LTSR_Web -eq $true)
 			}
 	}
 	
-# Install Citrix Hypervisor Tools
-IF ($SoftwareSelection.CitrixHypervisorTools -eq $true)
+# Install Citrix VM Tools
+IF ($SoftwareSelection.CitrixVMTools -eq $true)
 	{
 		try {
-			& "$SoftwareFolder\Install Citrix Hypervisor Tools.ps1"
+			& "$SoftwareFolder\Install Citrix VM Tools.ps1"
 			}
 		catch {
-			Write-Host -ForegroundColor Red "Installing Citrix Hypervisor Tools"
-			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix Hypervisor Tools': $($Error[0])"
+			Write-Host -ForegroundColor Red "Installing Citrix VM Tools"
+			Write-Host -ForegroundColor Red "Error launching script 'Install Citrix VM Tools': $($Error[0])"
 			Write-Output ""
 			}
 	}

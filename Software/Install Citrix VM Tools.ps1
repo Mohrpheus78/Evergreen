@@ -24,12 +24,12 @@ $global:ErrorActionPreference = "Stop"
 if($verbose){ $global:VerbosePreference = "Continue" }
 
 # Variables
-$Product = "Citrix Hypervisor Tools"
+$Product = "Citrix VM Tools"
 
 #========================================================================================================================================
 # Logging
 $BaseLogDir = $ENV:Temp       				# [edit] add the location of your log directory here, local folder because network gets interrupted 
-$PackageName = "Citrix Hypervisor Tools" 	 # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
+$PackageName = "Citrix VM Tools" 	 # [edit] enter the display name of the software (e.g. 'Arcobat Reader' or 'Microsoft Office')
 
 # Global variables
 # $StartDir = $PSScriptRoot # the directory path of the script currently being executed
@@ -95,15 +95,15 @@ else {
 IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 	$Version = Get-Content -Path "$PSScriptRoot\$Product\Version.txt"
 	Write-Host $Version
-	$CitrixTools = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Hypervisor*"}).DisplayVersion
-	IF ($CitrixTools) {$CitrixTools = $CitrixTools.Insert(4,'0.')}
+	$CitrixTools = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Citrix Hypervisor*" -or $_.DisplayName -like "XenServer VM Tools"}).DisplayVersion
+	# IF ($CitrixTools) {$CitrixTools = $CitrixTools.Insert(4,'0.')}
 	IF ($CitrixTools -ne $Version) {
 
-	# Citrix Hypervisor Tools Installation
+	# Citrix VM Tools Installation
 	Write-Host -ForegroundColor Yellow "Installing $Product"
 	DS_WriteLog "I" "Installing $Product" $LogFile
 	try {
-		"$PSScriptRoot\$Product\managementagentx64.msi" | Install-MSIFile
+		"$PSScriptRoot\Citrix\$Product\managementagentx64.msi" | Install-MSIFile
 		DS_WriteLog "-" "" $LogFile
 		Write-Host -ForegroundColor Green "...ready"
 		Write-Output ""
