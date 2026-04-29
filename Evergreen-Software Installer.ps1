@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.29
+Version: 2.18.30
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -103,7 +103,7 @@ Version: 2.18.29
 26/03/11: Added MS Visual Studio Code and MS .Net Runtime 8.x
 26/03/16: Added MS SQL Management Studio 22 (Visual Studio Installer)
 26/03/25: Changed Citrix WorkspaceApp to not install Zoom VDI plugin, changed .NET Desktop Runtime to 8.25, added .NET Desktop Runtime 10.0.5 for Remote Desktop Manager
-26/04/29: Changed Citrix Hypervisor Tools to Citrix VM Tools
+26/04/29: Changed Citrix Hypervisor Tools to Citrix VM Tools, changed scheduled task to register Teams for users at logon
 # Notes
 #>
 
@@ -1320,7 +1320,7 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.18.29"
+	[version]$EvergreenVersion = "2.18.30"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
