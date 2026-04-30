@@ -211,7 +211,7 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 			Write-Error "Error registering MS Teams AppPackage: $_"
 		}
 
-		 # Create scheduled task for registering MS Teams AppXPackage
+		# Create scheduled task for registering MS Teams AppXPackage
 		Write-Host -ForegroundColor Yellow "Create scheduled task for registering MS Teams AppXPackage"
 		$PowershellCommand = '& {Add-AppxPackage -MainPackage "MSTeams_8wekyb3d8bbwe" -RegisterByFamilyName}'
 		$Options = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command `"$PowershellCommand`""
