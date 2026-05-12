@@ -217,7 +217,10 @@ IF (Test-Path -Path "$PSScriptRoot\$Product\Version.txt") {
 		$Options = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command `"$PowershellCommand`""
 		$Trigger = New-JobTrigger -AtLogOn
 		$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $Options
-		$Principal = New-ScheduledTaskPrincipal -GroupId "BUILTIN\Users"
+		# Lokalisierte Gruppenbezeichnung ermitteln
+		$UsersGroup = ([System.Security.Principal.SecurityIdentifier]"S-1-5-32-545").Translate([System.Security.Principal.NTAccount]).Value
+		# Scheduled Task Principal erstellen
+		$Principal = New-ScheduledTaskPrincipal -GroupId $UsersGroup
 		Register-ScheduledTask -TaskName 'Register MS Teams AppXPackage' -Principal $Principal -Action $Action -Trigger $Trigger -Force -EA SilentlyContinue | Out-Null
 		
 		Write-Host -ForegroundColor Green "...ready"

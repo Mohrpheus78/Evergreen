@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.29
+Version: 2.12.31
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -95,6 +95,7 @@ Version: 2.12.29
 26/03/16: Added MS SQL Management Studio 22 (Visual Studio Installer)
 26/03/25: Added .NET Desktop Runtime 8.25 for Citrix WorkspaceApp
 26/04/15: Changed Adobe Reader DC Evergreen syntax
+26/05/12: MS 365 Apps semi anual channel is not available anymore, please switch to monthly anual channel and create a new configuration XML file
 # Notes
 #>
 
@@ -640,7 +641,9 @@ function gui_mode{
     $MS365AppsBox_SAC.width = 95
     $MS365AppsBox_SAC.height = 20
     $MS365AppsBox_SAC.autosize = $true
-	$MS365AppsBox_SAC.Font = $Font
+	$CustomFont = [System.Drawing.Font]::new("Arial",10, [System.Drawing.FontStyle]::Strikeout)
+	#$MS365AppsBox_SAC.Font = $Font
+	$MS365AppsBox_SAC.Font = $CustomFont
     $MS365AppsBox_SAC.location = New-Object System.Drawing.Point(250,45)
     $form.Controls.Add($MS365AppsBox_SAC)
 	$MS365AppsBox_SAC.Checked = $SoftwareSelection.MS365Apps_SAC
@@ -1050,7 +1053,9 @@ function gui_mode{
     $FoxItReaderBox.width = 95
     $FoxItReaderBox.height = 20
     $FoxItReaderBox.autosize = $true
-	$FoxitReaderBox.Font = $Font
+	$CustomFont = [System.Drawing.Font]::new("Arial",10, [System.Drawing.FontStyle]::Strikeout)
+	#$FoxitReaderBox.Font = $Font
+	$FoxitReaderBox.Font = $CustomFont
     $FoxItReaderBox.location = New-Object System.Drawing.Point(660,395)
     $form.Controls.Add($FoxItReaderBox)
 	$FoxItReaderBox.Checked =  $SoftwareSelection.FoxItReader
@@ -1425,7 +1430,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.29"
+	[version]$EvergreenVersion = "2.12.31"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2372,7 +2377,7 @@ IF ($SoftwareSelection.SevenZip -eq $true) {
 	$Product = "7-Zip"
 	$PackageName = "7-Zip_x64"
 	Try {
-	$7Zip = Get-NevergreenApp -Name 7zip | Where-Object {$_.Architecture -eq "x64" -and $_.Type -like "exe"}
+	$7Zip = Get-EvergreenApp -Name 7zip | Where-Object {$_.Architecture -eq "x64" -and $_.Type -like "exe"}
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
@@ -2704,6 +2709,10 @@ IF ($SoftwareSelection.MSOneDrive -eq $true) {
 IF ($SoftwareSelection.MS365Apps_SAC -eq $true) {
 	$Product = "MS 365 Apps-Semi Annual Channel"
 	$PackageName = "setup"
+	Write-Host -ForegroundColor Red "$Product is not available anymore, please switch to monthly channel (create a new configuratiom XML file)"
+	Write-Output ""
+	IF (!(Test-Path -Path "$SoftwareFolder\MS 365 Apps-Monthly Enterprise Channel")) {New-Item -Path "$SoftwareFolder\MS 365 Apps-Monthly Enterprise Channel" -ItemType Directory | Out-Null}
+<#
 	Try {
 	$MS365Apps_SAC = Get-EvergreenApp -Name Microsoft365Apps | Where-Object {$_.Channel -eq "SemiAnnual"} -ErrorAction Stop
 	} catch {
@@ -2759,6 +2768,7 @@ IF ($SoftwareSelection.MS365Apps_SAC -eq $true) {
 		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
 		Write-Output ""
 	}
+#>
 }
 
 
@@ -4852,6 +4862,9 @@ IF ($SoftwareSelection.Greenshot -eq $true) {
 IF ($SoftwareSelection.FoxItReader -eq $true) {
 	$Product = "FoxitReader"
 	$PackageName = "FoxIt-Reader"
+	Write-Host -ForegroundColor Red "Download for $Product currently not available, working on a solution..."
+	Write-Output ""
+<#
 	Try {
 	$FoxItReader = Get-EvergreenApp -Name FoxItReader | Where-Object {$_.Language -eq "German"}
 	} catch {
@@ -4897,6 +4910,7 @@ IF ($SoftwareSelection.FoxItReader -eq $true) {
 		Write-Host -ForegroundColor Red "Not able to get version of $Product, try again later!"
 		Write-Output ""
 	}
+#>
 }
 
 
