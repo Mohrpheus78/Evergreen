@@ -3138,7 +3138,7 @@ IF ($SoftwareSelection.MSDotNetRuntime -eq $true) {
 	$Product = "MS DotNet Runtime"
 	$PackageName = "dotnet-runtime-win-x64-runtime"
 	Try {
-	$MSDotNetRuntime = Get-EvergreenApp -Name Microsoft.NET | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "LTS -and $_.Installer -eq "runtime"} -ErrorAction Stop
+	$MSDotNetRuntime = Get-EvergreenApp -Name Microsoft.NET | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "LTS" -and $_.Installer -eq "runtime"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
