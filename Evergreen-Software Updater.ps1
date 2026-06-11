@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.32
+Version: 2.12.33
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -97,6 +97,7 @@ Version: 2.12.32
 26/04/15: Changed Adobe Reader DC Evergreen syntax
 26/05/12: MS 365 Apps semi anual channel is not available anymore, please switch to monthly anual channel and create a new configuration XML file
 26/05/26: Added .NET Desktop Runtime (v10.0.8) for Remote Desktop Manager
+26/06/11: Added MS .Net Runtime 10.x LTS
 # Notes
 #>
 
@@ -764,7 +765,7 @@ function gui_mode{
 	
 	# MS DotNet Checkbox
     $MSDotNetRuntimeBox = New-Object system.Windows.Forms.CheckBox
-    $MSDotNetRuntimeBox.text = "Microsoft .Net Runtime 8.x"
+    $MSDotNetRuntimeBox.text = "Microsoft .Net Runtime 10.x"
     $MSDotNetRuntimeBox.width = 95
     $MSDotNetRuntimeBox.height = 20
     $MSDotNetRuntimeBox.autosize = $true
@@ -1431,7 +1432,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.32"
+	[version]$EvergreenVersion = "2.12.33"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -3137,7 +3138,7 @@ IF ($SoftwareSelection.MSDotNetRuntime -eq $true) {
 	$Product = "MS DotNet Runtime"
 	$PackageName = "dotnet-runtime-win-x64-runtime"
 	Try {
-	$MSDotNetRuntime = Get-EvergreenApp -Name Microsoft.NET | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "8.0" -and $_.Installer -eq "runtime"} -ErrorAction Stop
+	$MSDotNetRuntime = Get-EvergreenApp -Name Microsoft.NET | Where-Object {$_.Architecture -eq "x64" -and $_.Channel -eq "LTS -and $_.Installer -eq "runtime"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
