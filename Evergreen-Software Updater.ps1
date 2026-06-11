@@ -1555,6 +1555,12 @@ IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
 	Start-Transcript $ModulesUpdateLog | Out-Null
 	Write-Host -ForegroundColor Cyan "Installing/updating Evergreen and Nevergreen... please wait"
 	Write-Output ""
+
+	if (Get-PSRepository | Where-Object { $_.Name -eq "PSGallery" -and $_.InstallationPolicy -ne "Trusted" }) {
+		Install-PackageProvider -Name "NuGet" -MinimumVersion 2.8.5.208 -Force
+		Set-PSRepository -Name "PSGallery" -InstallationPolicy "Trusted"
+	}
+
 	IF (!(Test-Path -Path "C:\Program Files\PackageManagement\ProviderAssemblies\nuget")) {
 		Find-PackageProvider -Name 'Nuget' -ForceBootstrap -IncludeDependencies
 		}
@@ -1582,6 +1588,7 @@ IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
 	}
 
 	Update-Evergreen
+
 	<#
 	$LocalEvergreenVersion = (Get-Module -Name Evergreen -ListAvailable | Select-Object -First 1).Version
 	$CurrentEvergreenVersion = (Find-Module -Name Evergreen -Repository PSGallery).Version
