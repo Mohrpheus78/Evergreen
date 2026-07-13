@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.34
+Version: 2.12.35
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -98,6 +98,7 @@ Version: 2.12.34
 26/05/12: MS 365 Apps semi anual channel is not available anymore, please switch to monthly anual channel and create a new configuration XML file
 26/05/26: Added .NET Desktop Runtime (v10.0.8) for Remote Desktop Manager
 26/06/11: Added MS .Net Runtime 10.x LTS
+26/07/13: Updates Citrix VMTools 9.6.0 (delete folder content to force update, because of old version)
 # Notes
 #>
 
@@ -1432,7 +1433,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.34"
+	[version]$EvergreenVersion = "2.12.35"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -3510,7 +3511,7 @@ IF ($SoftwareSelection.CitrixVMTools -eq $true) {
     [Version]$VersionCitrixVMTools  = $webVersionCitrixVMTools
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
-	$URL = "https://downloads.xenserver.com/vm-tools-windows/9.4.2/managementagentx64-9.4.2.msi"
+	$URL = "https://downloads.xenserver.com/vm-tools-windows/9.6.0/managementagentx64-9.6.0.msi"
 	$CurrentVersion = Get-Content -Path "$SoftwareFolder\Citrix\$Product\Version.txt" -EA SilentlyContinue
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $VersionCitrixVMTools"
