@@ -1588,6 +1588,7 @@ IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
 		Update-Module -Name "Evergreen"
 	}
 
+	Install-Module -Name Evergreen -force
 	Update-Evergreen
 
 	<#
