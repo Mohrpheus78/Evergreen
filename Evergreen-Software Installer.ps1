@@ -2318,7 +2318,7 @@ IF ($SoftwareSelection.VMWareTools -eq $true)
 				Write-Output ""
 				}	
 			try {
-				& "$SoftwareFolder\Install MS VcRedist x86"
+				& "$SoftwareFolder\Install MS VcRedist x86.ps1"
 				}
 			catch {
 				Write-Host -ForegroundColor Red "Installing MS VcRedist x86"
