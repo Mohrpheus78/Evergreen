@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.35
+Version: 2.12.36
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -99,6 +99,7 @@ Version: 2.12.35
 26/05/26: Added .NET Desktop Runtime (v10.0.8) for Remote Desktop Manager
 26/06/11: Added MS .Net Runtime 10.x LTS
 26/07/13: Updates Citrix VMTools 9.6.0 (delete folder content to force update, because of old version)
+26/08/27: Bugfixes
 # Notes
 #>
 
@@ -1433,7 +1434,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.35"
+	[version]$EvergreenVersion = "2.12.36"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
