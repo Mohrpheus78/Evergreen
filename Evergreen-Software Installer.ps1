@@ -2310,7 +2310,7 @@ IF ($SoftwareSelection.VMWareTools -eq $true)
 	{
 		IF (!($SoftwareToRemoteInstall)) {
 			try {
-				& "$SoftwareFolder\Install MS VcRedist x64"
+				& "$SoftwareFolder\Install MS VcRedist x64.ps1"
 				}
 			catch {
 				Write-Host -ForegroundColor Red "Installing MS VcRedist x64"

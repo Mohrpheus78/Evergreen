@@ -1579,7 +1579,7 @@ IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
 
 	$Installed = Get-Module -Name "Evergreen" -ListAvailable | `
     	Sort-Object -Property @{ Expression = { [System.Version]$_.Version }; Descending = $true } | `
-    	elect-Object -First 1
+    	Select-Object -First 1
 	$Published = Find-Module -Name "Evergreen"
 	if ($Null -eq $Installed) {
 		Install-Module -Name "Evergreen"
@@ -2238,7 +2238,7 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product\Windows\Current")) {New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -ItemType Directory | Out-Null}
 		$LogPS = "$SoftwareFolder\Citrix\$Product\Windows\Current\" + "$Product $Version.log"
-		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Exclude "windowsdesktop-runtime-8.0.18-win-x86.exe" -Recurse
+		Remove-Item "$SoftwareFolder\Citrix\$Product\Windows\Current\*" -Exclude "windowsdesktop-runtime-8.0.25-win-x86.exe" -Recurse
 		Start-Transcript $LogPS | Out-Null
 		New-Item -Path "$SoftwareFolder\Citrix\$Product\Windows\Current" -Name "Download date $Date.txt" | Out-Null
 		Set-Content -Path "$SoftwareFolder\Citrix\$Product\Windows\Current\Version.txt" -Value "$Version"
@@ -2295,7 +2295,7 @@ IF ($SoftwareSelection.WorkspaceApp_CR -eq $true -or $SoftwareSelection.Workspac
 	IF ($Version) {
 		IF (!($CurrentVersion -eq $Version)) {
 		Write-Host -ForegroundColor Green "Update available"
-		if (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\Citrix\$Product" -ItemType Directory | Out-Null}
+		if (!(Test-Path -Path "$SoftwareFolder\$Product")) {New-Item -Path "$SoftwareFolder\$Product" -ItemType Directory | Out-Null}
 		$LogPS = "$SoftwareFolder\$Product\" + "$Product $Version.log"
 		Remove-Item "$SoftwareFolder\$Product\*" -Recurse
 		Start-Transcript $LogPS | Out-Null
