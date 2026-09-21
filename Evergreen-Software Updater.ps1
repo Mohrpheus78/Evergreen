@@ -101,6 +101,7 @@ Version: 2.12.37
 26/07/13: Updates Citrix VMTools 9.6.0 (delete folder content to force update, because of old version)
 26/08/27: Bugfixes
 26/09/15: Added MS .NET Desktop Runtime 10.0.12 for Citrix WorkspaceApp LTSR 2607
+26/09/21: Update FSLogix 3.26.826.17182
 # Notes
 #>
 
@@ -1435,7 +1436,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.37"
+	[version]$EvergreenVersion = "2.12.38"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -2565,7 +2566,7 @@ IF ($SoftwareSelection.FSLogix -eq $true) {
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
-	[version]$Version = '3.26.126.19110' 
+	[version]$Version = '3.26.826.17182' 
 	$URL = $FSLogix.uri
 	$InstallerType = "zip"
 	$Source = "$PackageName" + "." + "$InstallerType"
