@@ -108,7 +108,7 @@ Version: 2.18.37
 26/05/12: Changed scheduled task for registering MS Teams AppX package
 26/05/26: Added .NET Desktop Runtime 10.0.8 for Remote Desktop Manager
 26/08/27: Bugfixes
-26/09/15: Added MS .NET Desktop Runtime 10.0.12 for Citrix WorkspaceApp LTSR 2607m changed Citrix WorkspaceApp 2607 LTSR parameters
+26/09/15: Added MS .NET Desktop Runtime 10.0.12 for Citrix WorkspaceApp LTSR 2607, changed Citrix WorkspaceApp 2607 LTSR parameters
 26/09/16: Changed MS Visual C++ 2015-2022 Runtime version check
 26/09/21: corrected MS Visual C++ 2015-2022 Runtime version check
 # Notes
