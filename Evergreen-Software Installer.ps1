@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 2.18.37
+Version: 2.18.38
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -111,6 +111,8 @@ Version: 2.18.37
 26/09/15: Added MS .NET Desktop Runtime 10.0.12 for Citrix WorkspaceApp LTSR 2607, changed Citrix WorkspaceApp 2607 LTSR parameters
 26/09/16: Changed MS Visual C++ 2015-2022 Runtime version check
 26/09/21: corrected MS Visual C++ 2015-2022 Runtime version check
+26/10/20: Changed version check for MS .NET Desktop Runtime 10.0.12
+26/10/23: Addtional exclusions for Citrix VDA LTSR 2607
 # Notes
 #>
 
