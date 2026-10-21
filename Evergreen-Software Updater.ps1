@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 2.12.39
+Version: 2.12.40
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -103,6 +103,7 @@ Version: 2.12.39
 26/09/15: Added MS .NET Desktop Runtime 10.0.12 for Citrix WorkspaceApp LTSR 2607
 26/09/21: Update FSLogix 3.26.826.17182
 26/10/20: Wrong download name for MS .NET Desktop Runtime 10.0.12, changed to WindowsDesktopRuntime-10.0.12-win-x86.exe
+26/10/21: Fixed ImageGlass download
 # Notes
 #>
 
@@ -1437,7 +1438,7 @@ else
 # ========================================================================================================================================
 
 if ($noGUI -eq $False) {
-	[version]$EvergreenVersion = "2.12.39"
+	[version]$EvergreenVersion = "2.12.40"
 	$WebVersion = ""
 	[bool]$NewerVersion = $false
 	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
@@ -4717,7 +4718,7 @@ IF ($SoftwareSelection.ImageGlass -eq $true) {
 	$Product = "ImageGlass"
 	$PackageName = "ImageGlass"
 	Try {
-	$ImageGlass = Get-EvergreenApp -Name ImageGlass | Where-Object {$_.Architecture -eq "x64"} | Select-Object -First 1 -ErrorAction Stop
+	$ImageGlass = Get-EvergreenApp -Name ImageGlass | Where-Object {$_.Type -eq "msi"} | Select-Object -First 1 -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}

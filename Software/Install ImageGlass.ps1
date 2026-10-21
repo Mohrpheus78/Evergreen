@@ -68,6 +68,8 @@ $arguments = @(
 	"/i"
     "`"$msiFile`""
     "/qn"
+	"ALLUSERS=2"
+    'MSIINSTALLPERUSER=""'
 	)
 
 if ($targetDir){
