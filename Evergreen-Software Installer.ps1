@@ -2355,63 +2355,54 @@ IF ($SoftwareToRemoteInstall -eq $True) {
 #>
 	
 # Check version
-if ($NoGUI -eq $False) {
-Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion`n"
+if ($noGUI -eq $False) {
+Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion"`n
 Write-Output ""
 Write-Host -Foregroundcolor Cyan "Is there a newer Evergreen Script version?"
-if ($NewerVersion -eq $false) {
-    Write-Host -Foregroundcolor Green "OK, script is newest version!"
-    Write-Output ""
+
+If ($NewerVersion -eq $false) {
+        # No new version available
+        Write-Host -Foregroundcolor Green "OK, script is newest version!"
+        Write-Output ""
 }
-else {
-    Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer available!"
-    Write-Output ""
-    Set-StartupStatus "A newer installer is available" "Installed: $EvergreenVersion  |  Available: $WebVersion"
-    $AnswerPending = [System.Windows.Forms.MessageBox]::Show($script:StartupForm,"Evergreen Installer $WebVersion is available. Do you want to download it now?","New installer version",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
-    if ($AnswerPending -eq [System.Windows.Forms.DialogResult]::Yes) {
-        Close-StartupWindow
-        # Proven legacy hand-off. UpdateInstaller.ps1 replaces both the main installer
-        # and the Software *.ps1 payload, then starts the freshly downloaded installer.
-        $UpdateHelperPath = Join-Path $PSScriptRoot "UpdateInstaller.ps1"
-        $UpdateTargetPath = if (-not [String]::IsNullOrWhiteSpace($PSCommandPath)) { $PSCommandPath } else { Join-Path $PSScriptRoot "Evergreen-Software Installer.ps1" }
-        $UpdateContent = @'
-param([string]$TargetPath,[string]$RootPath)
-$ErrorActionPreference = 'Stop'
-$SoftwareFolder = Join-Path $RootPath 'Software'
-$TempFolder = Join-Path $RootPath 'SoftwareTemp'
-$InstallerUri = 'https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1'
-try {
-    Start-Sleep -Milliseconds 500
-    Remove-Item -LiteralPath $TargetPath -Force -ErrorAction SilentlyContinue
-    Get-ChildItem -Path $SoftwareFolder -Filter 'Install WorkspaceApp*.ps1' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
-    $TeamsFolder = Join-Path $SoftwareFolder 'MS Teams 2'
-    if (-not (Test-Path -LiteralPath $TeamsFolder)) { [void](New-Item -Path $TeamsFolder -ItemType Directory -Force) }
-    Invoke-WebRequest -UseBasicParsing -Uri $InstallerUri -OutFile $TargetPath -ErrorAction Stop
-    Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/Mohrpheus78/Evergreen/refs/heads/main/Software/MS%20Teams%202/NEW%20MS%20Teams%20Settings.ps1' -OutFile (Join-Path $TeamsFolder 'NEW MS Teams Settings.ps1') -ErrorAction Stop
-    if (Test-Path -LiteralPath $TempFolder) { Remove-Item -LiteralPath $TempFolder -Recurse -Force -ErrorAction SilentlyContinue }
-    [void](New-Item -Path $TempFolder -ItemType Directory -Force)
-    $ZipPath = Join-Path $TempFolder 'Evergreen.zip'
-    Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/Mohrpheus78/Evergreen/archive/refs/heads/main.zip' -OutFile $ZipPath -ErrorAction Stop
-    Expand-Archive -Path $ZipPath -DestinationPath $TempFolder -Force
-    $RepoSoftware = Join-Path $TempFolder 'Evergreen-main\Software'
-    Get-ChildItem -Path $RepoSoftware -Filter '*.ps1' -File | Copy-Item -Destination $SoftwareFolder -Force
-    $SplashSource = Join-Path $RepoSoftware '_SplashScreen'
-    $SplashTarget = Join-Path $SoftwareFolder '_SplashScreen'
-    if ((Test-Path -LiteralPath $SplashSource) -and -not (Test-Path -LiteralPath $SplashTarget)) { Copy-Item -LiteralPath $SplashSource -Destination $SplashTarget -Recurse -Force }
-    Remove-Item -LiteralPath $TempFolder -Recurse -Force -ErrorAction SilentlyContinue
-    Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$TargetPath)
-}
-catch {
-    Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
-    [void][System.Windows.Forms.MessageBox]::Show("Installer update failed:`r`n`r`n$($_.Exception.Message)","Evergreen update failed",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Error)
-}
+Else {
+        # There is a new Evergreen Script Version
+        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer available!"
+        Write-Output ""
+		$wshell = New-Object -ComObject Wscript.Shell
+            $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
+            If ($AnswerPending -eq "6") {
+				$update = @'
+                Remove-Item -Path "$PSScriptRoot\Evergreen-Software Installer.ps1" -Force
+				Get-ChildItem -Path "$PSScriptRoot\Software" -Filter "Install WorkspaceApp*.ps1" | Remove-Item -Force -EA SilentlyContinue
+				IF (!(Test-Path "$SoftwareFolder\MS Teams 2")) {
+					New-Item -Path "$SoftwareFolder\MS Teams 2" -ItemType Directory | Out-Null
+					}
+                Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Installer.ps1")
+				Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/refs/heads/main/Software/MS%20Teams%202/NEW%20MS%20Teams%20Settings.ps1 -OutFile ("$SoftwareFolder\MS Teams 2\" + "NEW MS Teams Settings.ps1")
+				$TempFolder = "$PSScriptRoot\SoftwareTemp"
+				IF (!(Test-Path $TempFolder)) {
+					New-Item -Path $TempFolder -ItemType Directory -EA SilentlyContinue | Out-Null
+				}
+				Invoke-WebRequest -Uri https://github.com/Mohrpheus78/Evergreen/archive/refs/heads/main.zip -OutFile "$TempFolder\Evergreen.zip"
+				Expand-Archive -Path "$TempFolder\Evergreen.zip" -DestinationPath $TempFolder
+
+				Get-ChildItem "$TempFolder\Evergreen-main\Software\*.ps1" | Move-Item -Destination $TempFolder -Force
+				Get-ChildItem "$TempFolder\*.ps1" | Copy-Item -Destination "$SoftwareFolder" -Force
+				IF (!(Test-Path $SoftwareFolder\_SplashScreen)) {
+					Move-Item -Path "$TempFolder\Evergreen-main\Software\_SplashScreen" "$SoftwareFolder" -Force
+				}	
+				Remove-Item -Path $TempFolder -Recurse -Force
+                & "$PSScriptRoot\Evergreen-Software Installer.ps1"
 '@
-        Set-Content -LiteralPath $UpdateHelperPath -Value $UpdateContent -Encoding UTF8 -Force
-        Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$UpdateHelperPath,'-TargetPath',$UpdateTargetPath,'-RootPath',$PSScriptRoot)
-        exit 0
-    }
+                $update > "$PSScriptRoot\UpdateInstaller.ps1"
+                & "$PSScriptRoot\UpdateInstaller.ps1"
+                BREAK
+			}
+
 }
 }
+
 # Release notes
 # Read the currently running script instead of relying on a fixed file name.
 $CurrentScriptPath = $PSCommandPath
