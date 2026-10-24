@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 3.0.1
+Version: 3.0.2
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -113,7 +113,7 @@ Param (
 )
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-[version]$EvergreenVersion = "3.0.1"
+[version]$EvergreenVersion = "3.0.2"
 
 
 # ======================
@@ -2539,6 +2539,30 @@ gui_mode
 
 # Disable progress bar while downloading
 $ProgressPreference = 'SilentlyContinue'
+
+# The GUI starts the package workflow in a separate -NoGUI PowerShell job.
+# The positive GitHub result from the GUI process is not inherited by that job.
+# Verify PowerShell Gallery connectivity here without running the script self-update check.
+if ($noGUI -eq $True) {
+    try {
+        $null = Invoke-WebRequest -UseBasicParsing -Uri "https://www.powershellgallery.com/api/v2/" -Method Head -TimeoutSec 10 -ErrorAction Stop
+        $InternetCheck1 = "True"
+        $InternetCheck2 = "True"
+    }
+    catch {
+        try {
+            # Some proxies reject HEAD although a normal GET succeeds.
+            $null = Invoke-WebRequest -UseBasicParsing -Uri "https://www.powershellgallery.com/api/v2/" -TimeoutSec 10 -ErrorAction Stop
+            $InternetCheck1 = "True"
+            $InternetCheck2 = "True"
+        }
+        catch {
+            $InternetCheck1 = "False"
+            $InternetCheck2 = "False"
+            Write-Host -ForegroundColor Yellow "Internet access for PowerShell Gallery could not be verified. Evergreen/Nevergreen module updates will be skipped; software processing will continue."
+        }
+    }
+}
 
 # Install/Update Evergreen and Nevergreen modules
 # Start logfile Modules Update Log
