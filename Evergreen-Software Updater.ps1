@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 3.0.2
+Version: 3.0.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -133,7 +133,7 @@ Param (
 
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-[version]$EvergreenVersion = "3.0.2"
+[version]$EvergreenVersion = "3.0.1"
 
 
 # ======================
@@ -471,9 +471,9 @@ function Install-EvergreenValidatedUpdate {
 
 		$PowerShellExecutable = if ($PSVersionTable.PSEdition -eq 'Core') { Join-Path $PSHOME 'pwsh.exe' } else { Join-Path $PSHOME 'powershell.exe' }
 		if (-not (Test-Path -LiteralPath $PowerShellExecutable -PathType Leaf)) { $PowerShellExecutable = (Get-Process -Id $PID).Path }
-		$RestartArguments = "-NoLogo -NoProfile -File `"$PSCommandPath`" -SkipUpdateCheck -UpdateHealthCheckPath `"$HealthPath`" -UpdateHealthCheckToken $HealthToken"
-		$RestartProcess = Start-Process -FilePath $PowerShellExecutable -ArgumentList $RestartArguments -PassThru -ErrorAction Stop
-		Set-StartupStatus "Verifying the updated $ProductKey..." "The new GUI is starting. The previous script remains available in _Update Backups."
+		$RestartArguments = "-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -File `"$PSCommandPath`" -SkipUpdateCheck -UpdateHealthCheckPath `"$HealthPath`" -UpdateHealthCheckToken $HealthToken"
+		$RestartProcess = Start-Process -FilePath $PowerShellExecutable -ArgumentList $RestartArguments -WindowStyle Hidden -PassThru -ErrorAction Stop
+		Set-StartupStatus "Verifying the updated $ProductKey..." "The updated script is starting in a hidden PowerShell process. The previous script remains available in _Update Backups."
 		$HealthTimer = [Diagnostics.Stopwatch]::StartNew()
 		do {
 			if (Test-Path -LiteralPath $HealthPath -PathType Leaf) {
@@ -1763,43 +1763,6 @@ function gui_mode{
 	}
 	$SelectionPanel.Controls.Add($CategoryPanel)
 
-	# Read the newest changelog entry directly from this script.
-	$GuiLastChangesText = "Release note information unavailable"
-	try {
-		$GuiScriptPath = if (-not [String]::IsNullOrWhiteSpace($PSCommandPath)) { $PSCommandPath } else { $MyInvocation.MyCommand.Path }
-		if (-not [String]::IsNullOrWhiteSpace($GuiScriptPath) -and (Test-Path -LiteralPath $GuiScriptPath -PathType Leaf)) {
-			$GuiScriptContent = @(Get-Content -LiteralPath $GuiScriptPath -ErrorAction Stop)
-			$GuiNotesIndex = [Array]::IndexOf($GuiScriptContent,"# Notes")
-			if ($GuiNotesIndex -gt 0) {
-				$GuiLastChangesText = ([string]$GuiScriptContent[$GuiNotesIndex - 1]).Trim().TrimStart('#').Trim()
-			}
-		}
-	}
-	catch { }
-
-	$LastChangesLabel = New-Object System.Windows.Forms.Label
-	$LastChangesLabel.Text = "Last changes: $GuiLastChangesText"
-	$LastChangesLabel.Location = New-Object System.Drawing.Point(1135,84)
-	$LastChangesLabel.Size = New-Object System.Drawing.Size(120,54)
-	$LastChangesLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
-	$LastChangesLabel.Font = New-Object System.Drawing.Font("Segoe UI",9)
-	$LastChangesLabel.ForeColor = [System.Drawing.Color]::FromArgb(48,58,70)
-	$LastChangesLabel.AutoEllipsis = $true
-	$LastChangesLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
-	$SelectionPanel.Controls.Add($LastChangesLabel)
-	$LastChangesToolTip = New-Object System.Windows.Forms.ToolTip
-	$LastChangesToolTip.SetToolTip($LastChangesLabel,$LastChangesLabel.Text)
-
-	$ResizeLastChanges = {
-		$LabelLeft = $CategoryPanel.Right + 12
-		$AvailableLabelWidth = $SelectionPanel.ClientSize.Width - $LabelLeft - 24
-		$LastChangesLabel.Location = New-Object System.Drawing.Point($LabelLeft,84)
-		$LastChangesLabel.Width = [Math]::Max(0,$AvailableLabelWidth)
-		$LastChangesLabel.Visible = $AvailableLabelWidth -ge 160
-	}.GetNewClosure()
-	$SelectionPanel.Add_SizeChanged($ResizeLastChanges)
-	& $ResizeLastChanges
-
 	$SelectionCountLabel = New-Object System.Windows.Forms.Label
 	$SelectionCountLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
 	$SelectionCountLabel.ForeColor = [System.Drawing.Color]::FromArgb(16,91,145)
@@ -2466,7 +2429,6 @@ function gui_mode{
 	$CloseResultsButton.Add_Click({ $Form.Close() })
 	$Form.Add_FormClosed({
 		if ($null -ne $HeaderLogo.Image) { $HeaderLogo.Image.Dispose(); $HeaderLogo.Image = $null }
-		if ($null -ne $LastChangesToolTip) { $LastChangesToolTip.Dispose() }
 	}.GetNewClosure())
 	$Form.Add_FormClosing({
 		param($Sender,$EventArgs)
@@ -2615,7 +2577,7 @@ function gui_mode{
 	$Form.CancelButton = $CancelButton
 	
     # Activate the form and confirm a successful post-update GUI start.
-    $Form.Add_Shown({$Form.Activate(); Write-EvergreenUpdateHealthCheck})
+    $Form.Add_Shown({$Form.Activate()})
 	Close-StartupWindow
     [void] $Form.ShowDialog()
 }
@@ -2716,6 +2678,13 @@ else
    }
 # ========================================================================================================================================
 
+
+# The replacement script has parsed, opened its startup UI, passed the update-skip path,
+# and completed the administrator check. Report transactional health now, before lengthy
+# module and package preparation, so the previous updater process can close immediately.
+if ($SkipUpdateCheck -and -not [String]::IsNullOrWhiteSpace($UpdateHealthCheckPath) -and -not [String]::IsNullOrWhiteSpace($UpdateHealthCheckToken)) {
+	Write-EvergreenUpdateHealthCheck
+}
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
