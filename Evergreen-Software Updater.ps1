@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 3.0.3
+Version: 3.0
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -113,7 +113,7 @@ Param (
 )
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-[version]$EvergreenVersion = "3.0.3"
+[version]$EvergreenVersion = "3.0"
 
 
 # ======================
@@ -2490,36 +2490,34 @@ $ErrorActionPreference = "SilentlyContinue"
 $SoftwareToUpdate = "$SoftwareFolder\Software-to-update.xml"
 
 if ($noGUI -eq $False) {
-Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion`nIs there a newer Evergreen Script version?"
+Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion
+Is there a newer Evergreen Script version?"
 Write-Output ""
-if ($NewerVersion -eq $false) {
-    Write-Host -Foregroundcolor Green "OK, script is newest version!"
-    Write-Output ""
-} else {
-    Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Updater!"
-    Write-Output ""
-    Set-StartupStatus "A newer updater is available" "Installed: $EvergreenVersion  |  Available: $WebVersion"
-    $AnswerPending = [System.Windows.Forms.MessageBox]::Show($script:StartupForm,"Evergreen Updater $WebVersion is available. Do you want to download it now?","New updater version",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
-    if ($AnswerPending -eq [System.Windows.Forms.DialogResult]::Yes) {
-        Close-StartupWindow
-        # Legacy hand-off: helper replaces the script after this process exits, then starts the new script.
-        $UpdateHelperPath = Join-Path $PSScriptRoot "UpdateUpdater.ps1"
-        $UpdateTargetPath = if (-not [String]::IsNullOrWhiteSpace($PSCommandPath)) { $PSCommandPath } else { Join-Path $PSScriptRoot "Evergreen-Software Updater.ps1" }
-        $UpdateContent = @'
-param([string]$TargetPath)
-$ErrorActionPreference = 'Stop'
-$Uri = 'https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1'
-Start-Sleep -Milliseconds 500
-Remove-Item -LiteralPath $TargetPath -Force -ErrorAction SilentlyContinue
-Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $TargetPath -ErrorAction Stop
-Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$TargetPath)
+If ($NewerVersion -eq $false) {
+        # No new version available
+        Write-Host -Foregroundcolor Green "OK, script is newest version!"
+        Write-Output ""
+}
+Else {
+        # There is a new Evergreen Script Version
+        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Updater!"
+        Write-Output ""
+		$wshell = New-Object -ComObject Wscript.Shell
+            $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
+            If ($AnswerPending -eq "6") {
+				$update = @'
+                Remove-Item -Path "$PSScriptRoot\Evergreen-Software Updater.ps1" -Force 
+                Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Updater.ps1")
+                & "$PSScriptRoot\Evergreen-Software Updater.ps1"
 '@
-        Set-Content -LiteralPath $UpdateHelperPath -Value $UpdateContent -Encoding UTF8 -Force
-        Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$UpdateHelperPath,'-TargetPath',$UpdateTargetPath)
-        exit 0
-    }
+                $update > "$PSScriptRoot\UpdateUpdater.ps1"
+                & "$PSScriptRoot\UpdateUpdater.ps1"
+                BREAK
+			}
+
 }
 }
+
 # General update logfile
 $Date = $Date = Get-Date -UFormat "%d.%m.%Y"
 $UpdateLog = "$SoftwareFolder\_Update Logs\Software Updates $Date.log"
