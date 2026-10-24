@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 3.0.2
+Version: 3.0.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -150,7 +150,7 @@ Param (
 
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-[version]$EvergreenVersion = "3.0.2"
+[version]$EvergreenVersion = "3.0.1"
 
 
 # ======================
@@ -491,7 +491,7 @@ function Install-EvergreenValidatedUpdate {
 		if (-not (Test-Path -LiteralPath $PowerShellExecutable -PathType Leaf)) { $PowerShellExecutable = (Get-Process -Id $PID).Path }
 		$RestartArguments = "-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -File `"$PSCommandPath`" -SkipUpdateCheck -UpdateHealthCheckPath `"$HealthPath`" -UpdateHealthCheckToken $HealthToken"
 		$RestartProcess = Start-Process -FilePath $PowerShellExecutable -ArgumentList $RestartArguments -WindowStyle Hidden -PassThru -ErrorAction Stop
-		Set-StartupStatus "Verifying the updated $ProductKey..." "The updated script is starting in a hidden PowerShell process. The previous script remains available in _Update Backups."
+		Set-StartupStatus "Verifying the updated $ProductKey..." "The new GUI is starting. The previous script remains available in _Update Backups."
 		$HealthTimer = [Diagnostics.Stopwatch]::StartNew()
 		do {
 			if (Test-Path -LiteralPath $HealthPath -PathType Leaf) {
@@ -2536,13 +2536,14 @@ else
    }
 # ========================================================================================================================================
 
-
-# The replacement script has parsed, opened its startup UI, passed the update-skip path,
-# and completed the administrator check. Report transactional health now, before lengthy
-# module and package preparation, so the previous installer process can close immediately.
+# Transactional self-update health check. At this point the replacement installer
+# has parsed successfully, opened the startup window, completed the GitHub skip path,
+# and passed the administrator check. Report success now so the old process can exit
+# before lengthy module/package initialization begins.
 if ($SkipUpdateCheck -and -not [String]::IsNullOrWhiteSpace($UpdateHealthCheckPath) -and -not [String]::IsNullOrWhiteSpace($UpdateHealthCheckToken)) {
 	Write-EvergreenUpdateHealthCheck
 }
+
 
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
