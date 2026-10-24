@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 3.0
+Version: 3.0.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -104,7 +104,7 @@ Version: 3.0
 26/09/21: Update FSLogix 3.26.826.17182
 26/10/20: Wrong download name for MS .NET Desktop Runtime 10.0.12, changed to WindowsDesktopRuntime-10.0.12-win-x86.exe
 26/10/21: Fixed ImageGlass download
-26/10/23: Version 3.0 with complete redesign, fixed download for XenCenter and VM Tools
+26/10/23: Version 3.0 with complete redesign, fixed download for XenCenter and VM Tools, corrected KeepassXC download
 # Notes
 #>
 Param (
@@ -113,7 +113,7 @@ Param (
 )
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-[version]$EvergreenVersion = "3.0"
+[version]$EvergreenVersion = "3.0.1"
 
 
 # ======================
@@ -5030,7 +5030,7 @@ IF ($SoftwareSelection.KeePassXC -eq $true) {
 	$Product = "KeePassXC"
 	$PackageName = "KeePassXC"
 	Try {
-	$KeePassXC = Get-EvergreenApp -Name KeePassXCTeamKeePassXC | Select-Object -First 1 -ErrorAction Stop
+	$KeePassXC = Get-EvergreenApp -Name KeePassXCTeamKeePassXC | Where-Object {$_.Architecture -like "x64"} -ErrorAction Stop
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 		}
