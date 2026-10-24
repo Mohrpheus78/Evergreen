@@ -119,35 +119,13 @@ Version: 3.0.1
 # Notes
 #>
 Param (
-    [Parameter(
-        HelpMessage = 'Start without GUI',
-        ValueFromPipelineByPropertyName = $true
-    )]
+    [Parameter(HelpMessage = 'Start without GUI',ValueFromPipelineByPropertyName = $true)]
     [switch]$NoGUI,
-
     [Parameter(Mandatory = $false)]
     [switch]$SoftwareToAutoInstall,
-
     [Parameter(Mandatory = $false)]
-    [switch]$SoftwareToRemoteInstall,
-
-    [Parameter(Mandatory = $false)]
-    [string]$UpdateManifestPath,
-
-    [Parameter(Mandatory = $false)]
-    [switch]$UpdateDryRun,
-
-    [Parameter(Mandatory = $false)]
-    [switch]$SkipUpdateCheck,
-
-    [Parameter(Mandatory = $false)]
-    [string]$UpdateHealthCheckPath,
-
-    [Parameter(Mandatory = $false)]
-    [string]$UpdateHealthCheckToken
+    [switch]$SoftwareToRemoteInstall
 )
-
-
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 [version]$EvergreenVersion = "3.0.2"
@@ -366,169 +344,6 @@ function Close-StartupWindow {
 function Restore-StartupConsole {
 	# Console visibility is controlled by the trusted shortcut, not by native API calls in this script.
 }
-
-function Get-EvergreenUpdateCandidate {
-	param([string]$ManifestPath,[string]$ProductKey)
-	if ([String]::IsNullOrWhiteSpace($ManifestPath)) { throw "No update manifest was specified." }
-	$ResolvedManifestPath = if ([IO.Path]::IsPathRooted($ManifestPath)) { [IO.Path]::GetFullPath($ManifestPath) } else { [IO.Path]::GetFullPath((Join-Path $PSScriptRoot $ManifestPath)) }
-	if (-not (Test-Path -LiteralPath $ResolvedManifestPath -PathType Leaf)) { throw "Update manifest not found: $ResolvedManifestPath" }
-	$Manifest = Get-Content -LiteralPath $ResolvedManifestPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
-	if ([int]$Manifest.schemaVersion -ne 1) { throw "Unsupported update manifest schema: $($Manifest.schemaVersion)" }
-	$ProductProperty = $Manifest.products.PSObject.Properties[$ProductKey]
-	if ($null -eq $ProductProperty) { throw "The manifest does not contain a '$ProductKey' product." }
-	$Product = $ProductProperty.Value
-	try { $CandidateVersion = [version]$Product.version } catch { throw "The manifest contains an invalid $ProductKey version." }
-	if ([String]::IsNullOrWhiteSpace([string]$Product.source)) { throw "The manifest does not define a source for $ProductKey." }
-	$Source = [string]$Product.source
-	if (-not [Uri]::IsWellFormedUriString($Source,[UriKind]::Absolute)) {
-		$Source = [IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $ResolvedManifestPath) $Source))
-	}
-	return [PSCustomObject]@{
-		Product = $ProductKey
-		Version = $CandidateVersion
-		Source = $Source
-		Sha256 = ([string]$Product.sha256).Trim().ToUpperInvariant()
-		Notes = @($Product.notes)
-		Channel = [string]$Manifest.channel
-		ManifestPath = $ResolvedManifestPath
-	}
-}
-
-function Test-EvergreenUpdateCandidate {
-	param($Candidate,[switch]$KeepStagedFile)
-	$StageFolder = Join-Path ([IO.Path]::GetTempPath()) ("Evergreen-Update-DryRun-" + [Guid]::NewGuid().ToString("N"))
-	$StageFile = Join-Path $StageFolder ("Evergreen-Software $($Candidate.Product).ps1")
-	$ValidationSucceeded = $false
-	try {
-		[void](New-Item -Path $StageFolder -ItemType Directory -Force -ErrorAction Stop)
-		if ([Uri]::IsWellFormedUriString([string]$Candidate.Source,[UriKind]::Absolute) -and ([Uri]$Candidate.Source).Scheme -in @("http","https")) {
-			Invoke-WebRequest -UseBasicParsing -Uri $Candidate.Source -OutFile $StageFile -TimeoutSec 30 -Headers @{ "User-Agent" = "Evergreen-Update-Validation" } -ErrorAction Stop
-		}
-		else {
-			if (-not (Test-Path -LiteralPath $Candidate.Source -PathType Leaf)) { throw "Update source not found: $($Candidate.Source)" }
-			Copy-Item -LiteralPath $Candidate.Source -Destination $StageFile -Force -ErrorAction Stop
-		}
-		if ([String]::IsNullOrWhiteSpace($Candidate.Sha256)) { throw "The manifest does not contain a SHA-256 checksum." }
-		$ActualHash = (Get-FileHash -LiteralPath $StageFile -Algorithm SHA256 -ErrorAction Stop).Hash.ToUpperInvariant()
-		if ($ActualHash -ne $Candidate.Sha256) { throw "SHA-256 mismatch. Expected $($Candidate.Sha256), received $ActualHash." }
-		$Tokens = $null
-		$ParseErrors = $null
-		[void][System.Management.Automation.Language.Parser]::ParseFile($StageFile,[ref]$Tokens,[ref]$ParseErrors)
-		if ($ParseErrors.Count -gt 0) { throw "PowerShell syntax validation failed: $($ParseErrors[0].Message)" }
-		$PackageContent = Get-Content -LiteralPath $StageFile -Raw -ErrorAction Stop
-		$HeaderVersionMatch = [regex]::Match($PackageContent,'(?m)^Version:\s*(?<Version>\d+(?:\.\d+){1,3})\s*$')
-		$RuntimeVersionMatch = [regex]::Match($PackageContent,'(?m)^\[version\]\$EvergreenVersion\s*=\s*"(?<Version>\d+(?:\.\d+){1,3})"\s*$')
-		if (-not $HeaderVersionMatch.Success) { throw "The package does not contain a Version header." }
-		if (-not $RuntimeVersionMatch.Success) { throw "The package does not contain the runtime version constant." }
-		if ([version]$HeaderVersionMatch.Groups['Version'].Value -ne $Candidate.Version -or [version]$RuntimeVersionMatch.Groups['Version'].Value -ne $Candidate.Version) { throw "Manifest, header, and runtime versions do not match." }
-		$ValidationSucceeded = $true
-		return [PSCustomObject]@{ Success = $true; Version = $Candidate.Version; Hash = $ActualHash; Message = "Download/staging, SHA-256, version, and PowerShell syntax checks passed."; StagedPath = $StageFile; StageFolder = $StageFolder }
-	}
-	catch {
-		return [PSCustomObject]@{ Success = $false; Version = $Candidate.Version; Hash = ""; Message = $_.Exception.Message; StagedPath = ""; StageFolder = $StageFolder }
-	}
-	finally {
-		if ((-not $KeepStagedFile -or -not $ValidationSucceeded) -and (Test-Path -LiteralPath $StageFolder)) { Remove-Item -LiteralPath $StageFolder -Recurse -Force -ErrorAction SilentlyContinue }
-	}
-}
-
-function New-EvergreenValidatedUpdateFromContent {
-	param([string]$Content,[version]$Version,[string]$ProductKey)
-	$StageFolder = Join-Path ([IO.Path]::GetTempPath()) ("Evergreen-Update-DryRun-" + [Guid]::NewGuid().ToString("N"))
-	$StageFile = Join-Path $StageFolder ("Evergreen-Software $ProductKey.ps1")
-	try {
-		if ([String]::IsNullOrWhiteSpace($Content)) { throw "The update source returned an empty script." }
-		[void](New-Item -Path $StageFolder -ItemType Directory -Force -ErrorAction Stop)
-		[IO.File]::WriteAllText($StageFile,$Content,[Text.UTF8Encoding]::new($true))
-		$Tokens = $null
-		$ParseErrors = $null
-		[void][System.Management.Automation.Language.Parser]::ParseFile($StageFile,[ref]$Tokens,[ref]$ParseErrors)
-		if ($ParseErrors.Count -gt 0) { throw "PowerShell syntax validation failed: $($ParseErrors[0].Message)" }
-		$HeaderVersionMatch = [regex]::Match($Content,'(?m)^Version:\s*(?<Version>\d+(?:\.\d+){1,3})\s*$')
-		$RuntimeVersionMatch = [regex]::Match($Content,'(?m)^\[version\]\$EvergreenVersion\s*=\s*"(?<Version>\d+(?:\.\d+){1,3})"\s*$')
-		if (-not $HeaderVersionMatch.Success -or -not $RuntimeVersionMatch.Success) { throw "The downloaded script does not contain matching version metadata." }
-		if ([version]$HeaderVersionMatch.Groups['Version'].Value -ne $Version -or [version]$RuntimeVersionMatch.Groups['Version'].Value -ne $Version) { throw "The downloaded script version does not match the advertised version." }
-		$ActualHash = (Get-FileHash -LiteralPath $StageFile -Algorithm SHA256 -ErrorAction Stop).Hash.ToUpperInvariant()
-		return [PSCustomObject]@{ Success = $true; Version = $Version; Hash = $ActualHash; Message = "Download, version, and PowerShell syntax checks passed."; StagedPath = $StageFile; StageFolder = $StageFolder }
-	}
-	catch {
-		if (Test-Path -LiteralPath $StageFolder) { Remove-Item -LiteralPath $StageFolder -Recurse -Force -ErrorAction SilentlyContinue }
-		return [PSCustomObject]@{ Success = $false; Version = $Version; Hash = ""; Message = $_.Exception.Message; StagedPath = ""; StageFolder = $StageFolder }
-	}
-}
-
-function Write-EvergreenUpdateHealthCheck {
-	if ([String]::IsNullOrWhiteSpace($UpdateHealthCheckPath) -or [String]::IsNullOrWhiteSpace($UpdateHealthCheckToken)) { return }
-	try {
-		$HealthDirectory = Split-Path -Parent $UpdateHealthCheckPath
-		if (-not [String]::IsNullOrWhiteSpace($HealthDirectory)) { [void](New-Item -Path $HealthDirectory -ItemType Directory -Force -ErrorAction Stop) }
-		[IO.File]::WriteAllText($UpdateHealthCheckPath,$UpdateHealthCheckToken,[Text.Encoding]::UTF8)
-	}
-	catch { }
-}
-
-function Install-EvergreenValidatedUpdate {
-	param($ValidationResult,[string]$ProductKey,[int]$HealthTimeoutSeconds = 120)
-	$RestartProcess = $null
-	$IncomingPath = "$PSCommandPath.evergreen-update"
-	$TransactionFolder = Join-Path ([IO.Path]::GetTempPath()) ("Evergreen-Update-Health-" + [Guid]::NewGuid().ToString("N"))
-	$HealthPath = Join-Path $TransactionFolder "health.txt"
-	$HealthToken = [Guid]::NewGuid().ToString("N")
-	$BackupRoot = Join-Path $PSScriptRoot "_Update Backups"
-	$BackupName = "{0}-{1}-{2}.ps1" -f $ProductKey,$EvergreenVersion,(Get-Date -Format "yyyyMMdd-HHmmss")
-	$BackupScriptPath = Join-Path $BackupRoot $BackupName
-	try {
-		if ($null -eq $ValidationResult -or -not $ValidationResult.Success) { throw "The update package has not passed validation." }
-		if (-not (Test-Path -LiteralPath $ValidationResult.StagedPath -PathType Leaf)) { throw "The validated update package is no longer available." }
-		$StageHash = (Get-FileHash -LiteralPath $ValidationResult.StagedPath -Algorithm SHA256 -ErrorAction Stop).Hash.ToUpperInvariant()
-		if ($StageHash -ne ([string]$ValidationResult.Hash).ToUpperInvariant()) { throw "The staged update package changed after validation." }
-		[void](New-Item -Path $BackupRoot -ItemType Directory -Force -ErrorAction Stop)
-		[void](New-Item -Path $TransactionFolder -ItemType Directory -Force -ErrorAction Stop)
-		Copy-Item -LiteralPath $ValidationResult.StagedPath -Destination $IncomingPath -Force -ErrorAction Stop
-		[IO.File]::Replace($IncomingPath,$PSCommandPath,$BackupScriptPath,$true)
-
-		$PowerShellExecutable = if ($PSVersionTable.PSEdition -eq 'Core') { Join-Path $PSHOME 'pwsh.exe' } else { Join-Path $PSHOME 'powershell.exe' }
-		if (-not (Test-Path -LiteralPath $PowerShellExecutable -PathType Leaf)) { $PowerShellExecutable = (Get-Process -Id $PID).Path }
-		$RestartArguments = "-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -File `"$PSCommandPath`" -SkipUpdateCheck -UpdateHealthCheckPath `"$HealthPath`" -UpdateHealthCheckToken $HealthToken"
-		$RestartProcess = Start-Process -FilePath $PowerShellExecutable -ArgumentList $RestartArguments -WindowStyle Hidden -PassThru -ErrorAction Stop
-		Set-StartupStatus "Verifying the updated $ProductKey..." "The new GUI is starting. The previous script remains available in _Update Backups."
-		$HealthTimer = [Diagnostics.Stopwatch]::StartNew()
-		do {
-			if (Test-Path -LiteralPath $HealthPath -PathType Leaf) {
-				$ReportedToken = (Get-Content -LiteralPath $HealthPath -Raw -ErrorAction SilentlyContinue).Trim()
-				if ($ReportedToken -eq $HealthToken) {
-					return [PSCustomObject]@{ Success = $true; Message = "The updated GUI started successfully."; BackupPath = $BackupScriptPath; Process = $RestartProcess }
-				}
-			}
-			if ($RestartProcess.HasExited) { break }
-			if ($null -ne $script:StartupForm -and -not $script:StartupForm.IsDisposed) { [System.Windows.Forms.Application]::DoEvents() }
-			Start-Sleep -Milliseconds 100
-		} while ($HealthTimer.Elapsed.TotalSeconds -lt $HealthTimeoutSeconds)
-		throw "The updated GUI did not report a successful start within $HealthTimeoutSeconds seconds."
-	}
-	catch {
-		$FailureMessage = $_.Exception.Message
-		if ($null -ne $RestartProcess -and -not $RestartProcess.HasExited) { Stop-Process -Id $RestartProcess.Id -Force -ErrorAction SilentlyContinue }
-		if (Test-Path -LiteralPath $BackupScriptPath -PathType Leaf) {
-			try { Copy-Item -LiteralPath $BackupScriptPath -Destination $PSCommandPath -Force -ErrorAction Stop }
-			catch { $FailureMessage = "$FailureMessage Rollback failed: $($_.Exception.Message)" }
-		}
-		return [PSCustomObject]@{ Success = $false; Message = $FailureMessage; BackupPath = $BackupScriptPath; Process = $RestartProcess }
-	}
-	finally {
-		Remove-Item -LiteralPath $IncomingPath -Force -ErrorAction SilentlyContinue
-		if (Test-Path -LiteralPath $TransactionFolder) { Remove-Item -LiteralPath $TransactionFolder -Recurse -Force -ErrorAction SilentlyContinue }
-	}
-}
-
-function Remove-EvergreenStagedUpdate {
-	param($ValidationResult)
-	if ($null -eq $ValidationResult -or [String]::IsNullOrWhiteSpace([string]$ValidationResult.StageFolder)) { return }
-	$ResolvedStage = [IO.Path]::GetFullPath([string]$ValidationResult.StageFolder)
-	$ResolvedTemp = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
-	if ($ResolvedStage.StartsWith($ResolvedTemp,[StringComparison]::OrdinalIgnoreCase) -and (Split-Path -Leaf $ResolvedStage) -like "Evergreen-Update-DryRun-*") { Remove-Item -LiteralPath $ResolvedStage -Recurse -Force -ErrorAction SilentlyContinue }
-}
-
 
 # FUNCTION Logging
 #========================================================================================================================================
@@ -2445,165 +2260,38 @@ function gui_mode{
 
 # Show a dependency-free startup window before running startup checks.
 Start-StartupWindow
-
-# FUNCTION Check internet access
-# ========================================================================================================================================
-function Test-EvergreenInternetConnection {
-	$Endpoint = "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1"
-	$Errors = New-Object System.Collections.ArrayList
-	try {
-		# Use the same raw GitHub endpoint as the actual self-update. Do not require a
-		# historical marker string because comments/header text can legitimately change.
-		$Response = Invoke-WebRequest -UseBasicParsing -Uri $Endpoint -TimeoutSec 15 -Headers @{ "User-Agent" = "Evergreen-Installer"; "Accept" = "text/plain,*/*" } -ErrorAction Stop
-		$Content = [string]$Response.Content
-		$VersionMatch = [regex]::Match($Content,'(?m)^Version:\s*(?<Version>\d+(?:\.\d+){1,3})\s*$')
-		$HasPowerShellStructure = [regex]::IsMatch($Content,'(?im)^\s*Param\s*\(') -and $Content.IndexOf('$EvergreenVersion',[StringComparison]::OrdinalIgnoreCase) -ge 0
-		if ([String]::IsNullOrWhiteSpace($Content)) {
-			[void]$Errors.Add("The GitHub update source returned an empty response.")
-		}
-		elseif (-not $VersionMatch.Success -or -not $HasPowerShellStructure) {
-			$StatusCode = if ($null -ne $Response.StatusCode) { [string][int]$Response.StatusCode } else { "unknown" }
-			$ContentType = if ($null -ne $Response.Headers['Content-Type']) { [string]$Response.Headers['Content-Type'] } else { "unknown" }
-			[void]$Errors.Add("GitHub was reachable (HTTP $StatusCode, Content-Type '$ContentType'), but the response was not recognized as the Evergreen installer script.")
-		}
-		else {
-			return [PSCustomObject]@{ Connected = $true; Endpoint = $Endpoint; Content = $Content; Version = $VersionMatch.Groups['Version'].Value; Errors = @() }
-		}
-	}
-	catch {
-		$Detail = $_.Exception.Message
-		if ($null -ne $_.Exception.Response) {
-			try { $Detail += " (HTTP $([int]$_.Exception.Response.StatusCode))" } catch {}
-		}
-		[void]$Errors.Add($Detail)
-	}
-	return [PSCustomObject]@{ Connected = $false; Endpoint = $Endpoint; Content = ""; Version = $null; Errors = @($Errors) }
-}
-if ($SkipUpdateCheck) {
-	$InternetResult = [PSCustomObject]@{ Connected = $true; Endpoint = ""; Content = ""; Version = [string]$EvergreenVersion; Errors = @() }
-	$InternetCheck1 = "True"
-	$InternetCheck2 = "True"
-	if ($noGUI -eq $False) { Set-StartupStatus "Starting updated installer..." "Version $EvergreenVersion passed update validation. Skipping the second GitHub update check." 900 }
-}
-else {
-	Set-StartupStatus "Checking update access..." "Validating access to the Evergreen installer on GitHub."
-	do {
-		$InternetResult = Test-EvergreenInternetConnection
-		if ($InternetResult.Connected) { break }
-		if ($NoGUI) { break }
-		$InternetFailureDetail = if ($InternetResult.Errors.Count -gt 0) { "GitHub update source could not be validated: " + ($InternetResult.Errors -join " | ") + " You can retry, continue with the locally available installer files, or exit." } else { "GitHub update source could not be validated. You can retry, continue with the locally available installer files, or exit." }
-		$InternetChoice = Wait-StartupInternetChoice $InternetFailureDetail
-		if ($InternetChoice -eq "Exit") { Close-StartupWindow; Restore-StartupConsole; exit 1 }
-		if ($InternetChoice -eq "Continue") { break }
-		Set-StartupStatus "Retrying update access..." "Validating the Evergreen update source on GitHub again."
-	} while ($true)
-	$InternetCheck1 = if ($InternetResult.Connected) { "True" } else { "False" }
-	$InternetCheck2 = $InternetCheck1
-	if ($InternetResult.Connected) { Set-StartupStatus "Update source available" "The Evergreen installer script and its version were verified successfully." 900 }
-	else { Set-StartupStatus "Continuing in offline mode" "The installer will use the locally available scripts and packages." 900 }
-}
-# ========================================================================================================================================
-
-
-# Do you run the script as admin?
-# ========================================================================================================================================
-Set-StartupStatus "Checking permissions..." "Verifying that the installer is running with administrator rights."
-$myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
-$myWindowsPrincipal=new-object System.Security.Principal.WindowsPrincipal($myWindowsID)
-$adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
-
-if ($myWindowsPrincipal.IsInRole($adminRole) -or $UpdateDryRun)
-   {
-    # OK, runs as admin
-    Write-Host "OK, script is running with Admin rights"
-    Write-Output ""
-	if ($UpdateDryRun -and -not $myWindowsPrincipal.IsInRole($adminRole)) {
-		Set-StartupStatus "Update dry run" "Administrator rights are not required because no file will be changed." 500
-	}
-	else { Set-StartupStatus "Administrator rights confirmed" "The installer has the required permissions." 500 }
-   }
-
-else
-   {
-    # Script doesn't run as admin, stop!
-    Write-Host -ForegroundColor Red "Error! Script is NOT running with Admin rights!"
-	if ($null -ne $script:StartupForm) {
-		[void][System.Windows.Forms.MessageBox]::Show($script:StartupForm,"The Software Installer must be started with administrator rights.","Administrator rights required",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Warning)
-	}
-	Close-StartupWindow
-	Restore-StartupConsole
-	exit 1
-   }
-# ========================================================================================================================================
-
-# Transactional self-update health check. At this point the replacement installer
-# has parsed successfully, opened the startup window, completed the GitHub skip path,
-# and passed the administrator check. Report success now so the old process can exit
-# before lengthy module/package initialization begins.
-if ($SkipUpdateCheck -and -not [String]::IsNullOrWhiteSpace($UpdateHealthCheckPath) -and -not [String]::IsNullOrWhiteSpace($UpdateHealthCheckToken)) {
-	Write-EvergreenUpdateHealthCheck
-}
-
-
-# Is there a newer Evergreen Script version?
-# ========================================================================================================================================
 $WebVersion = ""
 [bool]$NewerVersion = $false
-$UpdateCandidate = $null
-$UpdateDryRunResult = $null
-if ($noGUI -eq $False -and -not $SkipUpdateCheck) {
-	Set-StartupStatus "Checking the installer version..." "Comparing the local script with the published Evergreen version."
-	if (-not [String]::IsNullOrWhiteSpace($UpdateManifestPath)) {
-		try {
-			Set-StartupStatus "Loading the test update manifest..." "No production files will be changed."
-			$UpdateCandidate = Get-EvergreenUpdateCandidate $UpdateManifestPath "Installer"
-			[version]$WebVersion = $UpdateCandidate.Version
-			$NewerVersion = $WebVersion -gt $EvergreenVersion
-			if ($UpdateDryRun -or $NewerVersion) {
-				Set-StartupStatus "Validating installer update $WebVersion..." "Staging the package and checking SHA-256, version, and PowerShell syntax."
-				$UpdateDryRunResult = Test-EvergreenUpdateCandidate $UpdateCandidate -KeepStagedFile:(-not $UpdateDryRun)
-			}
-		}
-		catch {
-			$UpdateDryRunResult = [PSCustomObject]@{ Success = $false; Version = $null; Hash = ""; Message = $_.Exception.Message }
-			$WebVersion = ""
-		}
-	}
-	elseif ($UpdateDryRun) {
-		$UpdateDryRunResult = [PSCustomObject]@{ Success = $false; Version = $null; Hash = ""; Message = "-UpdateDryRun requires -UpdateManifestPath." }
-	}
-	elseif ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
-		try {
-			[version]$WebVersion = $InternetResult.Version
-			If ($WebVersion -gt $EvergreenVersion) { $NewerVersion = $true }
-		}
-		catch {
-			$WebVersion = ""
-			Set-StartupStatus "Version check unavailable" "Local installer version: $EvergreenVersion. The locally available scripts can still be used." 1100
-		}
-	}
-	if ($null -ne $UpdateDryRunResult) {
-		if ($UpdateDryRunResult.Success) {
-			if ($UpdateDryRun) { Set-StartupStatus "Dry run completed successfully" "Installer $($UpdateDryRunResult.Version): staging, SHA-256, version, and syntax checks passed. No file was replaced." 1500 }
-			else { Set-StartupStatus "Update package validated" "Installer $($UpdateDryRunResult.Version) is ready for the transactional test update." 1200 }
-		}
-		else {
-			Set-StartupStatus "Dry run validation failed" $UpdateDryRunResult.Message 1800
-		}
-	}
-	elseif ($NewerVersion) {
-		Set-StartupStatus "New installer version available" "Installed: $EvergreenVersion  |  Available: $WebVersion" 1200
-	}
-	elseif ($InternetResult.Connected -and -not [String]::IsNullOrWhiteSpace([string]$WebVersion)) {
-		Set-StartupStatus "Installer is up to date" "Installed version: $EvergreenVersion" 1200
-	}
-	elseif (-not $InternetResult.Connected) {
-		Set-StartupStatus "Version check skipped in offline mode" "Installed version: $EvergreenVersion" 1200
-	}
+$InternetCheck1 = "False"
+$InternetCheck2 = "False"
+if ($NoGUI -eq $False) {
+    Set-StartupStatus "Checking update access..." "Checking the Evergreen installer on GitHub."
+    try {
+        $WebResponseVersion = Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1" -TimeoutSec 15 -ErrorAction Stop
+        $VersionMatch = [regex]::Match([string]$WebResponseVersion.Content,'(?m)^Version:\s*(?<Version>\d+(?:\.\d+){1,3})\s*$')
+        if (-not $VersionMatch.Success) { throw "No valid Version header was returned by GitHub." }
+        [version]$WebVersion = $VersionMatch.Groups['Version'].Value
+        $NewerVersion = $WebVersion -gt $EvergreenVersion
+        $InternetCheck1 = "True"; $InternetCheck2 = "True"
+        Set-StartupStatus "Update source available" "Installed: $EvergreenVersion  |  Available: $WebVersion" 900
+    }
+    catch {
+        $Choice = Wait-StartupInternetChoice ("Unable to read the installer version from GitHub: " + $_.Exception.Message + " You can retry, continue with the locally available installer, or exit.")
+        if ($Choice -eq "Retry") { Close-StartupWindow; & $PSCommandPath; exit }
+        if ($Choice -eq "Exit") { Close-StartupWindow; exit 1 }
+    }
 }
-elseif ($noGUI -eq $False) {
-	Set-StartupStatus "Starting updated installer..." "Version $EvergreenVersion passed package validation. Waiting for the main GUI." 900
+# Admin check
+Set-StartupStatus "Checking permissions..." "Verifying that the installer is running with administrator rights."
+$myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
+$myWindowsPrincipal=New-Object System.Security.Principal.WindowsPrincipal($myWindowsID)
+$adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
+if (-not $myWindowsPrincipal.IsInRole($adminRole)) {
+    Write-Host -ForegroundColor Red "Error! Script is NOT running with Admin rights!"
+    if ($null -ne $script:StartupForm) { [void][System.Windows.Forms.MessageBox]::Show($script:StartupForm,"The Software Installer must be started with administrator rights.","Administrator rights required",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Warning) }
+    Close-StartupWindow; exit 1
 }
+Set-StartupStatus "Administrator rights confirmed" "The installer has the required permissions." 500
 
 Clear-Host
 
@@ -2631,67 +2319,63 @@ IF ($SoftwareToRemoteInstall -eq $True) {
 #>
 	
 # Check version
-if ($noGUI -eq $False -and -not $SkipUpdateCheck) {
-Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion"`n
+if ($NoGUI -eq $False) {
+Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion`n"
 Write-Output ""
 Write-Host -Foregroundcolor Cyan "Is there a newer Evergreen Script version?"
-
-If ($null -ne $UpdateDryRunResult -and ($UpdateDryRun -or -not $UpdateDryRunResult.Success)) {
-	$DryRunMessage = if ($UpdateDryRunResult.Success) { "Dry run passed for Installer $($UpdateDryRunResult.Version).`r`n`r`n$($UpdateDryRunResult.Message)`r`n`r`nNo file was replaced." } elseif ($UpdateDryRun) { "Dry run failed:`r`n`r`n$($UpdateDryRunResult.Message)`r`n`r`nNo file was replaced." } else { "Update package validation failed:`r`n`r`n$($UpdateDryRunResult.Message)`r`n`r`nNo file was replaced." }
-	$DryRunIcon = if ($UpdateDryRunResult.Success) { [System.Windows.Forms.MessageBoxIcon]::Information } else { [System.Windows.Forms.MessageBoxIcon]::Warning }
-	if ($null -ne $script:StartupForm) { [void][System.Windows.Forms.MessageBox]::Show($script:StartupForm,$DryRunMessage,"Update dry run",[System.Windows.Forms.MessageBoxButtons]::OK,$DryRunIcon) }
-	else { [void][System.Windows.Forms.MessageBox]::Show($DryRunMessage,"Update dry run",[System.Windows.Forms.MessageBoxButtons]::OK,$DryRunIcon) }
+if ($NewerVersion -eq $false) {
+    Write-Host -Foregroundcolor Green "OK, script is newest version!"
+    Write-Output ""
 }
-ElseIf ($NewerVersion -eq $false) {
-        # No new version available
-        Write-Host -Foregroundcolor Green "OK, script is newest version!"
-        Write-Output ""
+else {
+    Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer available!"
+    Write-Output ""
+    Set-StartupStatus "A newer installer is available" "Installed: $EvergreenVersion  |  Available: $WebVersion"
+    $AnswerPending = [System.Windows.Forms.MessageBox]::Show($script:StartupForm,"Evergreen Installer $WebVersion is available. Do you want to download it now?","New installer version",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
+    if ($AnswerPending -eq [System.Windows.Forms.DialogResult]::Yes) {
+        Close-StartupWindow
+        # Proven legacy hand-off. UpdateInstaller.ps1 replaces both the main installer
+        # and the Software *.ps1 payload, then starts the freshly downloaded installer.
+        $UpdateHelperPath = Join-Path $PSScriptRoot "UpdateInstaller.ps1"
+        $UpdateTargetPath = if (-not [String]::IsNullOrWhiteSpace($PSCommandPath)) { $PSCommandPath } else { Join-Path $PSScriptRoot "Evergreen-Software Installer.ps1" }
+        $UpdateContent = @'
+param([string]$TargetPath,[string]$RootPath)
+$ErrorActionPreference = 'Stop'
+$SoftwareFolder = Join-Path $RootPath 'Software'
+$TempFolder = Join-Path $RootPath 'SoftwareTemp'
+$InstallerUri = 'https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Installer.ps1'
+try {
+    Start-Sleep -Milliseconds 500
+    Remove-Item -LiteralPath $TargetPath -Force -ErrorAction SilentlyContinue
+    Get-ChildItem -Path $SoftwareFolder -Filter 'Install WorkspaceApp*.ps1' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    $TeamsFolder = Join-Path $SoftwareFolder 'MS Teams 2'
+    if (-not (Test-Path -LiteralPath $TeamsFolder)) { [void](New-Item -Path $TeamsFolder -ItemType Directory -Force) }
+    Invoke-WebRequest -UseBasicParsing -Uri $InstallerUri -OutFile $TargetPath -ErrorAction Stop
+    Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/Mohrpheus78/Evergreen/refs/heads/main/Software/MS%20Teams%202/NEW%20MS%20Teams%20Settings.ps1' -OutFile (Join-Path $TeamsFolder 'NEW MS Teams Settings.ps1') -ErrorAction Stop
+    if (Test-Path -LiteralPath $TempFolder) { Remove-Item -LiteralPath $TempFolder -Recurse -Force -ErrorAction SilentlyContinue }
+    [void](New-Item -Path $TempFolder -ItemType Directory -Force)
+    $ZipPath = Join-Path $TempFolder 'Evergreen.zip'
+    Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/Mohrpheus78/Evergreen/archive/refs/heads/main.zip' -OutFile $ZipPath -ErrorAction Stop
+    Expand-Archive -Path $ZipPath -DestinationPath $TempFolder -Force
+    $RepoSoftware = Join-Path $TempFolder 'Evergreen-main\Software'
+    Get-ChildItem -Path $RepoSoftware -Filter '*.ps1' -File | Copy-Item -Destination $SoftwareFolder -Force
+    $SplashSource = Join-Path $RepoSoftware '_SplashScreen'
+    $SplashTarget = Join-Path $SoftwareFolder '_SplashScreen'
+    if ((Test-Path -LiteralPath $SplashSource) -and -not (Test-Path -LiteralPath $SplashTarget)) { Copy-Item -LiteralPath $SplashSource -Destination $SplashTarget -Recurse -Force }
+    Remove-Item -LiteralPath $TempFolder -Recurse -Force -ErrorAction SilentlyContinue
+    Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$TargetPath)
 }
-Else {
-        # There is a new Evergreen Script Version
-        Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Installer available!"
-        Write-Output ""
-		Set-StartupStatus "A newer installer is available" "Version $WebVersion can be downloaded before continuing."
-		if (-not [String]::IsNullOrWhiteSpace($UpdateManifestPath)) {
-			if ($null -ne $UpdateDryRunResult -and $UpdateDryRunResult.Success -and $UpdateCandidate.Channel -eq "Test") {
-				$AnswerPending = [System.Windows.Forms.MessageBox]::Show($script:StartupForm,"Installer $WebVersion passed all package checks.`r`n`r`nThe test update will create a backup, replace only this script, restart the GUI, and automatically roll back if the new GUI does not report a healthy start.`r`n`r`nStart the transactional test update now?","Validated test update",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
-			}
-			else {
-				[void][System.Windows.Forms.MessageBox]::Show($script:StartupForm,"The manifest update was not started because validation failed or the manifest is not using the Test channel.","Test update blocked",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Warning)
-				$AnswerPending = [System.Windows.Forms.DialogResult]::No
-			}
-		}
-		elseif ($null -ne $script:StartupForm) {
-			$AnswerPending = [System.Windows.Forms.MessageBox]::Show($script:StartupForm,"Evergreen Installer $WebVersion is available. Do you want to download it now?","New installer version",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
-		}
-		else {
-			$AnswerPending = [System.Windows.Forms.MessageBox]::Show("Evergreen Installer $WebVersion is available. Do you want to download it now?","New installer version",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
-		}
-			If ($AnswerPending -eq [System.Windows.Forms.DialogResult]::Yes) {
-				if ([String]::IsNullOrWhiteSpace($UpdateManifestPath)) {
-					Set-StartupStatus "Validating the new installer..." "Checking version metadata and PowerShell syntax before replacing any file."
-					$UpdateDryRunResult = New-EvergreenValidatedUpdateFromContent $InternetResult.Content ([version]$WebVersion) "Installer"
-				}
-				if ($null -ne $UpdateDryRunResult -and $UpdateDryRunResult.Success) {
-					Set-StartupStatus "Installing the validated installer..." "Creating a backup, replacing this script, and checking the restarted GUI."
-					$UpdateInstallResult = Install-EvergreenValidatedUpdate $UpdateDryRunResult "Installer"
-					Remove-EvergreenStagedUpdate $UpdateDryRunResult
-					if ($UpdateInstallResult.Success) {
-						Close-StartupWindow
-						return
-					}
-					[void][System.Windows.Forms.MessageBox]::Show($script:StartupForm,"The update was rolled back.`r`n`r`n$($UpdateInstallResult.Message)","Update could not be completed",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Error)
-				}
-				else {
-					$ValidationMessage = if ($null -ne $UpdateDryRunResult) { $UpdateDryRunResult.Message } else { "The update package could not be validated." }
-					[void][System.Windows.Forms.MessageBox]::Show($script:StartupForm,$ValidationMessage,"Update validation failed",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Warning)
-				}
-			}
-			if (-not [String]::IsNullOrWhiteSpace($UpdateManifestPath) -and $AnswerPending -ne [System.Windows.Forms.DialogResult]::Yes) { Remove-EvergreenStagedUpdate $UpdateDryRunResult }
-
+catch {
+    Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
+    [void][System.Windows.Forms.MessageBox]::Show("Installer update failed:`r`n`r`n$($_.Exception.Message)","Evergreen update failed",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Error)
+}
+'@
+        Set-Content -LiteralPath $UpdateHelperPath -Value $UpdateContent -Encoding UTF8 -Force
+        Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$UpdateHelperPath,'-TargetPath',$UpdateTargetPath,'-RootPath',$PSScriptRoot)
+        exit 0
+    }
 }
 }
-
 # Release notes
 # Read the currently running script instead of relying on a fixed file name.
 $CurrentScriptPath = $PSCommandPath
