@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 3.0.1
+Version: 2.12.40
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -104,411 +104,126 @@ Version: 3.0.1
 26/09/21: Update FSLogix 3.26.826.17182
 26/10/20: Wrong download name for MS .NET Desktop Runtime 10.0.12, changed to WindowsDesktopRuntime-10.0.12-win-x86.exe
 26/10/21: Fixed ImageGlass download
-26/10/23: Version 3.0 with complete redesign, fixed download for XenCenter and VM Tools
 # Notes
 #>
+
+
 Param (
 		[Parameter(
             HelpMessage='Start the Gui to select the Software',
             ValuefromPipelineByPropertyName = $true
         )]
-        [switch]$noGUI,
-
-		[Parameter(Mandatory = $false)]
-		[string]$UpdateManifestPath,
-
-		[Parameter(Mandatory = $false)]
-		[switch]$UpdateDryRun,
-
-		[Parameter(Mandatory = $false)]
-		[switch]$SkipUpdateCheck,
-
-		[Parameter(Mandatory = $false)]
-		[string]$UpdateHealthCheckPath,
-
-		[Parameter(Mandatory = $false)]
-		[string]$UpdateHealthCheckToken
+        [switch]$noGUI
     
 )
 
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-[version]$EvergreenVersion = "3.0.1"
 
 
 # ======================
-# Startup window
+# Beginning Splashscreen
 # ======================
-$script:StartupUiEnabled = -not $NoGUI
-$script:StartupForm = $null
-$script:StartupLogo = $null
-$script:StartupLogoDisplay = $null
 
-function New-EvergreenLogo {
+IF (!(Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly")) {
 	try {
-		$LogoPath = Join-Path $PSScriptRoot "Shortcut\Software_Update_Download.png"
-		if (-not (Test-Path -LiteralPath $LogoPath -PathType Leaf)) { return $null }
-		$SourceImage = [System.Drawing.Image]::FromFile($LogoPath)
-		try { return [System.Drawing.Bitmap]::new($SourceImage) }
-		finally { $SourceImage.Dispose() }
-	}
-	catch { return $null }
-}
-
-function New-EvergreenIcon {
-	try {
-		$IconPath = Join-Path $PSScriptRoot "Shortcut\Software_Update_Download.ico"
-		if (-not (Test-Path -LiteralPath $IconPath -PathType Leaf)) { return $null }
-		return [System.Drawing.Icon]::new($IconPath)
-	}
-	catch { return $null }
-}
-$script:StartupShownAt = $null
-$script:StartupMinimumDurationMilliseconds = 6500
-
-function Start-StartupWindow {
-	if (-not $script:StartupUiEnabled) { return }
-	try {
-		Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
-		Add-Type -AssemblyName System.Drawing -ErrorAction Stop
-		[System.Windows.Forms.Application]::EnableVisualStyles()
-		$Form = New-Object System.Windows.Forms.Form
-		$Form.Text = "Software Updater $EvergreenVersion"
-		$Form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
-		$Form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::None
-		$Form.Size = New-Object System.Drawing.Size(760,400)
-		$Form.BackColor = [System.Drawing.Color]::FromArgb(242,247,251)
-		$Form.ShowInTaskbar = $true
-		$StartupFormIcon = New-EvergreenIcon
-		if ($null -ne $StartupFormIcon) { $Form.Icon = $StartupFormIcon }
-
-		$Title = New-Object System.Windows.Forms.Label
-		$Title.Text = "Software Updater"
-		$Title.Location = New-Object System.Drawing.Point(42,38)
-		$Title.Size = New-Object System.Drawing.Size(560,44)
-		$Title.Font = New-Object System.Drawing.Font("Segoe UI Semibold",24)
-		$Title.ForeColor = [System.Drawing.Color]::FromArgb(32,64,96)
-		$Form.Controls.Add($Title)
-
-		$Subtitle = New-Object System.Windows.Forms.Label
-		$Subtitle.Text = "Powered by Evergreen  |  Version $EvergreenVersion"
-		$Subtitle.Location = New-Object System.Drawing.Point(46,84)
-		$Subtitle.Size = New-Object System.Drawing.Size(500,28)
-		$Subtitle.Font = New-Object System.Drawing.Font("Segoe UI",11)
-		$Subtitle.ForeColor = [System.Drawing.Color]::FromArgb(96,123,145)
-		$Form.Controls.Add($Subtitle)
-
-		$script:StartupLogo = New-EvergreenLogo
-		if ($null -ne $script:StartupLogo) {
-			try {
-				$Logo = New-Object System.Windows.Forms.PictureBox
-				$Logo.Location = New-Object System.Drawing.Point(620,22)
-				$Logo.Size = New-Object System.Drawing.Size(96,96)
-				$Logo.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom
-				$Logo.Padding = New-Object System.Windows.Forms.Padding(12)
-				$Logo.Image = $script:StartupLogo
-				$Form.Controls.Add($Logo)
-				$Logo.BringToFront()
-			}
-			catch { $script:StartupLogo = $null }
-		}
-
-		$Status = New-Object System.Windows.Forms.Label
-		$Status.Text = "Starting..."
-		$Status.Location = New-Object System.Drawing.Point(46,170)
-		$Status.Size = New-Object System.Drawing.Size(668,34)
-		$Status.Font = New-Object System.Drawing.Font("Segoe UI Semibold",15)
-		$Status.ForeColor = [System.Drawing.Color]::FromArgb(22,112,184)
-		$Form.Controls.Add($Status)
-
-		$Detail = New-Object System.Windows.Forms.Label
-		$Detail.Text = "Preparing the application."
-		$Detail.Location = New-Object System.Drawing.Point(47,207)
-		$Detail.Size = New-Object System.Drawing.Size(665,56)
-		$Detail.Font = New-Object System.Drawing.Font("Segoe UI",11)
-		$Detail.ForeColor = [System.Drawing.Color]::FromArgb(96,123,145)
-		$Form.Controls.Add($Detail)
-
-		$Progress = New-Object System.Windows.Forms.ProgressBar
-		$Progress.Location = New-Object System.Drawing.Point(50,270)
-		$Progress.Size = New-Object System.Drawing.Size(660,8)
-		$Progress.Style = [System.Windows.Forms.ProgressBarStyle]::Marquee
-		$Progress.ForeColor = [System.Drawing.Color]::FromArgb(22,112,184)
-		$Progress.BackColor = [System.Drawing.Color]::FromArgb(208,222,234)
-		$Progress.MarqueeAnimationSpeed = 25
-		$Form.Controls.Add($Progress)
-
-		$ActionPanel = New-Object System.Windows.Forms.FlowLayoutPanel
-		$ActionPanel.Location = New-Object System.Drawing.Point(46,302)
-		$ActionPanel.Size = New-Object System.Drawing.Size(668,48)
-		$ActionPanel.Visible = $false
-		$ActionPanel.Tag = $null
-		$Form.Controls.Add($ActionPanel)
-		foreach ($ButtonDefinition in @(
-			@{ Text = "Retry"; Result = "Retry"; Width = 120 },
-			@{ Text = "Continue offline"; Result = "Continue"; Width = 170 },
-			@{ Text = "Exit"; Result = "Exit"; Width = 120 }
-		)) {
-			$Button = New-Object System.Windows.Forms.Button
-			$Button.Text = $ButtonDefinition.Text
-			$Button.Size = New-Object System.Drawing.Size($ButtonDefinition.Width,38)
-			$Button.BackColor = [System.Drawing.Color]::White
-			$Button.ForeColor = [System.Drawing.Color]::FromArgb(32,64,96)
-			$Button.FlatAppearance.BorderColor = [System.Drawing.Color]::FromArgb(180,201,218)
-			$Button.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-			$Button.Font = New-Object System.Drawing.Font("Segoe UI",11)
-			$Button.Tag = $ButtonDefinition.Result
-			$Button.Add_Click({
-				param($Sender,$EventArgs)
-				$Sender.Parent.Tag = [string]$Sender.Tag
-			})
-			$ActionPanel.Controls.Add($Button)
-		}
-
-		$Footer = New-Object System.Windows.Forms.Label
-		$Footer.Text = "© D. Mohrmann - @mohrpheus78"
-		$Footer.Location = New-Object System.Drawing.Point(47,365)
-		$Footer.Size = New-Object System.Drawing.Size(400,20)
-		$Footer.Font = New-Object System.Drawing.Font("Segoe UI",9)
-		$Footer.ForeColor = [System.Drawing.Color]::FromArgb(96,123,145)
-		$Form.Controls.Add($Footer)
-
-		$script:StartupForm = $Form
-		$script:StartupStatusLabel = $Status
-		$script:StartupDetailLabel = $Detail
-		$script:StartupProgress = $Progress
-		$script:StartupActionPanel = $ActionPanel
-		$Form.Add_FormClosing({
-			if ($null -ne $script:StartupActionPanel -and $null -eq $script:StartupActionPanel.Tag) { $script:StartupActionPanel.Tag = "Exit" }
-		})
-		$Form.Show()
-		$Form.Activate()
-		$script:StartupShownAt = [DateTime]::UtcNow
-		[System.Windows.Forms.Application]::DoEvents()
+		Invoke-WebRequest -Uri https://github.com/Mohrpheus78/Evergreen/raw/main/Software/_SplashScreen.zip -OutFile "$PSScriptRoot\Software\SplashScreen.zip"
 	}
 	catch {
-		$script:StartupUiEnabled = $false
-		$script:StartupForm = $null
+		Write-Host -ForegroundColor Red "Error downloading SplashScreen (Error: $($Error[0]))"
+    }
+
+	IF (Test-Path -Path "$PSScriptRoot\Software\SplashScreen.zip") {
+		Expand-Archive -Path "$PSScriptRoot\Software\SplashScreen.zip" -DestinationPath "$ENV:ProgramFiles\WindowsPowershell\Modules"
+		Rename-Item -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\_SplashScreen" -NewName "SplashScreen"
 	}
 }
 
-function Set-StartupStatus {
-	param([string]$Status,[string]$Detail = "",[int]$MinimumDisplayMilliseconds = 0)
-	if ($null -eq $script:StartupForm -or $script:StartupForm.IsDisposed) { return }
-	$script:StartupStatusLabel.Text = $Status
-	$script:StartupDetailLabel.Text = $Detail
-	$script:StartupActionPanel.Visible = $false
-	$script:StartupProgress.Visible = $true
-	[System.Windows.Forms.Application]::DoEvents()
-	if ($MinimumDisplayMilliseconds -gt 0) {
-		$DisplayTimer = [System.Diagnostics.Stopwatch]::StartNew()
-		while ($DisplayTimer.ElapsedMilliseconds -lt $MinimumDisplayMilliseconds) {
-			[System.Windows.Forms.Application]::DoEvents()
-			Start-Sleep -Milliseconds 50
-		}
-	}
+#copy-item "$PSScriptRoot\Software\_SplashScreen\" "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen" -Recurse -Force | Out-Null
+if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
+
+# =======================================================================
+#                        Add shared_assemblies                          #
+# =======================================================================
+
+try {
+	[System.Reflection.Assembly]::LoadWithPartialName('presentationframework') | out-null
+	# Mahapps Library
+	[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\MahApps.Metro.dll")       | out-null
+	[System.Reflection.Assembly]::LoadFrom("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\assembly\System.Windows.Interactivity.dll") | out-null
+}
+catch {
+	$SplashScreen = $False
 }
 
-function Wait-StartupInternetChoice {
-	param([string]$Detail)
-	if ($null -eq $script:StartupForm -or $script:StartupForm.IsDisposed) { return "Continue" }
-	$script:StartupActionPanel.Tag = $null
-	$script:StartupStatusLabel.Text = "GitHub update source could not be validated."
-	$script:StartupDetailLabel.Text = $Detail
-	$script:StartupProgress.Visible = $false
-	$script:StartupActionPanel.Visible = $true
-	while ($null -eq $script:StartupActionPanel.Tag) {
-		if ($script:StartupForm.IsDisposed) { return "Exit" }
-		[System.Windows.Forms.Application]::DoEvents()
-		Start-Sleep -Milliseconds 50
-	}
-	$Choice = [string]$script:StartupActionPanel.Tag
-	$script:StartupActionPanel.Visible = $false
-	return $Choice
+# =======================================================================
+#                            Splash Screen                              #
+# =======================================================================
+if ($Splashscreen -ne $False) {
+function close-SplashScreen (){
+    $hash.window.Dispatcher.Invoke("Normal",[action]{ $hash.window.close() })
+    $Pwshell.EndInvoke($handle) | Out-Null
+    #$runspace.Close() | Out-Null
+    
 }
 
-function Close-StartupWindow {
-	if ($null -ne $script:StartupForm -and -not $script:StartupForm.IsDisposed) {
-		if ($null -ne $script:StartupShownAt) {
-			$ElapsedMilliseconds = ([DateTime]::UtcNow - $script:StartupShownAt).TotalMilliseconds
-			while ($ElapsedMilliseconds -lt $script:StartupMinimumDurationMilliseconds) {
-				[System.Windows.Forms.Application]::DoEvents()
-				Start-Sleep -Milliseconds 50
-				$ElapsedMilliseconds = ([DateTime]::UtcNow - $script:StartupShownAt).TotalMilliseconds
-			}
-		}
-		$script:StartupForm.Close()
-		$script:StartupForm.Dispose()
-	}
-	if ($null -ne $script:StartupLogo) { $script:StartupLogo.Dispose() }
-	if ($null -ne $script:StartupLogoDisplay) { $script:StartupLogoDisplay.Dispose() }
-	$script:StartupForm = $null
+function Start-SplashScreen{
+    $Pwshell.Runspace = $runspace
+    $script:handle = $Pwshell.BeginInvoke() 
 }
 
-function Restore-StartupConsole {
-	# Console visibility is controlled by the trusted shortcut, not by native API calls in this script.
+
+    $hash = [hashtable]::Synchronized(@{})
+    $runspace = [runspacefactory]::CreateRunspace()
+    $runspace.ApartmentState = "STA"
+    $Runspace.ThreadOptions = "ReuseThread"
+    $runspace.Open()
+    $runspace.SessionStateProxy.SetVariable("hash",$hash) 
+    $Pwshell = [PowerShell]::Create()
+
+    $Pwshell.AddScript({
+    $xml = [xml]@"
+     <Window
+	xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	x:Name="WindowSplash" Title="SplashScreen" WindowStyle="None" WindowStartupLocation="CenterScreen"
+	Background="DarkRed" ShowInTaskbar ="true" 
+	Width="650" Height="350" ResizeMode = "NoResize" >
+	
+	<Grid>
+		<Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+		
+		<Grid Grid.Row="0" x:Name="Header" >	
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="20,10,0,0">       
+				<Label Content="Software-Updater (Powered by Evergreen-Module)" Margin="5,0,0,0" Foreground="White" Height="50"  FontSize="25"/>
+			</StackPanel> 
+		</Grid>
+        <Grid Grid.Row="1" >
+		 	<StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,5,5,5">
+				<Label x:Name = "LoadingLabel"  Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" Margin = "0,0,0,0"/>
+				<Controls:MetroProgressBar IsIndeterminate="True" Foreground="White" HorizontalAlignment="Center" Width="350" Height="20"/>
+			</StackPanel>	
+        </Grid>
+	</Grid>
+		
+</Window> 
+"@
+ 
+ 
+    $reader = New-Object System.Xml.XmlNodeReader $xml
+    $hash.window = [Windows.Markup.XamlReader]::Load($reader)
+    $hash.LoadingLabel = $hash.window.FindName("LoadingLabel")
+    $hash.Logo = $hash.window.FindName("Logo")
+    $hash.Logo.Source="$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\form\resources\sul-cai-icon.png"
+    $hash.LoadingLabel.Content= "© D. Mohrmann - @mohrpheus78"  
+    $hash.window.ShowDialog() 
+    
+}) | Out-Null
 }
-
-function Get-EvergreenUpdateCandidate {
-	param([string]$ManifestPath,[string]$ProductKey)
-	if ([String]::IsNullOrWhiteSpace($ManifestPath)) { throw "No update manifest was specified." }
-	$ResolvedManifestPath = if ([IO.Path]::IsPathRooted($ManifestPath)) { [IO.Path]::GetFullPath($ManifestPath) } else { [IO.Path]::GetFullPath((Join-Path $PSScriptRoot $ManifestPath)) }
-	if (-not (Test-Path -LiteralPath $ResolvedManifestPath -PathType Leaf)) { throw "Update manifest not found: $ResolvedManifestPath" }
-	$Manifest = Get-Content -LiteralPath $ResolvedManifestPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
-	if ([int]$Manifest.schemaVersion -ne 1) { throw "Unsupported update manifest schema: $($Manifest.schemaVersion)" }
-	$ProductProperty = $Manifest.products.PSObject.Properties[$ProductKey]
-	if ($null -eq $ProductProperty) { throw "The manifest does not contain a '$ProductKey' product." }
-	$Product = $ProductProperty.Value
-	try { $CandidateVersion = [version]$Product.version } catch { throw "The manifest contains an invalid $ProductKey version." }
-	if ([String]::IsNullOrWhiteSpace([string]$Product.source)) { throw "The manifest does not define a source for $ProductKey." }
-	$Source = [string]$Product.source
-	if (-not [Uri]::IsWellFormedUriString($Source,[UriKind]::Absolute)) {
-		$Source = [IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $ResolvedManifestPath) $Source))
-	}
-	return [PSCustomObject]@{
-		Product = $ProductKey
-		Version = $CandidateVersion
-		Source = $Source
-		Sha256 = ([string]$Product.sha256).Trim().ToUpperInvariant()
-		Notes = @($Product.notes)
-		Channel = [string]$Manifest.channel
-		ManifestPath = $ResolvedManifestPath
-	}
-}
-
-function Test-EvergreenUpdateCandidate {
-	param($Candidate,[switch]$KeepStagedFile)
-	$StageFolder = Join-Path ([IO.Path]::GetTempPath()) ("Evergreen-Update-DryRun-" + [Guid]::NewGuid().ToString("N"))
-	$StageFile = Join-Path $StageFolder ("Evergreen-Software $($Candidate.Product).ps1")
-	$ValidationSucceeded = $false
-	try {
-		[void](New-Item -Path $StageFolder -ItemType Directory -Force -ErrorAction Stop)
-		if ([Uri]::IsWellFormedUriString([string]$Candidate.Source,[UriKind]::Absolute) -and ([Uri]$Candidate.Source).Scheme -in @("http","https")) {
-			Invoke-WebRequest -UseBasicParsing -Uri $Candidate.Source -OutFile $StageFile -TimeoutSec 30 -Headers @{ "User-Agent" = "Evergreen-Update-Validation" } -ErrorAction Stop
-		}
-		else {
-			if (-not (Test-Path -LiteralPath $Candidate.Source -PathType Leaf)) { throw "Update source not found: $($Candidate.Source)" }
-			Copy-Item -LiteralPath $Candidate.Source -Destination $StageFile -Force -ErrorAction Stop
-		}
-		if ([String]::IsNullOrWhiteSpace($Candidate.Sha256)) { throw "The manifest does not contain a SHA-256 checksum." }
-		$ActualHash = (Get-FileHash -LiteralPath $StageFile -Algorithm SHA256 -ErrorAction Stop).Hash.ToUpperInvariant()
-		if ($ActualHash -ne $Candidate.Sha256) { throw "SHA-256 mismatch. Expected $($Candidate.Sha256), received $ActualHash." }
-		$Tokens = $null
-		$ParseErrors = $null
-		[void][System.Management.Automation.Language.Parser]::ParseFile($StageFile,[ref]$Tokens,[ref]$ParseErrors)
-		if ($ParseErrors.Count -gt 0) { throw "PowerShell syntax validation failed: $($ParseErrors[0].Message)" }
-		$PackageContent = Get-Content -LiteralPath $StageFile -Raw -ErrorAction Stop
-		$HeaderVersionMatch = [regex]::Match($PackageContent,'(?m)^Version:\s*(?<Version>\d+(?:\.\d+){1,3})\s*$')
-		$RuntimeVersionMatch = [regex]::Match($PackageContent,'(?m)^\[version\]\$EvergreenVersion\s*=\s*"(?<Version>\d+(?:\.\d+){1,3})"\s*$')
-		if (-not $HeaderVersionMatch.Success) { throw "The package does not contain a Version header." }
-		if (-not $RuntimeVersionMatch.Success) { throw "The package does not contain the runtime version constant." }
-		if ([version]$HeaderVersionMatch.Groups['Version'].Value -ne $Candidate.Version -or [version]$RuntimeVersionMatch.Groups['Version'].Value -ne $Candidate.Version) { throw "Manifest, header, and runtime versions do not match." }
-		$ValidationSucceeded = $true
-		return [PSCustomObject]@{ Success = $true; Version = $Candidate.Version; Hash = $ActualHash; Message = "Download/staging, SHA-256, version, and PowerShell syntax checks passed."; StagedPath = $StageFile; StageFolder = $StageFolder }
-	}
-	catch {
-		return [PSCustomObject]@{ Success = $false; Version = $Candidate.Version; Hash = ""; Message = $_.Exception.Message; StagedPath = ""; StageFolder = $StageFolder }
-	}
-	finally {
-		if ((-not $KeepStagedFile -or -not $ValidationSucceeded) -and (Test-Path -LiteralPath $StageFolder)) { Remove-Item -LiteralPath $StageFolder -Recurse -Force -ErrorAction SilentlyContinue }
-	}
-}
-
-function New-EvergreenValidatedUpdateFromContent {
-	param([string]$Content,[version]$Version,[string]$ProductKey)
-	$StageFolder = Join-Path ([IO.Path]::GetTempPath()) ("Evergreen-Update-DryRun-" + [Guid]::NewGuid().ToString("N"))
-	$StageFile = Join-Path $StageFolder ("Evergreen-Software $ProductKey.ps1")
-	try {
-		if ([String]::IsNullOrWhiteSpace($Content)) { throw "The update source returned an empty script." }
-		[void](New-Item -Path $StageFolder -ItemType Directory -Force -ErrorAction Stop)
-		[IO.File]::WriteAllText($StageFile,$Content,[Text.UTF8Encoding]::new($true))
-		$Tokens = $null
-		$ParseErrors = $null
-		[void][System.Management.Automation.Language.Parser]::ParseFile($StageFile,[ref]$Tokens,[ref]$ParseErrors)
-		if ($ParseErrors.Count -gt 0) { throw "PowerShell syntax validation failed: $($ParseErrors[0].Message)" }
-		$HeaderVersionMatch = [regex]::Match($Content,'(?m)^Version:\s*(?<Version>\d+(?:\.\d+){1,3})\s*$')
-		$RuntimeVersionMatch = [regex]::Match($Content,'(?m)^\[version\]\$EvergreenVersion\s*=\s*"(?<Version>\d+(?:\.\d+){1,3})"\s*$')
-		if (-not $HeaderVersionMatch.Success -or -not $RuntimeVersionMatch.Success) { throw "The downloaded script does not contain matching version metadata." }
-		if ([version]$HeaderVersionMatch.Groups['Version'].Value -ne $Version -or [version]$RuntimeVersionMatch.Groups['Version'].Value -ne $Version) { throw "The downloaded script version does not match the advertised version." }
-		$ActualHash = (Get-FileHash -LiteralPath $StageFile -Algorithm SHA256 -ErrorAction Stop).Hash.ToUpperInvariant()
-		return [PSCustomObject]@{ Success = $true; Version = $Version; Hash = $ActualHash; Message = "Download, version, and PowerShell syntax checks passed."; StagedPath = $StageFile; StageFolder = $StageFolder }
-	}
-	catch {
-		if (Test-Path -LiteralPath $StageFolder) { Remove-Item -LiteralPath $StageFolder -Recurse -Force -ErrorAction SilentlyContinue }
-		return [PSCustomObject]@{ Success = $false; Version = $Version; Hash = ""; Message = $_.Exception.Message; StagedPath = ""; StageFolder = $StageFolder }
-	}
-}
-
-function Write-EvergreenUpdateHealthCheck {
-	if ([String]::IsNullOrWhiteSpace($UpdateHealthCheckPath) -or [String]::IsNullOrWhiteSpace($UpdateHealthCheckToken)) { return }
-	try {
-		$HealthDirectory = Split-Path -Parent $UpdateHealthCheckPath
-		if (-not [String]::IsNullOrWhiteSpace($HealthDirectory)) { [void](New-Item -Path $HealthDirectory -ItemType Directory -Force -ErrorAction Stop) }
-		[IO.File]::WriteAllText($UpdateHealthCheckPath,$UpdateHealthCheckToken,[Text.Encoding]::UTF8)
-	}
-	catch { }
-}
-
-function Install-EvergreenValidatedUpdate {
-	param($ValidationResult,[string]$ProductKey,[int]$HealthTimeoutSeconds = 120)
-	$RestartProcess = $null
-	$IncomingPath = "$PSCommandPath.evergreen-update"
-	$TransactionFolder = Join-Path ([IO.Path]::GetTempPath()) ("Evergreen-Update-Health-" + [Guid]::NewGuid().ToString("N"))
-	$HealthPath = Join-Path $TransactionFolder "health.txt"
-	$HealthToken = [Guid]::NewGuid().ToString("N")
-	$BackupRoot = Join-Path $PSScriptRoot "_Update Backups"
-	$BackupName = "{0}-{1}-{2}.ps1" -f $ProductKey,$EvergreenVersion,(Get-Date -Format "yyyyMMdd-HHmmss")
-	$BackupScriptPath = Join-Path $BackupRoot $BackupName
-	try {
-		if ($null -eq $ValidationResult -or -not $ValidationResult.Success) { throw "The update package has not passed validation." }
-		if (-not (Test-Path -LiteralPath $ValidationResult.StagedPath -PathType Leaf)) { throw "The validated update package is no longer available." }
-		$StageHash = (Get-FileHash -LiteralPath $ValidationResult.StagedPath -Algorithm SHA256 -ErrorAction Stop).Hash.ToUpperInvariant()
-		if ($StageHash -ne ([string]$ValidationResult.Hash).ToUpperInvariant()) { throw "The staged update package changed after validation." }
-		[void](New-Item -Path $BackupRoot -ItemType Directory -Force -ErrorAction Stop)
-		[void](New-Item -Path $TransactionFolder -ItemType Directory -Force -ErrorAction Stop)
-		Copy-Item -LiteralPath $ValidationResult.StagedPath -Destination $IncomingPath -Force -ErrorAction Stop
-		[IO.File]::Replace($IncomingPath,$PSCommandPath,$BackupScriptPath,$true)
-
-		$PowerShellExecutable = if ($PSVersionTable.PSEdition -eq 'Core') { Join-Path $PSHOME 'pwsh.exe' } else { Join-Path $PSHOME 'powershell.exe' }
-		if (-not (Test-Path -LiteralPath $PowerShellExecutable -PathType Leaf)) { $PowerShellExecutable = (Get-Process -Id $PID).Path }
-		$RestartArguments = "-NoLogo -NoProfile -File `"$PSCommandPath`" -SkipUpdateCheck -UpdateHealthCheckPath `"$HealthPath`" -UpdateHealthCheckToken $HealthToken"
-		$RestartProcess = Start-Process -FilePath $PowerShellExecutable -ArgumentList $RestartArguments -PassThru -ErrorAction Stop
-		Set-StartupStatus "Verifying the updated $ProductKey..." "The new GUI is starting. The previous script remains available in _Update Backups."
-		$HealthTimer = [Diagnostics.Stopwatch]::StartNew()
-		do {
-			if (Test-Path -LiteralPath $HealthPath -PathType Leaf) {
-				$ReportedToken = (Get-Content -LiteralPath $HealthPath -Raw -ErrorAction SilentlyContinue).Trim()
-				if ($ReportedToken -eq $HealthToken) {
-					return [PSCustomObject]@{ Success = $true; Message = "The updated GUI started successfully."; BackupPath = $BackupScriptPath; Process = $RestartProcess }
-				}
-			}
-			if ($RestartProcess.HasExited) { break }
-			if ($null -ne $script:StartupForm -and -not $script:StartupForm.IsDisposed) { [System.Windows.Forms.Application]::DoEvents() }
-			Start-Sleep -Milliseconds 100
-		} while ($HealthTimer.Elapsed.TotalSeconds -lt $HealthTimeoutSeconds)
-		throw "The updated GUI did not report a successful start within $HealthTimeoutSeconds seconds."
-	}
-	catch {
-		$FailureMessage = $_.Exception.Message
-		if ($null -ne $RestartProcess -and -not $RestartProcess.HasExited) { Stop-Process -Id $RestartProcess.Id -Force -ErrorAction SilentlyContinue }
-		if (Test-Path -LiteralPath $BackupScriptPath -PathType Leaf) {
-			try { Copy-Item -LiteralPath $BackupScriptPath -Destination $PSCommandPath -Force -ErrorAction Stop }
-			catch { $FailureMessage = "$FailureMessage Rollback failed: $($_.Exception.Message)" }
-		}
-		return [PSCustomObject]@{ Success = $false; Message = $FailureMessage; BackupPath = $BackupScriptPath; Process = $RestartProcess }
-	}
-	finally {
-		Remove-Item -LiteralPath $IncomingPath -Force -ErrorAction SilentlyContinue
-		if (Test-Path -LiteralPath $TransactionFolder) { Remove-Item -LiteralPath $TransactionFolder -Recurse -Force -ErrorAction SilentlyContinue }
-	}
-}
-
-function Remove-EvergreenStagedUpdate {
-	param($ValidationResult)
-	if ($null -eq $ValidationResult -or [String]::IsNullOrWhiteSpace([string]$ValidationResult.StageFolder)) { return }
-	$ResolvedStage = [IO.Path]::GetFullPath([string]$ValidationResult.StageFolder)
-	$ResolvedTemp = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
-	if ($ResolvedStage.StartsWith($ResolvedTemp,[StringComparison]::OrdinalIgnoreCase) -and (Split-Path -Leaf $ResolvedStage) -like "Evergreen-Update-DryRun-*") { Remove-Item -LiteralPath $ResolvedStage -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
 
@@ -671,16 +386,9 @@ function Get-FileFromWeb {
         }
   
         catch {
+        
             $ExeptionMsg = $_.Exception.Message
-            $StatusCode = $null
-            if ($null -ne $_.Exception.Response -and $null -ne $_.Exception.Response.StatusCode) {
-                try { $StatusCode = [int]$_.Exception.Response.StatusCode } catch { $StatusCode = $null }
-            }
-            $StatusText = if ($null -ne $StatusCode) { " HTTP=$StatusCode" } else { "" }
-            Write-Host -ForegroundColor Red "Download breaks with error:$StatusText $ExeptionMsg"
-            Write-Host -ForegroundColor DarkGray "Source: $URL"
-            Write-Host -ForegroundColor DarkGray "Target: $File"
-            # Deliberately non-terminating: continue with the next product.
+            Write-Host "Download breaks with error : $ExeptionMsg"
         }
   
         finally {
@@ -701,139 +409,18 @@ function Get-FileFromWeb {
 function gui_mode{
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.Application]::EnableVisualStyles()
-	$OriginalSoftwareSelection = $SoftwareSelection
 
     # Set the size of your form
     $Form = New-Object system.Windows.Forms.Form
-	$Form.ClientSize = New-Object System.Drawing.Point(1280,820)
-	$Form.MinimumSize = New-Object System.Drawing.Size(1100,720)
-    $Form.text = "Software-Updater $EvergreenVersion"
+    $Form.ClientSize = New-Object System.Drawing.Point(920,590)
+    $Form.text = "Software-Updater"
     $Form.TopMost = $false
-	$Form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
-	$Form.WindowState = [System.Windows.Forms.FormWindowState]::Maximized
-	$FormIconPath = Join-Path $PSScriptRoot "Shortcut\Software_Update_Download.ico"
-	if (Test-Path -LiteralPath $FormIconPath -PathType Leaf) { try { $Form.Icon = [System.Drawing.Icon]::new($FormIconPath) } catch { } }
-	else { try { $FormIcon = New-EvergreenIcon; if ($null -ne $FormIcon) { $Form.Icon = $FormIcon } } catch { } }
-	$Form.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::Dpi
-    $Form.AutoSize = $false
-	$Form.BackColor = [System.Drawing.Color]::FromArgb(245,247,250)
-	$StyleEvergreenButton = {
-		param($Button,[bool]$Primary = $false)
-		$Button.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-		$Button.FlatAppearance.BorderSize = 1
-		$Button.FlatAppearance.BorderColor = [System.Drawing.Color]::FromArgb(180,201,218)
-		$Button.BackColor = if ($Primary) { [System.Drawing.Color]::FromArgb(22,112,184) } else { [System.Drawing.Color]::FromArgb(216,229,240) }
-		$Button.ForeColor = if ($Primary) { [System.Drawing.Color]::White } else { [System.Drawing.Color]::FromArgb(23,63,102) }
-		$Button.Font = New-Object System.Drawing.Font("Segoe UI",11)
-		$Button.Cursor = [System.Windows.Forms.Cursors]::Hand
-	}
-	$NewEvergreenCategoryIcon = {
-		param([string]$CategoryName)
-		$Bitmap = New-Object System.Drawing.Bitmap -ArgumentList 28,28
-		$Graphics = [System.Drawing.Graphics]::FromImage($Bitmap)
-		$IconColor = [System.Drawing.Color]::FromArgb(22,112,184)
-		$Pen = New-Object System.Drawing.Pen -ArgumentList $IconColor,2
-		$Brush = New-Object System.Drawing.SolidBrush -ArgumentList $IconColor
-		try {
-			$Graphics.Clear([System.Drawing.Color]::Transparent)
-			$Graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
-			$Pen.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
-			$Pen.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
-			$Pen.LineJoin = [System.Drawing.Drawing2D.LineJoin]::Round
-			switch ($CategoryName) {
-				"All categories" {
-					$Graphics.DrawRectangle($Pen,3,3,8,8)
-					$Graphics.DrawRectangle($Pen,17,3,8,8)
-					$Graphics.DrawRectangle($Pen,3,17,8,8)
-					$Graphics.DrawRectangle($Pen,17,17,8,8)
-				}
-				"Standard" {
-					$Top = [System.Drawing.Point[]]@([System.Drawing.Point]::new(3,8),[System.Drawing.Point]::new(14,3),[System.Drawing.Point]::new(25,8),[System.Drawing.Point]::new(14,13))
-					$Graphics.DrawPolygon($Pen,$Top)
-					$Graphics.DrawLine($Pen,3,8,3,20)
-					$Graphics.DrawLine($Pen,3,20,14,25)
-					$Graphics.DrawLine($Pen,14,25,25,20)
-					$Graphics.DrawLine($Pen,25,20,25,8)
-					$Graphics.DrawLine($Pen,14,13,14,25)
-				}
-				"Microsoft" {
-					$Graphics.DrawRectangle($Pen,5,3,18,22)
-					$Windows = [System.Drawing.Rectangle[]]@([System.Drawing.Rectangle]::new(8,7,4,4),[System.Drawing.Rectangle]::new(16,7,4,4),[System.Drawing.Rectangle]::new(8,13,4,4),[System.Drawing.Rectangle]::new(16,13,4,4))
-					foreach ($Window in $Windows) { $Graphics.FillRectangle($Brush,$Window) }
-					$Graphics.DrawRectangle($Pen,11,19,6,6)
-				}
-				"Citrix" {
-					$Graphics.DrawRectangle($Pen,2,4,24,16)
-					$Graphics.DrawLine($Pen,10,25,18,25)
-					$Graphics.DrawLine($Pen,14,20,14,25)
-					$Graphics.FillEllipse($Brush,6,9,3,3)
-					$Graphics.FillEllipse($Brush,12,9,3,3)
-					$Graphics.FillEllipse($Brush,18,9,3,3)
-				}
-				"Utilities" {
-					$Graphics.DrawLine($Pen,8,21,20,9)
-					$Graphics.DrawEllipse($Pen,3,20,7,7)
-					$Graphics.DrawArc($Pen,17,3,9,9,35,220)
-				}
-			}
-		}
-		finally {
-			$Pen.Dispose()
-			$Brush.Dispose()
-			$Graphics.Dispose()
-		}
-		return $Bitmap
-	}
-
-	# Draw the updater header icon in memory. No Base64 data or external image file is required.
-	$NewUpdaterHeaderIcon = {
-		$Bitmap = New-Object System.Drawing.Bitmap -ArgumentList 56,56
-		$Graphics = [System.Drawing.Graphics]::FromImage($Bitmap)
-		$Graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
-		$Graphics.Clear([System.Drawing.Color]::Transparent)
-		$BoxBrush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(224,169,72))
-		$TopBrush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(245,205,117))
-		$BlueBrush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(38,124,218))
-		$WhiteBrush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::White)
-		$BoxPen = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(79,57,25)),1.5
-		$BluePen = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(20,81,155)),1.5
-		$ArrowPen = New-Object System.Drawing.Pen ([System.Drawing.Color]::White),3
-		try {
-			$Graphics.FillRectangle($BoxBrush,6,14,35,31)
-			$Graphics.DrawRectangle($BoxPen,6,14,35,31)
-			$TopPoints = [System.Drawing.Point[]]@(
-				[System.Drawing.Point]::new(6,14),
-				[System.Drawing.Point]::new(14,6),
-				[System.Drawing.Point]::new(48,6),
-				[System.Drawing.Point]::new(41,14)
-			)
-			$Graphics.FillPolygon($TopBrush,$TopPoints)
-			$Graphics.DrawPolygon($BoxPen,$TopPoints)
-			$Graphics.FillEllipse($BlueBrush,31,28,23,23)
-			$Graphics.DrawEllipse($BluePen,31,28,23,23)
-			$ArrowPen.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
-			$ArrowPen.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
-			$Graphics.DrawLine($ArrowPen,42,33,42,42)
-			$ArrowPoints = [System.Drawing.Point[]]@(
-				[System.Drawing.Point]::new(36,40),
-				[System.Drawing.Point]::new(42,46),
-				[System.Drawing.Point]::new(48,40)
-			)
-			$Graphics.FillPolygon($WhiteBrush,$ArrowPoints)
-		}
-		finally {
-			$ArrowPen.Dispose(); $BluePen.Dispose(); $BoxPen.Dispose()
-			$WhiteBrush.Dispose(); $BlueBrush.Dispose(); $TopBrush.Dispose(); $BoxBrush.Dispose()
-			$Graphics.Dispose()
-		}
-		return $Bitmap
-	}
+    $Form.AutoSize = $true
+	$Form.BackColor = [System.Drawing.Color]::White
 
     # Set the font of the text to be used within the form
-	$Font = New-Object System.Drawing.Font("Segoe UI",10)
-	$CardFont = New-Object System.Drawing.Font("Segoe UI",11)
-	$FontBold = New-Object System.Drawing.Font("Segoe UI", 16, [System.Drawing.FontStyle]::Bold)
-	$Form.Font = $Font
+    $Font = New-Object System.Drawing.Font("Arial",10)
+	$FontBold = New-Object System.Drawing.Font("Arial", 11.5, [System.Drawing.FontStyle]::Bold)
 
     # Software Headline
     $Headline2 = New-Object system.Windows.Forms.Label
@@ -1276,7 +863,7 @@ function gui_mode{
 	
 	# Firefox de Checkbox
     $FirefoxBoxDE = New-Object system.Windows.Forms.CheckBox
-    $FirefoxBoxDE.text = "Mozilla Firefox (Deutsch)"
+    $FirefoxBoxDE.text = "de"
     $FirefoxBoxDE.width = 95
     $FirefoxBoxDE.height = 20
     $FirefoxBoxDE.autosize = $true
@@ -1287,7 +874,7 @@ function gui_mode{
 	
 	# Firefox en Checkbox
     $FirefoxBoxEN = New-Object system.Windows.Forms.CheckBox
-    $FirefoxBoxEN.text = "Mozilla Firefox (Englisch)"
+    $FirefoxBoxEN.text = "en"
     $FirefoxBoxEN.width = 95
     $FirefoxBoxEN.height = 20
     $FirefoxBoxEN.autosize = $true
@@ -1507,982 +1094,160 @@ function gui_mode{
 	$ZoomVMWareBox.Checked =  $SoftwareSelection.ZoomVMWare
 	#>
 		
-	# Responsive category layout
-	$SoftwareCheckBoxes = @(
-		[PSCustomObject]@{ Control = $NotePadPlusPlusBox; Category = "Standard" }
-		[PSCustomObject]@{ Control = $SevenZipBox; Category = "Standard" }
-		[PSCustomObject]@{ Control = $AdobeReaderDCBoxUpdate; Category = "Standard" }
-		[PSCustomObject]@{ Control = $AdobeReaderDCx64BoxUpdate; Category = "Standard" }
-		[PSCustomObject]@{ Control = $GoogleChromeBox; Category = "Standard" }
-		[PSCustomObject]@{ Control = $FirefoxBox; Category = "Standard" }
-		[PSCustomObject]@{ Control = $FirefoxBoxDE; Category = "Standard" }
-		[PSCustomObject]@{ Control = $FirefoxBoxEN; Category = "Standard" }
-		[PSCustomObject]@{ Control = $VLCPlayerBox; Category = "Standard" }
-		[PSCustomObject]@{ Control = $FileZillaBox; Category = "Standard" }
-		[PSCustomObject]@{ Control = $pdf24CreatorBox; Category = "Standard" }
-		[PSCustomObject]@{ Control = $FoxItReaderBox; Category = "Standard" }
-		[PSCustomObject]@{ Control = $FSLogixBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MS365AppsBox_SAC; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MS365AppsBox_MEC; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MSOffice2019Box; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MSOffice2021Box; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MSOffice2024Box; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MSEdgeBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MSOneDriveBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $NEWMSTeamsBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $VcRedistBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MSPowershellBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MSDotNetRuntimeBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MSDotNetDesktopRuntimeBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MSSQLManagementStudioENBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MSSQLManagementStudioDEBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MSSysinternalsBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MicrosoftOpenJDKBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $MSVisualStudioCodeBox; Category = "Microsoft" }
-		[PSCustomObject]@{ Control = $RDAnalyzerBox; Category = "Citrix" }
-		[PSCustomObject]@{ Control = $BISFBox; Category = "Citrix" }
-		[PSCustomObject]@{ Control = $WorkspaceApp_CRBox; Category = "Citrix" }
-		[PSCustomObject]@{ Control = $WorkspaceApp_LTSRBox; Category = "Citrix" }
-		[PSCustomObject]@{ Control = $Citrix_VMToolsBox; Category = "Citrix" }
-		[PSCustomObject]@{ Control = $Citrix_XenCenterBox; Category = "Citrix" }
-		[PSCustomObject]@{ Control = $ControlUpConsoleBox; Category = "Citrix" }
-		[PSCustomObject]@{ Control = $ControlUpRemoteDXBox; Category = "Citrix" }
-		[PSCustomObject]@{ Control = $CiscoWebExVDIBox; Category = "Citrix" }
-		[PSCustomObject]@{ Control = $ZoomVDIBox; Category = "Citrix" }
-		[PSCustomObject]@{ Control = $ZoomCitrixBox; Category = "Citrix" }
-		[PSCustomObject]@{ Control = $VMWareToolsBox; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $RemoteDesktopManagerBox; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $mRemoteNGBox; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $WinSCPBox; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $PuttyBox; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $OracleJava8Box; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $OracleJava8_32Box; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $KeePassBox; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $KeePassXCBox; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $WinRARBox; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $GreenshotBox; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $IGELUniversalManagementSuiteBox; Category = "Citrix" }
-		[PSCustomObject]@{ Control = $ImageGlassBox; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $ShareXBox; Category = "Utilities" }
-		[PSCustomObject]@{ Control = $TreeSizeFreeBox; Category = "Utilities" }
-	)
-
-	$HeaderPanel = New-Object System.Windows.Forms.Panel
-	$HeaderPanel.Location = New-Object System.Drawing.Point(0,0)
-	$HeaderPanel.Size = New-Object System.Drawing.Size(1280,78)
-	$HeaderPanel.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
-	$HeaderPanel.BackColor = [System.Drawing.Color]::FromArgb(16,64,104)
-	$Form.Controls.Add($HeaderPanel)
-
-	$HeaderLogo = New-Object System.Windows.Forms.PictureBox
-	$HeaderLogo.Location = New-Object System.Drawing.Point(20,11)
-	$HeaderLogo.Size = New-Object System.Drawing.Size(56,56)
-	$HeaderLogo.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom
-	$HeaderLogo.BackColor = [System.Drawing.Color]::Transparent
-	$HeaderLogo.Image = & $NewUpdaterHeaderIcon
-	$HeaderPanel.Controls.Add($HeaderLogo)
-
-	$ProductTitle = New-Object System.Windows.Forms.Label
-	$ProductTitle.Text = "Evergreen Software Updater"
-	$ProductTitle.AutoSize = $true
-	$ProductTitle.Location = New-Object System.Drawing.Point(82,14)
-	$ProductTitle.Font = New-Object System.Drawing.Font("Segoe UI",17,[System.Drawing.FontStyle]::Bold)
-	$ProductTitle.ForeColor = [System.Drawing.Color]::White
-	$HeaderPanel.Controls.Add($ProductTitle)
-
-	$VersionBadge = New-Object System.Windows.Forms.Label
-	$VersionBadge.Text = "VERSION $EvergreenVersion"
-	$VersionBadge.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-	$VersionBadge.Location = New-Object System.Drawing.Point(620,19)
-	$VersionBadge.Size = New-Object System.Drawing.Size(145,25)
-	$VersionBadge.Font = New-Object System.Drawing.Font("Segoe UI",9,[System.Drawing.FontStyle]::Bold)
-	$VersionBadge.ForeColor = [System.Drawing.Color]::White
-	$VersionBadge.BackColor = [System.Drawing.Color]::FromArgb(56,160,93)
-	$HeaderPanel.Controls.Add($VersionBadge)
-
-	$ProductSubtitle = New-Object System.Windows.Forms.Label
-	$ProductSubtitle.Text = "Select software packages to download on the management host"
-	$ProductSubtitle.AutoSize = $true
-	$ProductSubtitle.Location = New-Object System.Drawing.Point(84,48)
-	$ProductSubtitle.ForeColor = [System.Drawing.Color]::FromArgb(205,222,236)
-	$HeaderPanel.Controls.Add($ProductSubtitle)
-
-	$HeaderProfileCaption = New-Object System.Windows.Forms.Label
-	$HeaderProfileCaption.Text = "SHARED PROFILE"
-	$HeaderProfileCaption.AutoSize = $true
-	$HeaderProfileCaption.Location = New-Object System.Drawing.Point(1010,16)
-	$HeaderProfileCaption.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Right
-	$HeaderProfileCaption.Font = New-Object System.Drawing.Font("Segoe UI",8,[System.Drawing.FontStyle]::Bold)
-	$HeaderProfileCaption.ForeColor = [System.Drawing.Color]::FromArgb(155,195,222)
-	$HeaderPanel.Controls.Add($HeaderProfileCaption)
-
-	$HeaderProfileValue = New-Object System.Windows.Forms.Label
-	$HeaderProfileValue.Text = "$(Split-Path -Leaf $SoftwareToUpdate)"
-	$HeaderProfileValue.AutoEllipsis = $true
-	$HeaderProfileValue.TextAlign = [System.Drawing.ContentAlignment]::MiddleRight
-	$HeaderProfileValue.Location = New-Object System.Drawing.Point(945,36)
-	$HeaderProfileValue.Size = New-Object System.Drawing.Size(310,26)
-	$HeaderProfileValue.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Right
-	$HeaderProfileValue.ForeColor = [System.Drawing.Color]::White
-	$HeaderPanel.Controls.Add($HeaderProfileValue)
-
-	$NavigationPanel = New-Object System.Windows.Forms.Panel
-	$NavigationPanel.Location = New-Object System.Drawing.Point(0,78)
-	$NavigationPanel.Size = New-Object System.Drawing.Size(1280,54)
-	$NavigationPanel.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
-	$NavigationPanel.BackColor = [System.Drawing.Color]::White
-	$Form.Controls.Add($NavigationPanel)
-
-	$SelectionNavButton = New-Object System.Windows.Forms.Button
-	$SelectionNavButton.Text = "Software selection"
-	$SelectionNavButton.Location = New-Object System.Drawing.Point(22,6)
-	$SelectionNavButton.Size = New-Object System.Drawing.Size(205,42)
-	$SelectionNavButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-	$SelectionNavButton.FlatAppearance.BorderSize = 0
-	$SelectionNavButton.BackColor = [System.Drawing.Color]::FromArgb(232,241,248)
-	$SelectionNavButton.ForeColor = [System.Drawing.Color]::FromArgb(16,91,145)
-	$SelectionNavButton.Font = New-Object System.Drawing.Font("Segoe UI",11,[System.Drawing.FontStyle]::Bold)
-	$NavigationPanel.Controls.Add($SelectionNavButton)
-
-	$ProcessNavButton = New-Object System.Windows.Forms.Button
-	$ProcessNavButton.Text = "Process && results"
-	$ProcessNavButton.Location = New-Object System.Drawing.Point(233,6)
-	$ProcessNavButton.Size = New-Object System.Drawing.Size(205,42)
-	$ProcessNavButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-	$ProcessNavButton.FlatAppearance.BorderSize = 0
-	$ProcessNavButton.BackColor = [System.Drawing.Color]::White
-	$ProcessNavButton.ForeColor = [System.Drawing.Color]::FromArgb(90,100,115)
-	$ProcessNavButton.Font = New-Object System.Drawing.Font("Segoe UI",11,[System.Drawing.FontStyle]::Bold)
-	$NavigationPanel.Controls.Add($ProcessNavButton)
-
-	$NavigationStatus = New-Object System.Windows.Forms.Label
-	$NavigationStatus.Text = "Profile loaded  |  Management host: $ENV:ComputerName"
-	$NavigationStatus.TextAlign = [System.Drawing.ContentAlignment]::MiddleRight
-	$NavigationStatus.Location = New-Object System.Drawing.Point(880,11)
-	$NavigationStatus.Size = New-Object System.Drawing.Size(375,32)
-	$NavigationStatus.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Right
-	$NavigationStatus.ForeColor = [System.Drawing.Color]::FromArgb(69,128,90)
-	$NavigationPanel.Controls.Add($NavigationStatus)
-
-	$SelectionPanel = New-Object System.Windows.Forms.Panel
-	$SelectionPanel.Location = New-Object System.Drawing.Point(0,132)
-	$SelectionPanel.Size = New-Object System.Drawing.Size(1280,688)
-	$SelectionPanel.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
-	$SelectionPanel.BackColor = [System.Drawing.Color]::FromArgb(245,247,250)
-	$Form.Controls.Add($SelectionPanel)
-
-	$Headline2.Text = "Choose software to download"
-	$Headline2.Location = New-Object System.Drawing.Point(24,15)
-	$Headline2.Font = New-Object System.Drawing.Font("Segoe UI",18,[System.Drawing.FontStyle]::Bold)
-	$SelectionPanel.Controls.Add($Headline2)
-
-	$ProfileLabel = New-Object System.Windows.Forms.Label
-	$ProfileLabel.AutoSize = $true
-	$ProfileLabel.ForeColor = [System.Drawing.Color]::FromArgb(90,100,115)
-	$ProfileLabel.Text = "Selections are stored in the shared profile $(Split-Path -Leaf $SoftwareToUpdate)."
-	$ProfileLabel.Location = New-Object System.Drawing.Point(26,49)
-	$SelectionPanel.Controls.Add($ProfileLabel)
-
-	$SearchLabel = New-Object System.Windows.Forms.Label
-	$SearchLabel.Text = "Search software"
-	$SearchLabel.AutoSize = $true
-	$SearchLabel.Location = New-Object System.Drawing.Point(24,81)
-	$SelectionPanel.Controls.Add($SearchLabel)
-
-	$SearchBox = New-Object System.Windows.Forms.TextBox
-	$SearchBox.Location = New-Object System.Drawing.Point(24,104)
-	$SearchBox.Size = New-Object System.Drawing.Size(340,30)
-	$SelectionPanel.Controls.Add($SearchBox)
-
-	$CategoryFilterState = [PSCustomObject]@{ Selected = "All categories" }
-	$CategoryButtons = @()
-	$CategoryPanel = New-Object System.Windows.Forms.FlowLayoutPanel
-	$CategoryPanel.Location = New-Object System.Drawing.Point(380,74)
-	$CategoryPanel.Size = New-Object System.Drawing.Size(740,76)
-	$CategoryPanel.WrapContents = $false
-	$CategoryPanel.BackColor = [System.Drawing.Color]::Transparent
-	foreach ($CategoryName in @("All categories","Standard","Microsoft","Citrix","Utilities")) {
-		$CategoryCount = if ($CategoryName -eq "All categories") { $SoftwareCheckBoxes.Count } else { @($SoftwareCheckBoxes | Where-Object { $_.Category -eq $CategoryName }).Count }
-		$CategoryDisplayName = if ($CategoryName -eq "All categories") { "ALL" } else { $CategoryName.ToUpperInvariant() }
-		$CategoryButton = New-Object System.Windows.Forms.Button
-		$CategoryButton.Text = ""
-		$CategoryButton.Tag = $CategoryName
-		$CategoryButton.AccessibleName = "$CategoryDisplayName category, $CategoryCount products"
-		$CategoryButton.Size = New-Object System.Drawing.Size(142,68)
-		$CategoryButton.Margin = New-Object System.Windows.Forms.Padding(3)
-		$CategoryButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-		$CategoryButton.FlatAppearance.BorderSize = 1
-		$CategoryButton.FlatAppearance.BorderColor = if ($CategoryName -eq "All categories") { [System.Drawing.Color]::FromArgb(22,112,184) } else { [System.Drawing.Color]::FromArgb(205,218,230) }
-		$CategoryButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(232,241,248)
-		$CategoryButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(216,229,240)
-		$CategoryButton.BackColor = if ($CategoryName -eq "All categories") { [System.Drawing.Color]::FromArgb(216,229,240) } else { [System.Drawing.Color]::White }
-		$CategoryButton.ForeColor = [System.Drawing.Color]::FromArgb(23,63,102)
-		$CategoryButton.Cursor = [System.Windows.Forms.Cursors]::Hand
-
-		$CategoryIconPanel = New-Object System.Windows.Forms.Panel
-		$CategoryIconPanel.Name = "CategoryIconPanel"
-		$CategoryIconPanel.Location = New-Object System.Drawing.Point(10,15)
-		$CategoryIconPanel.Size = New-Object System.Drawing.Size(38,38)
-		$CategoryIconPanel.BackColor = [System.Drawing.Color]::FromArgb(232,241,248)
-		$CategoryIconPanel.Cursor = [System.Windows.Forms.Cursors]::Hand
-		$CategoryIcon = New-Object System.Windows.Forms.PictureBox
-		$CategoryIcon.Location = New-Object System.Drawing.Point(5,5)
-		$CategoryIcon.Size = New-Object System.Drawing.Size(28,28)
-		$CategoryIcon.Image = & $NewEvergreenCategoryIcon -CategoryName $CategoryName
-		$CategoryIcon.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::CenterImage
-		$CategoryIcon.Cursor = [System.Windows.Forms.Cursors]::Hand
-		$CategoryIconPanel.Controls.Add($CategoryIcon)
-
-		$CategoryNameLabel = New-Object System.Windows.Forms.Label
-		$CategoryNameLabel.Text = $CategoryDisplayName
-		$CategoryNameLabel.Location = New-Object System.Drawing.Point(56,9)
-		$CategoryNameLabel.Size = New-Object System.Drawing.Size(80,21)
-		$CategoryNameLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
-		$CategoryNameLabel.Font = New-Object System.Drawing.Font("Segoe UI",9,[System.Drawing.FontStyle]::Bold)
-		$CategoryNameLabel.ForeColor = [System.Drawing.Color]::FromArgb(23,63,102)
-		$CategoryNameLabel.BackColor = [System.Drawing.Color]::Transparent
-		$CategoryNameLabel.Cursor = [System.Windows.Forms.Cursors]::Hand
-
-		$CategoryCountLabel = New-Object System.Windows.Forms.Label
-		$CategoryCountLabel.Text = [string]$CategoryCount
-		$CategoryCountLabel.Location = New-Object System.Drawing.Point(56,31)
-		$CategoryCountLabel.Size = New-Object System.Drawing.Size(80,24)
-		$CategoryCountLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
-		$CategoryCountLabel.Font = New-Object System.Drawing.Font("Segoe UI",12,[System.Drawing.FontStyle]::Bold)
-		$CategoryCountLabel.ForeColor = [System.Drawing.Color]::FromArgb(47,164,91)
-		$CategoryCountLabel.BackColor = [System.Drawing.Color]::Transparent
-		$CategoryCountLabel.Cursor = [System.Windows.Forms.Cursors]::Hand
-
-		$ForwardCategoryClick = { $CategoryButton.PerformClick() }.GetNewClosure()
-		foreach ($ChildControl in @($CategoryIconPanel,$CategoryIcon,$CategoryNameLabel,$CategoryCountLabel)) { $ChildControl.Add_Click($ForwardCategoryClick) }
-		$CategoryButton.Controls.Add($CategoryIconPanel)
-		$CategoryButton.Controls.Add($CategoryNameLabel)
-		$CategoryButton.Controls.Add($CategoryCountLabel)
-		$CategoryPanel.Controls.Add($CategoryButton)
-		$CategoryButtons += $CategoryButton
-	}
-	$SelectionPanel.Controls.Add($CategoryPanel)
-
-	$SelectionCountLabel = New-Object System.Windows.Forms.Label
-	$SelectionCountLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
-	$SelectionCountLabel.ForeColor = [System.Drawing.Color]::FromArgb(16,91,145)
-	$SelectionCountLabel.Font = New-Object System.Drawing.Font("Segoe UI",10,[System.Drawing.FontStyle]::Bold)
-	$SelectionCountLabel.Location = New-Object System.Drawing.Point(24,136)
-	$SelectionCountLabel.Size = New-Object System.Drawing.Size(340,24)
-	$SelectionCountLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Left
-	$SelectionPanel.Controls.Add($SelectionCountLabel)
-
-	$AvailableUpdatesLabel = New-Object System.Windows.Forms.Label
-	$AvailableUpdatesLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleRight
-	$AvailableUpdatesLabel.ForeColor = [System.Drawing.Color]::FromArgb(20,120,52)
-	$AvailableUpdatesLabel.Font = New-Object System.Drawing.Font("Segoe UI",9,[System.Drawing.FontStyle]::Bold)
-	$AvailableUpdatesLabel.Location = New-Object System.Drawing.Point(945,39)
-	$AvailableUpdatesLabel.Size = New-Object System.Drawing.Size(310,27)
-	$AvailableUpdatesLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Right
-	$AvailableUpdatesLabel.Visible = $false
-	$SelectionPanel.Controls.Add($AvailableUpdatesLabel)
-
-	$SoftwareFlow = New-Object System.Windows.Forms.FlowLayoutPanel
-	$SoftwareFlow.Location = New-Object System.Drawing.Point(20,166)
-	$SoftwareFlow.Size = New-Object System.Drawing.Size(1240,454)
-	$SoftwareFlow.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
-	$SoftwareFlow.AutoScroll = $true
-	$SoftwareFlow.WrapContents = $true
-	$SoftwareFlow.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
-	$SoftwareFlow.Padding = New-Object System.Windows.Forms.Padding(4)
-	$SoftwareFlow.BackColor = [System.Drawing.Color]::FromArgb(235,239,244)
-	$SelectionPanel.Controls.Add($SoftwareFlow)
-
-	$UnavailableSoftwareControls = @($MS365AppsBox_SAC,$MSSysinternalsBox,$FoxItReaderBox)
-	$UnavailableCardFont = New-Object System.Drawing.Font("Segoe UI",11,[System.Drawing.FontStyle]::Strikeout)
-	foreach ($SoftwareItem in $SoftwareCheckBoxes) {
-		$CardPanel = New-Object System.Windows.Forms.Panel
-		$CardPanel.Size = New-Object System.Drawing.Size(595,72)
-		$CardPanel.Margin = New-Object System.Windows.Forms.Padding(5)
-		$CardPanel.BackColor = [System.Drawing.Color]::White
-		$CardPanel.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-
-		if ($UnavailableSoftwareControls -contains $SoftwareItem.Control) {
-			$SoftwareItem.Control.Font = $UnavailableCardFont
-			$SoftwareItem.Control.ForeColor = [System.Drawing.Color]::FromArgb(125,132,140)
-		}
-		else {
-			$SoftwareItem.Control.Font = $CardFont
-			$SoftwareItem.Control.ForeColor = [System.Drawing.Color]::FromArgb(30,40,55)
-		}
-		$SoftwareItem.Control.AutoSize = $false
-		$SoftwareItem.Control.Location = New-Object System.Drawing.Point(14,11)
-		$SoftwareItem.Control.Size = New-Object System.Drawing.Size(370,48)
-		$SoftwareItem.Control.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
-		$SoftwareItem.Control.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
-		$SoftwareItem.Control.UseCompatibleTextRendering = $true
-
-		$CategoryBadge = New-Object System.Windows.Forms.Label
-		$CategoryBadge.Text = $SoftwareItem.Category.ToUpperInvariant()
-		$CategoryBadge.TextAlign = [System.Drawing.ContentAlignment]::MiddleRight
-		$CategoryBadge.Location = New-Object System.Drawing.Point(398,7)
-		$CategoryBadge.Size = New-Object System.Drawing.Size(180,23)
-		$CategoryBadge.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Right
-		$CategoryBadge.Font = New-Object System.Drawing.Font("Segoe UI",9,[System.Drawing.FontStyle]::Bold)
-		$CategoryBadge.ForeColor = [System.Drawing.Color]::FromArgb(91,111,127)
-
-		$UpdateBadge = New-Object System.Windows.Forms.Label
-		$UpdateBadge.Text = "NEW VERSION DOWNLOADED"
-		$UpdateBadge.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-		$UpdateBadge.Location = New-Object System.Drawing.Point(398,37)
-		$UpdateBadge.Size = New-Object System.Drawing.Size(180,23)
-		$UpdateBadge.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Right
-		$UpdateBadge.Font = New-Object System.Drawing.Font("Segoe UI",8,[System.Drawing.FontStyle]::Bold)
-		$UpdateBadge.ForeColor = [System.Drawing.Color]::White
-		$UpdateBadge.BackColor = [System.Drawing.Color]::FromArgb(20,120,52)
-		$UpdateBadge.Visible = $false
-
-		$CardPanel.Controls.Add($SoftwareItem.Control)
-		$CardPanel.Controls.Add($CategoryBadge)
-		$CardPanel.Controls.Add($UpdateBadge)
-		$SoftwareFlow.Controls.Add($CardPanel)
-		$SoftwareItem | Add-Member -MemberType NoteProperty -Name Container -Value $CardPanel
-		$SoftwareItem | Add-Member -MemberType NoteProperty -Name UpdateBadge -Value $UpdateBadge
-	}
-
-	$ResizeCards = {
-		$AvailableWidth = $SoftwareFlow.ClientSize.Width - 22
-		$ColumnCount = if ($AvailableWidth -ge 1050) { 3 } elseif ($AvailableWidth -ge 700) { 2 } else { 1 }
-		$CardWidth = [Math]::Max(340,[int]($AvailableWidth / $ColumnCount) - 10)
-		foreach ($SoftwareItem in $SoftwareCheckBoxes) {
-			$SoftwareItem.Container.Width = $CardWidth
-			$SoftwareItem.Control.Width = [Math]::Max(120,$CardWidth - 215)
-		}
-	}.GetNewClosure()
-	$SoftwareFlow.Add_SizeChanged($ResizeCards)
-	& $ResizeCards
-
-	$RefreshSelectionCount = {
-		$SelectedCount = @($SoftwareCheckBoxes | Where-Object { $_.Control.Checked }).Count
-		$SelectionCountLabel.Text = "$SelectedCount of $($SoftwareCheckBoxes.Count) selected"
-
-		# Highlight selected software cards with the same color as Select all / Clear all.
-		foreach ($SoftwareItem in $SoftwareCheckBoxes) {
-			if ($SoftwareItem.Control.Checked) {
-				$SoftwareItem.Container.BackColor = [System.Drawing.Color]::FromArgb(216,229,240)
-			} else {
-				$SoftwareItem.Container.BackColor = [System.Drawing.Color]::White
-			}
-		}
-	}.GetNewClosure()
-	foreach ($SoftwareItem in $SoftwareCheckBoxes) { $SoftwareItem.Control.Add_CheckedChanged($RefreshSelectionCount) }
-
-	$ApplySoftwareFilter = {
-		$SearchText = $SearchBox.Text.Trim()
-		$SelectedCategory = [string]$CategoryFilterState.Selected
-		foreach ($SoftwareItem in $SoftwareCheckBoxes) {
-			$MatchesSearch = [String]::IsNullOrWhiteSpace($SearchText) -or $SoftwareItem.Control.Text.IndexOf($SearchText,[StringComparison]::OrdinalIgnoreCase) -ge 0
-			$MatchesCategory = $SelectedCategory -eq "All categories" -or $SoftwareItem.Category -eq $SelectedCategory
-			$SoftwareItem.Container.Visible = $MatchesSearch -and $MatchesCategory
-		}
-	}.GetNewClosure()
-	$SearchBox.Add_TextChanged($ApplySoftwareFilter)
-	foreach ($CategoryButton in $CategoryButtons) {
-		$CategoryButton.Add_Click({
-			param($sender,$eventArgs)
-			$CategoryFilterState.Selected = [string]$sender.Tag
-			foreach ($ButtonItem in $CategoryButtons) {
-				$IsActiveCategory = $ButtonItem -eq $sender
-				$ButtonItem.BackColor = if ($IsActiveCategory) { [System.Drawing.Color]::FromArgb(216,229,240) } else { [System.Drawing.Color]::White }
-				$ButtonItem.FlatAppearance.BorderColor = if ($IsActiveCategory) { [System.Drawing.Color]::FromArgb(22,112,184) } else { [System.Drawing.Color]::FromArgb(205,218,230) }
-			}
-			& $ApplySoftwareFilter
-		}.GetNewClosure())
-	}
-	& $RefreshSelectionCount
-
-	$ProcessPanel = New-Object System.Windows.Forms.Panel
-	$ProcessPanel.Location = New-Object System.Drawing.Point(0,132)
-	$ProcessPanel.Size = New-Object System.Drawing.Size(1280,688)
-	$ProcessPanel.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
-	$ProcessPanel.BackColor = [System.Drawing.Color]::FromArgb(245,247,250)
-	$ProcessPanel.Visible = $false
-	$Form.Controls.Add($ProcessPanel)
-
-	$ProcessTitle = New-Object System.Windows.Forms.Label
-	$ProcessTitle.Text = "Process & results"
-	$ProcessTitle.AutoSize = $true
-	$ProcessTitle.Location = New-Object System.Drawing.Point(24,20)
-	$ProcessTitle.Font = New-Object System.Drawing.Font("Segoe UI",17,[System.Drawing.FontStyle]::Bold)
-	$ProcessPanel.Controls.Add($ProcessTitle)
-
-	$ProcessCard = New-Object System.Windows.Forms.Panel
-	$ProcessCard.Location = New-Object System.Drawing.Point(24,72)
-	$ProcessCard.Size = New-Object System.Drawing.Size(1230,590)
-	$ProcessCard.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
-	$ProcessCard.BackColor = [System.Drawing.Color]::White
-	$ProcessCard.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-	$ProcessPanel.Controls.Add($ProcessCard)
-
-	$ProcessState = New-Object System.Windows.Forms.Label
-	$ProcessState.Text = "No active update"
-	$ProcessState.AutoSize = $true
-	$ProcessState.Location = New-Object System.Drawing.Point(24,26)
-	$ProcessState.Font = New-Object System.Drawing.Font("Segoe UI",13,[System.Drawing.FontStyle]::Bold)
-	$ProcessCard.Controls.Add($ProcessState)
-
-	$ProcessInfo = New-Object System.Windows.Forms.Label
-	$ProcessInfo.Text = "Start the update from the software selection. PowerShell output and errors will appear here live."
-	$ProcessInfo.Location = New-Object System.Drawing.Point(26,66)
-	$ProcessInfo.Size = New-Object System.Drawing.Size(1120,28)
-	$ProcessInfo.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
-	$ProcessInfo.ForeColor = [System.Drawing.Color]::FromArgb(90,100,115)
-	$ProcessCard.Controls.Add($ProcessInfo)
-
-	$ProcessProgress = New-Object System.Windows.Forms.ProgressBar
-	$ProcessProgress.Location = New-Object System.Drawing.Point(26,101)
-	$ProcessProgress.Size = New-Object System.Drawing.Size(1176,18)
-	$ProcessProgress.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
-	$ProcessProgress.Style = [System.Windows.Forms.ProgressBarStyle]::Continuous
-	$ProcessCard.Controls.Add($ProcessProgress)
-
-	$ProcessGrid = New-Object System.Windows.Forms.DataGridView
-	$ProcessGrid.Location = New-Object System.Drawing.Point(26,135)
-	$ProcessGrid.Size = New-Object System.Drawing.Size(1176,390)
-	$ProcessGrid.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
-	$ProcessGrid.ReadOnly = $true
-	$ProcessGrid.AllowUserToAddRows = $false
-	$ProcessGrid.AllowUserToDeleteRows = $false
-	$ProcessGrid.AllowUserToResizeRows = $false
-	$ProcessGrid.MultiSelect = $false
-	$ProcessGrid.RowHeadersVisible = $false
-	$ProcessGrid.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
-	$ProcessGrid.AutoGenerateColumns = $false
-	$ProcessGrid.BackgroundColor = [System.Drawing.Color]::White
-	$ProcessGrid.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-	$ProcessGrid.CellBorderStyle = [System.Windows.Forms.DataGridViewCellBorderStyle]::SingleHorizontal
-	$ProcessGrid.GridColor = [System.Drawing.Color]::FromArgb(225,231,237)
-	$ProcessGrid.EnableHeadersVisualStyles = $false
-	$ProcessGrid.ColumnHeadersHeight = 36
-	$ProcessGrid.ColumnHeadersDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(232,241,248)
-	$ProcessGrid.ColumnHeadersDefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(16,64,104)
-	$ProcessGrid.ColumnHeadersDefaultCellStyle.Font = New-Object System.Drawing.Font("Segoe UI",9,[System.Drawing.FontStyle]::Bold)
-	$ProcessGrid.DefaultCellStyle.BackColor = [System.Drawing.Color]::White
-	$ProcessGrid.DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(42,52,64)
-	$ProcessGrid.DefaultCellStyle.SelectionBackColor = [System.Drawing.Color]::FromArgb(218,233,244)
-	$ProcessGrid.DefaultCellStyle.SelectionForeColor = [System.Drawing.Color]::FromArgb(30,40,55)
-	$ProcessGrid.DefaultCellStyle.Font = New-Object System.Drawing.Font("Segoe UI",9)
-	$ProcessGrid.RowTemplate.Height = 30
-
-	$TimeColumn = New-Object System.Windows.Forms.DataGridViewTextBoxColumn
-	$TimeColumn.Name = "Time"
-	$TimeColumn.HeaderText = "Time"
-	$TimeColumn.Width = 82
-	$TimeColumn.SortMode = [System.Windows.Forms.DataGridViewColumnSortMode]::NotSortable
-	[void]$ProcessGrid.Columns.Add($TimeColumn)
-	$StatusColumn = New-Object System.Windows.Forms.DataGridViewTextBoxColumn
-	$StatusColumn.Name = "Status"
-	$StatusColumn.HeaderText = "Status"
-	$StatusColumn.Width = 105
-	$StatusColumn.SortMode = [System.Windows.Forms.DataGridViewColumnSortMode]::NotSortable
-	[void]$ProcessGrid.Columns.Add($StatusColumn)
-	$MessageColumn = New-Object System.Windows.Forms.DataGridViewTextBoxColumn
-	$MessageColumn.Name = "Message"
-	$MessageColumn.HeaderText = "Message"
-	$MessageColumn.AutoSizeMode = [System.Windows.Forms.DataGridViewAutoSizeColumnMode]::Fill
-	$MessageColumn.SortMode = [System.Windows.Forms.DataGridViewColumnSortMode]::NotSortable
-	[void]$ProcessGrid.Columns.Add($MessageColumn)
-	$StatusCellFont = New-Object System.Drawing.Font("Segoe UI",9,[System.Drawing.FontStyle]::Bold)
-	$ProcessCard.Controls.Add($ProcessGrid)
-
-	$BackToSelectionButton = New-Object System.Windows.Forms.Button
-	$BackToSelectionButton.Text = "Back to software selection"
-	$BackToSelectionButton.Location = New-Object System.Drawing.Point(26,536)
-	$BackToSelectionButton.Size = New-Object System.Drawing.Size(220,40)
-	$BackToSelectionButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
-	& $StyleEvergreenButton $BackToSelectionButton
-	$ProcessCard.Controls.Add($BackToSelectionButton)
-
-	$CloseResultsButton = New-Object System.Windows.Forms.Button
-	$CloseResultsButton.Text = "Exit"
-	$CloseResultsButton.Location = New-Object System.Drawing.Point(1082,536)
-	$CloseResultsButton.Size = New-Object System.Drawing.Size(120,40)
-	$CloseResultsButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
-	& $StyleEvergreenButton $CloseResultsButton
-	$CloseResultsButton.Enabled = $false
-	$ProcessCard.Controls.Add($CloseResultsButton)
-
-	$ProcessContext = [PSCustomObject]@{
-		Job = $null
-		Running = $false
-		Completed = $false
-		ExitCode = 1
-		CancelButton = $null
-		ErrorCount = 0
-		WarningCount = 0
-		CurrentProduct = $null
-		AvailableProducts = New-Object System.Collections.ArrayList
-		DownloadErrors = New-Object System.Collections.ArrayList
-		TransferActive = $false
-	}
-
-
-	$ShowDownloadErrorSummary = {
-		if ($ProcessContext.DownloadErrors.Count -eq 0) { return }
-
-		$SummaryLines = New-Object System.Collections.Generic.List[string]
-		$SummaryLines.Add("Evergreen Software Updater - Download error summary")
-		$SummaryLines.Add("Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')")
-		$SummaryLines.Add("Failed products: $($ProcessContext.DownloadErrors.Count)")
-		$SummaryLines.Add("")
-		$Index = 1
-		foreach ($DownloadError in $ProcessContext.DownloadErrors) {
-			$SummaryLines.Add("$Index. $($DownloadError.Product)")
-			$SummaryLines.Add("   Error: $($DownloadError.Message)")
-			if (-not [String]::IsNullOrWhiteSpace([string]$DownloadError.Source)) { $SummaryLines.Add("   Source: $($DownloadError.Source)") }
-			if (-not [String]::IsNullOrWhiteSpace([string]$DownloadError.Target)) { $SummaryLines.Add("   Target: $($DownloadError.Target)") }
-			$SummaryLines.Add("")
-			$Index++
-		}
-		$SummaryText = $SummaryLines -join [Environment]::NewLine
-
-		$SummaryForm = New-Object System.Windows.Forms.Form
-		$SummaryForm.Text = "Download error summary"
-		$SummaryForm.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterParent
-		$SummaryForm.Size = New-Object System.Drawing.Size(860,560)
-		$SummaryForm.MinimumSize = New-Object System.Drawing.Size(700,450)
-		$SummaryForm.BackColor = [System.Drawing.Color]::FromArgb(245,247,250)
-		$SummaryForm.ShowInTaskbar = $false
-
-		$SummaryLabel = New-Object System.Windows.Forms.Label
-		$SummaryLabel.Text = "$($ProcessContext.DownloadErrors.Count) product(s) generated download errors. The complete summary can be copied."
-		$SummaryLabel.Location = New-Object System.Drawing.Point(18,18)
-		$SummaryLabel.Size = New-Object System.Drawing.Size(800,28)
-		$SummaryLabel.Font = New-Object System.Drawing.Font("Segoe UI",10,[System.Drawing.FontStyle]::Bold)
-		$SummaryLabel.ForeColor = [System.Drawing.Color]::FromArgb(185,55,55)
-		$SummaryForm.Controls.Add($SummaryLabel)
-
-		$SummaryBox = New-Object System.Windows.Forms.TextBox
-		$SummaryBox.Multiline = $true
-		$SummaryBox.ReadOnly = $true
-		$SummaryBox.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
-		$SummaryBox.WordWrap = $false
-		$SummaryBox.Location = New-Object System.Drawing.Point(18,54)
-		$SummaryBox.Size = New-Object System.Drawing.Size(806,420)
-		$SummaryBox.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
-		$SummaryBox.Font = New-Object System.Drawing.Font("Consolas",9)
-		$SummaryBox.Text = $SummaryText
-		$SummaryForm.Controls.Add($SummaryBox)
-
-		$CopySummaryButton = New-Object System.Windows.Forms.Button
-		$CopySummaryButton.Text = "Copy summary"
-		$CopySummaryButton.Location = New-Object System.Drawing.Point(18,486)
-		$CopySummaryButton.Size = New-Object System.Drawing.Size(150,36)
-		$CopySummaryButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
-		& $StyleEvergreenButton $CopySummaryButton $true
-		$CopySummaryButton.Add_Click({
-			[System.Windows.Forms.Clipboard]::SetText($SummaryBox.Text)
-			$CopySummaryButton.Text = "Copied"
-		}.GetNewClosure())
-		$SummaryForm.Controls.Add($CopySummaryButton)
-
-		$CloseSummaryButton = New-Object System.Windows.Forms.Button
-		$CloseSummaryButton.Text = "Close"
-		$CloseSummaryButton.Location = New-Object System.Drawing.Point(704,486)
-		$CloseSummaryButton.Size = New-Object System.Drawing.Size(120,36)
-		$CloseSummaryButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
-		& $StyleEvergreenButton $CloseSummaryButton
-		$CloseSummaryButton.Add_Click({ $SummaryForm.Close() }.GetNewClosure())
-		$SummaryForm.Controls.Add($CloseSummaryButton)
-		$SummaryForm.AcceptButton = $CopySummaryButton
-		$SummaryForm.CancelButton = $CloseSummaryButton
-		[void]$SummaryForm.ShowDialog($Form)
-	}.GetNewClosure()
-
-	$ProductCardMap = @{
-		"NotePadPlusPlus" = @($NotePadPlusPlusBox)
-		"7-Zip" = @($SevenZipBox)
-		"Adobe Reader DC MUI" = @($AdobeReaderDCBoxUpdate)
-		"Adobe Reader DC x64 MUI" = @($AdobeReaderDCx64BoxUpdate)
-		"Google Chrome" = @($GoogleChromeBox)
-		"Mozilla Firefox" = @($FirefoxBoxDE,$FirefoxBoxEN)
-		"VLC Player" = @($VLCPlayerBox)
-		"FileZilla" = @($FileZillaBox)
-		"pdf24Creator" = @($pdf24CreatorBox)
-		"FoxitReader" = @($FoxItReaderBox)
-		"FSLogix" = @($FSLogixBox)
-		"MS 365 Apps-Semi Annual Channel" = @($MS365AppsBox_SAC)
-		"MS 365 Apps-Monthly Enterprise Channel" = @($MS365AppsBox_MEC)
-		"MS Office 2019" = @($MSOffice2019Box)
-		"MS Office 2021 LTSC" = @($MSOffice2021Box)
-		"MS Office 2024 LTSC" = @($MSOffice2024Box)
-		"MS Edge WebView2 Runtime" = @()
-		"MS Edge" = @($MSEdgeBox)
-		"MS OneDrive" = @($MSOneDriveBox)
-		"MS Teams 2" = @($NEWMSTeamsBox)
-		"Microsoft Visual C++ Redistributable packages x64" = @($VcRedistBox)
-		"Microsoft Visual C++ Redistributable packages x86" = @($VcRedistBox)
-		"MS Powershell" = @($MSPowershellBox)
-		"MS DotNet Runtime" = @($MSDotNetRuntimeBox)
-		"MS DotNet Desktop Runtime" = @($MSDotNetDesktopRuntimeBox)
-		"MS SQL Management Studio EN" = @($MSSQLManagementStudioENBox)
-		"MS SQL Management Studio DE" = @($MSSQLManagementStudioDEBox)
-		"MS Sysinternals Suite" = @($MSSysinternalsBox)
-		"Microsoft OpenJDK 21" = @($MicrosoftOpenJDKBox)
-		"MS Visual Studio Code" = @($MSVisualStudioCodeBox)
-		"RD Analyzer" = @($RDAnalyzerBox)
-		"BIS-F" = @($BISFBox)
-		"WorkspaceApp" = @($WorkspaceApp_CRBox,$WorkspaceApp_LTSRBox)
-		"Citrix VM Tools" = @($Citrix_VMToolsBox)
-		"Citrix XenCenter" = @($Citrix_XenCenterBox)
-		"ControlUp Console" = @($ControlUpConsoleBox)
-		"ControlUp DX Client" = @($ControlUpRemoteDXBox)
-		"Cisco WebEx VDI Plugin" = @($CiscoWebExVDIBox)
-		"Zoom VDI Host" = @($ZoomVDIBox)
-		"Zoom Citrix Client" = @($ZoomCitrixBox)
-		"VMWare Tools" = @($VMWareToolsBox)
-		"RemoteDesktopManager" = @($RemoteDesktopManagerBox)
-		"mRemoteNG" = @($mRemoteNGBox)
-		"WinSCP" = @($WinSCPBox)
-		"Putty" = @($PuttyBox)
-		"Oracle Java 8 x64" = @($OracleJava8Box)
-		"Oracle Java 8 x86" = @($OracleJava8_32Box)
-		"KeePassXC" = @($KeePassXCBox)
-		"KeePass" = @($KeePassBox)
-		"WinRAR" = @($WinRARBox)
-		"Greenshot" = @($GreenshotBox)
-		"IGEL Universal Management Suite" = @($IGELUniversalManagementSuiteBox)
-		"ImageGlass" = @($ImageGlassBox)
-		"ShareX" = @($ShareXBox)
-		"TreeSizeFree" = @($TreeSizeFreeBox)
-	}
-	$ProductNamesByLength = @($ProductCardMap.Keys | Sort-Object { $_.Length } -Descending)
-
-	$ResetAvailableUpdateBadges = {
-		foreach ($SoftwareItem in $SoftwareCheckBoxes) { $SoftwareItem.UpdateBadge.Visible = $false }
-		$AvailableUpdatesLabel.Visible = $false
-		$AvailableUpdatesLabel.Text = ""
-	}.GetNewClosure()
-
-	$ShowAvailableUpdateBadges = {
-		$ControlsWithUpdates = New-Object System.Collections.ArrayList
-		foreach ($ProductName in $ProcessContext.AvailableProducts) {
-			foreach ($MappedControl in @($ProductCardMap[$ProductName])) {
-				if ($null -ne $MappedControl -and -not ($ControlsWithUpdates -contains $MappedControl)) {
-					[void]$ControlsWithUpdates.Add($MappedControl)
-				}
-			}
-		}
-		$AvailableUpdateCount = 0
-		foreach ($SoftwareItem in $SoftwareCheckBoxes) {
-			$HasAvailableUpdate = ($ControlsWithUpdates -contains $SoftwareItem.Control) -and $SoftwareItem.Control.Checked
-			$SoftwareItem.UpdateBadge.Visible = $HasAvailableUpdate
-			if ($HasAvailableUpdate) { $AvailableUpdateCount++ }
-		}
-		if ($AvailableUpdateCount -gt 0) {
-			$AvailableUpdatesLabel.Text = "$AvailableUpdateCount new version(s) downloaded"
-			$AvailableUpdatesLabel.Visible = $true
-		}
-		else {
-			$AvailableUpdatesLabel.Text = "No new versions downloaded"
-			$AvailableUpdatesLabel.Visible = $true
-		}
-		return $AvailableUpdateCount
-	}.GetNewClosure()
-
-	$AppendProcessLine = {
-		param([string]$Text,[bool]$IsError)
-		if ([String]::IsNullOrWhiteSpace($Text)) { return }
-		$Text = [regex]::Replace($Text,'\x1B\[[0-9;]*[A-Za-z]','').Trim()
-		if ($Text -match '^[-=]{5,}$') { return }
-		foreach ($ProductName in $ProductNamesByLength) {
-			if ($Text.IndexOf($ProductName,[StringComparison]::OrdinalIgnoreCase) -ge 0) {
-				$ProcessContext.CurrentProduct = $ProductName
-				break
-			}
-		}
-		$IsDownloadErrorLine = $Text -match '(?i)error downloading|download breaks with error|not able to get version|failed to.*download'
-		if ($IsDownloadErrorLine) {
-			$FailedProduct = if (-not [String]::IsNullOrWhiteSpace([string]$ProcessContext.CurrentProduct)) { [string]$ProcessContext.CurrentProduct } else { "Unknown product" }
-			$ExistingError = $ProcessContext.DownloadErrors | Where-Object { $_.Product -eq $FailedProduct } | Select-Object -First 1
-			if ($null -eq $ExistingError) {
-				[void]$ProcessContext.DownloadErrors.Add([PSCustomObject]@{ Product = $FailedProduct; Message = $Text; Source = ""; Target = "" })
-			} else {
-				$ExistingError.Message = $Text
-			}
-		}
-		elseif ($Text -match '(?i)^Source:\s*(?<Value>.+)$' -and $ProcessContext.DownloadErrors.Count -gt 0) {
-			$ProcessContext.DownloadErrors[$ProcessContext.DownloadErrors.Count - 1].Source = $Matches['Value'].Trim()
-		}
-		elseif ($Text -match '(?i)^Target:\s*(?<Value>.+)$' -and $ProcessContext.DownloadErrors.Count -gt 0) {
-			$ProcessContext.DownloadErrors[$ProcessContext.DownloadErrors.Count - 1].Target = $Matches['Value'].Trim()
-		}
-		$TransferMatch = [regex]::Match($Text,'(?i)(?<current>\d*[\.,]?\d+\s*(?:KB|MB|GB))\s*/\s*(?<total>\d*[\.,]?\d+\s*(?:KB|MB|GB)).*?(?<percent>\d+(?:[\.,]\d+)?)\s*%\s*complete')
-		if ($TransferMatch.Success) {
-			$CurrentAmount = $TransferMatch.Groups['current'].Value.Trim()
-			$TotalAmount = $TransferMatch.Groups['total'].Value.Trim()
-			if ($CurrentAmount.StartsWith('.')) { $CurrentAmount = "0$CurrentAmount" }
-			$PercentText = $TransferMatch.Groups['percent'].Value.Replace(',','.')
-			try { $PercentValue = [Convert]::ToDouble($PercentText,[Globalization.CultureInfo]::InvariantCulture) } catch { $PercentValue = 0 }
-			$ProcessProgress.Style = [System.Windows.Forms.ProgressBarStyle]::Continuous
-			$ProcessProgress.Value = [Math]::Max(0,[Math]::Min(100,[int][Math]::Round($PercentValue)))
-			$DownloadProductName = [string]$ProcessContext.CurrentProduct
-			if (-not [String]::IsNullOrWhiteSpace($DownloadProductName) -and $ProductCardMap.ContainsKey($DownloadProductName)) {
-				$MappedProductControl = @($ProductCardMap[$DownloadProductName])[0]
-				if ($null -ne $MappedProductControl -and -not [String]::IsNullOrWhiteSpace([string]$MappedProductControl.Text)) {
-					$DownloadProductName = [string]$MappedProductControl.Text
-				}
-			}
-			$DownloadLabel = if ([String]::IsNullOrWhiteSpace($DownloadProductName)) { "Downloading" } else { "Downloading $DownloadProductName" }
-			$ProcessInfo.Text = "${DownloadLabel}: $CurrentAmount of $TotalAmount ($PercentText %)"
-			$ProcessContext.TransferActive = $true
-			return
-		}
-		if ($ProcessContext.TransferActive -and $Text -match '(?i)stop logging|error downloading|download (completed|finished)') {
-			$ProcessContext.TransferActive = $false
-			$ProcessProgress.Style = [System.Windows.Forms.ProgressBarStyle]::Marquee
-			$ProcessInfo.Text = "Download finished. Continuing with the update process..."
-		}
-		if ($Text -match '(?i)\bUpdate available\b' -and -not [String]::IsNullOrWhiteSpace($ProcessContext.CurrentProduct)) {
-			if (-not ($ProcessContext.AvailableProducts -contains $ProcessContext.CurrentProduct)) {
-				[void]$ProcessContext.AvailableProducts.Add($ProcessContext.CurrentProduct)
-			}
-		}
-		if ($Text -match '(?i)error downloading|download breaks with error|failed to.*download|not able to get version' -and -not [String]::IsNullOrWhiteSpace($ProcessContext.CurrentProduct)) {
-			[void]$ProcessContext.AvailableProducts.Remove($ProcessContext.CurrentProduct)
-		}
-		$LineStatus = "Info"
-		$StatusColor = [System.Drawing.Color]::FromArgb(75,94,110)
-		$RowColor = [System.Drawing.Color]::White
-		$IsInformationalLine = $Text -match '(?i)^Last changes:\s*'
-		if ($IsInformationalLine) {
-			# Changelog text can legitimately mention errors or failures without reporting a runtime problem.
-		}
-		elseif ($IsError -or $Text -match '(?i)\b(error|failed|failure|exception|not able|aborted)\b') {
-			$LineStatus = "Error"
-			$StatusColor = [System.Drawing.Color]::FromArgb(180,45,45)
-			$RowColor = [System.Drawing.Color]::FromArgb(255,239,239)
-			$ProcessContext.ErrorCount++
-		}
-		elseif ($Text -match '(?i)\b(warning|attention)\b') {
-			$LineStatus = "Warning"
-			$StatusColor = [System.Drawing.Color]::FromArgb(166,102,0)
-			$RowColor = [System.Drawing.Color]::FromArgb(255,248,224)
-			$ProcessContext.WarningCount++
-		}
-		elseif ($Text -match '(?i)\b(finished|success|successful|update available|downloaded|newest version|OK)\b|no new version available') {
-			$LineStatus = "Success"
-			$StatusColor = [System.Drawing.Color]::FromArgb(20,120,52)
-			$RowColor = [System.Drawing.Color]::FromArgb(218,245,225)
-		}
-		elseif ($Text -match '(?i)\b(installing|starting|download|current version)\b') {
-			$LineStatus = "Action"
-			$StatusColor = [System.Drawing.Color]::FromArgb(0,86,158)
-			$RowColor = [System.Drawing.Color]::FromArgb(226,240,252)
-		}
-		if ($ProcessGrid.RowCount -ge 1000) { $ProcessGrid.Rows.RemoveAt(0) }
-		$RowIndex = $ProcessGrid.Rows.Add((Get-Date -Format "HH:mm:ss"),$LineStatus,$Text)
-		$Row = $ProcessGrid.Rows[$RowIndex]
-		$Row.DefaultCellStyle.BackColor = $RowColor
-		$Row.Cells[1].Style.ForeColor = $StatusColor
-		$Row.Cells[1].Style.Font = $StatusCellFont
-		$Row.Cells[2].ToolTipText = $Text
-		try { $ProcessGrid.FirstDisplayedScrollingRowIndex = $ProcessGrid.RowCount - 1 } catch {}
-	}.GetNewClosure()
-
-	$DrainProcessOutput = {
-		if ($null -eq $ProcessContext.Job) { return }
-		$JobErrors = @()
-		$JobInformation = @()
-		$JobWarnings = @()
-		$JobOutput = @(Receive-Job -Job $ProcessContext.Job -ErrorAction SilentlyContinue -ErrorVariable +JobErrors -InformationAction SilentlyContinue -InformationVariable +JobInformation -WarningAction SilentlyContinue -WarningVariable +JobWarnings)
-		$ProcessedLineCount = 0
-		$LatestProgressText = $null
-		foreach ($OutputItem in $JobOutput) {
-			if ($null -ne $OutputItem.PSObject.Properties['EvergreenJobResult'] -and $OutputItem.EvergreenJobResult) {
-				$ProcessContext.ExitCode = [int]$OutputItem.ExitCode
-				continue
-			}
-			$OutputText = if ($OutputItem -is [System.Management.Automation.InformationRecord]) { [string]$OutputItem.MessageData } else { [string]$OutputItem }
-			if ($OutputText -match '(?i)%\s*complete') { $LatestProgressText = $OutputText; continue }
-			if ($ProcessedLineCount -ge 200) { continue }
-			& $AppendProcessLine $OutputText $false
-			$ProcessedLineCount++
-		}
-		if (-not [String]::IsNullOrWhiteSpace($LatestProgressText)) { & $AppendProcessLine $LatestProgressText $false }
-		foreach ($JobError in $JobErrors) {
-			& $AppendProcessLine ([string]$JobError) $true
-		}
-		foreach ($InformationItem in $JobInformation) {
-			$InformationText = if ($InformationItem -is [System.Management.Automation.InformationRecord]) { [string]$InformationItem.MessageData } else { [string]$InformationItem }
-			& $AppendProcessLine $InformationText $false
-		}
-		foreach ($JobWarning in $JobWarnings) { & $AppendProcessLine ([string]$JobWarning) $false }
-	}.GetNewClosure()
-
-	$ProcessTimer = New-Object System.Windows.Forms.Timer
-	$ProcessTimer.Interval = 200
-	$ProcessTimer.Add_Tick({
-		& $DrainProcessOutput
-		if ($ProcessContext.Running -and $ProcessContext.Job.State -in @('Completed','Failed','Stopped')) {
-			& $DrainProcessOutput
-			$ProcessTimer.Stop()
-			$ProcessContext.Running = $false
-			$ProcessContext.Completed = $true
-			if ($ProcessContext.Job.State -ne 'Completed') { $ProcessContext.ExitCode = 1 }
-			$script:GuiWorkflowExitCode = [int]$ProcessContext.ExitCode
-			$ProcessProgress.Style = [System.Windows.Forms.ProgressBarStyle]::Continuous
-			$ProcessProgress.Value = 100
-			$BackToSelectionButton.Enabled = $true
-			$CloseResultsButton.Enabled = $true
-			$SelectionNavButton.Enabled = $true
-			$ProcessNavButton.Enabled = $true
-			$AvailableUpdateCount = & $ShowAvailableUpdateBadges
-			if ($script:GuiWorkflowExitCode -eq 0 -and $ProcessContext.ErrorCount -eq 0) {
-				$ProcessState.Text = "Update completed"
-				$ProcessState.ForeColor = [System.Drawing.Color]::FromArgb(20,120,52)
-				$ProcessInfo.Text = "The update process ended successfully. $AvailableUpdateCount selected package(s) downloaded a new version; $($ProcessContext.WarningCount) warning(s) were logged."
-				$NavigationStatus.Text = "Update completed"
-				& $AppendProcessLine "Update process finished with exit code 0." $false
-			}
-			else {
-				$ProcessState.Text = "Update completed with errors"
-				$ProcessState.ForeColor = [System.Drawing.Color]::FromArgb(185,55,55)
-				$ProcessInfo.Text = "The update process reported $($ProcessContext.ErrorCount) error line(s) and returned exit code $script:GuiWorkflowExitCode. Review the red output lines and update logs."
-				$NavigationStatus.Text = "Update requires attention"
-				& $AppendProcessLine "Update process finished with exit code $script:GuiWorkflowExitCode." $true
-			}
-			if ($ProcessContext.DownloadErrors.Count -gt 0) { & $ShowDownloadErrorSummary }
-		}
-	}.GetNewClosure())
-
-	$ShowSelection = {
-		$SelectionPanel.Visible = $true
-		$ProcessPanel.Visible = $false
-		$SelectionNavButton.BackColor = [System.Drawing.Color]::FromArgb(232,241,248)
-		$SelectionNavButton.ForeColor = [System.Drawing.Color]::FromArgb(16,91,145)
-		$ProcessNavButton.BackColor = [System.Drawing.Color]::White
-		$ProcessNavButton.ForeColor = [System.Drawing.Color]::FromArgb(90,100,115)
-		$Form.AcceptButton = $Form.Tag
-		$Form.CancelButton = $ProcessContext.CancelButton
-	}.GetNewClosure()
-	$ShowProcess = {
-		$SelectionPanel.Visible = $false
-		$ProcessPanel.Visible = $true
-		$SelectionNavButton.BackColor = [System.Drawing.Color]::White
-		$SelectionNavButton.ForeColor = [System.Drawing.Color]::FromArgb(90,100,115)
-		$ProcessNavButton.BackColor = [System.Drawing.Color]::FromArgb(232,241,248)
-		$ProcessNavButton.ForeColor = [System.Drawing.Color]::FromArgb(16,91,145)
-		$Form.AcceptButton = $null
-		$Form.CancelButton = $null
-	}.GetNewClosure()
-
-	$StartWorkflow = {
-		if ($ProcessContext.Running) { return }
-		$script:GuiWorkflowStarted = $true
-		$script:GuiWorkflowExitCode = 1
-		$ProcessContext.Completed = $false
-		$ProcessContext.ErrorCount = 0
-		$ProcessContext.WarningCount = 0
-		$ProcessContext.ExitCode = 1
-		$ProcessContext.CurrentProduct = $null
-		$ProcessContext.AvailableProducts.Clear()
-		$ProcessContext.DownloadErrors.Clear()
-		$ProcessContext.TransferActive = $false
-		& $ResetAvailableUpdateBadges
-		$ProcessGrid.Rows.Clear()
-		$ProcessState.Text = "Update is running..."
-		$ProcessState.ForeColor = [System.Drawing.Color]::FromArgb(30,40,55)
-		$ProcessInfo.Text = "The existing updater is running with -NoGUI. Output is transferred live into this window."
-		$ProcessProgress.Value = 0
-		$ProcessProgress.Style = [System.Windows.Forms.ProgressBarStyle]::Marquee
-		$ProcessProgress.MarqueeAnimationSpeed = 25
-		$BackToSelectionButton.Enabled = $false
-		$CloseResultsButton.Enabled = $false
-		$SelectionNavButton.Enabled = $false
-		$ProcessNavButton.Enabled = $false
-		$NavigationStatus.Text = "Update is running"
-		& $ShowProcess
-		try {
-			if ($null -ne $ProcessContext.Job) { Remove-Job -Job $ProcessContext.Job -Force -ErrorAction SilentlyContinue }
-			& $AppendProcessLine "Starting updater process..." $false
-			$ProcessContext.Job = Start-Job -Name "Evergreen-Updater-GUI" -ScriptBlock {
-				param([string]$ScriptPath)
-				# Run the known-good legacy engine without a caller-level try/catch.
-				# Its package blocks intentionally report individual errors and continue.
-				& $ScriptPath -NoGUI 6>&1 3>&1
-				[PSCustomObject]@{ EvergreenJobResult = $true; ExitCode = 0 }
-			} -ArgumentList $PSCommandPath
-			$ProcessContext.Running = $true
-			$ProcessTimer.Start()
-		}
-		catch {
-			$ProcessContext.Running = $false
-			$ProcessContext.Completed = $true
-			$ProcessProgress.Style = [System.Windows.Forms.ProgressBarStyle]::Continuous
-			$ProcessState.Text = "Update could not be started"
-			$ProcessState.ForeColor = [System.Drawing.Color]::FromArgb(185,55,55)
-			$ProcessInfo.Text = $_.Exception.Message
-			$BackToSelectionButton.Enabled = $true
-			$CloseResultsButton.Enabled = $true
-			& $AppendProcessLine $_.Exception.ToString() $true
-		}
-	}.GetNewClosure()
-	$SelectionNavButton.Add_Click($ShowSelection)
-	$ProcessNavButton.Add_Click($ShowProcess)
-	$BackToSelectionButton.Add_Click($ShowSelection)
-	$CloseResultsButton.Add_Click({ $Form.Close() })
-	$Form.Add_FormClosed({
-		if ($null -ne $HeaderLogo.Image) { $HeaderLogo.Image.Dispose(); $HeaderLogo.Image = $null }
-	}.GetNewClosure())
-	$Form.Add_FormClosing({
-		param($Sender,$EventArgs)
-		if ($ProcessContext.Running) {
-			[void][System.Windows.Forms.MessageBox]::Show("The update is still running. Please wait until the process has completed.","Update active",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Information)
-			$EventArgs.Cancel = $true
-		}
-	}.GetNewClosure())
-
 	# Select Button
     $SelectButton = New-Object system.Windows.Forms.Button
-	$SelectButton.text = "Select all"
-	$SelectButton.width = 130
-	$SelectButton.height = 40
+    $SelectButton.text = "Select all"
+    $SelectButton.width = 110
+    $SelectButton.height = 30
 	$SelectButton.Font = $Font
-	$SelectButton.location = New-Object System.Drawing.Point(24,632)
-	$SelectButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
-	& $StyleEvergreenButton $SelectButton
-	$SelectAllExclusions = @($ZoomVDIBox,$ZoomCitrixBox)
+    $SelectButton.location = New-Object System.Drawing.Point(11,540)
     $SelectButton.Add_Click({
-		foreach ($SoftwareItem in $SoftwareCheckBoxes) {
-			if ($SoftwareItem.Container.Visible) {
-				$SoftwareItem.Control.Checked = -not ($SelectAllExclusions -contains $SoftwareItem.Control)
-			}
-		}
-	})
-    $SelectionPanel.Controls.Add($SelectButton)
+        $NotePadPlusPlusBox.Checked = $True
+		$SevenZipBox.checked = $True
+		$AdobeReaderDCBoxUpdate.checked = $True
+		$AdobeReaderDCx64BoxUpdate.checked = $True
+		$BISFBox.checked = $True
+		$FSLogixBox.checked = $True
+		$GoogleChromeBox.checked = $True
+		$WorkspaceApp_CRBox.checked = $True
+		$WorkspaceApp_LTSRBox.checked = $True
+		$Citrix_VMToolsBox.checked = $True
+		$Citrix_XenCenterBox.checked = $True
+		$VMWareToolsBox.checked = $True
+		$RemoteDesktopManagerBox.checked = $True
+		$deviceTRUSTBox.checked = $True
+		$KeePassBox.checked = $True
+		$KeePassBoxXC.checked = $True
+		$IGELUniversalManagementSuiteBox.checked = $True
+		$mRemoteNGBox.checked = $True
+		$WinSCPBox.checked = $True
+		$PuttyBox.checked = $True
+		$MS365AppsBox_SAC.checked = $True
+		$MS365AppsBox_MEC.checked = $True
+		$MSOffice2019Box.checked = $True
+		$MSOffice2021Box.checked = $True
+		$MSOffice2024Box.checked = $True
+		$MSEdgeBox.checked = $True
+		$MSOneDriveBox.checked = $True
+		$NEWMSTeamsBox.checked = $True
+		$MSPowershellBox.checked = $True
+		$MSDotNetDesktopRuntimeBox.checked = $True
+		$MSDotNetRuntimeBox.checked = $True
+		$MSSQLManagementStudioDEBox.checked = $True
+		$MSSQLManagementStudioENBox.checked = $True
+		$VcRedistBox.checked = $True
+		$MSSysinternalsBox.checked = $True
+		$MSWVDDesktopAgentBox.checked = $True
+		$MSWVDRTCServiceBox.checked = $True
+		$MSWVDBootLoaderBox.checked = $True
+		$MSVisualStudioCodeBox.checked = $True
+		$TreeSizeFreeBox.checked = $True
+		$ControlUpConsoleBox.checked = $True
+		$ControlUpConsoleBox.checked = $True
+		$ZoomVDIBox.checked = $False
+		$ZoomCitrixBox.checked = $False
+		#$ZoomVMWareBox.checked = $False
+		$VLCPlayerBox.checked = $True
+		$FirefoxBox.checked = $True
+		$FirefoxBoxDE.checked = $True
+		$FirefoxBoxEN.checked = $True
+		$FileZillaBox.checked = $True
+		$CiscoWebExVDIBox.checked = $True
+		$RDAnalyzerBox.checked = $True
+		$WinRARBox.checked = $True
+		#$CiscoWebExDesktopBox.checked = $True
+		$MicrosoftOpenJDKBox.checked = $True
+		$GreenshotBox.checked = $True
+		$OracleJava8Box.checked = $True
+		$OracleJava8_32Box.checked = $True
+		$ImageGlassBox.checked = $True
+		$ShareXBox.checked = $True
+		$pdf24CreatorBox.checked = $True	
+		$FoxItReaderBox.checked = $True
+		})
+    $form.Controls.Add($SelectButton)
 	
 	# Unselect Button
     $UnselectButton = New-Object system.Windows.Forms.Button
-	$UnselectButton.text = "Clear all"
-	$UnselectButton.width = 110
-	$UnselectButton.height = 40
+    $UnselectButton.text = "Unselect all"
+    $UnselectButton.width = 110
+    $UnselectButton.height = 30
 	$UnSelectButton.Font = $Font
-	$UnselectButton.location = New-Object System.Drawing.Point(164,632)
-	& $StyleEvergreenButton $UnselectButton
-	$UnselectButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
+    $UnselectButton.location = New-Object System.Drawing.Point(131,540)
     $UnselectButton.Add_Click({
-		foreach ($SoftwareItem in $SoftwareCheckBoxes) { $SoftwareItem.Control.Checked = $false }
-	})
-    $SelectionPanel.Controls.Add($UnselectButton)
+        $NotePadPlusPlusBox.Checked = $False
+		$SevenZipBox.checked = $False
+		$AdobeReaderDCBoxUpdate.checked = $False
+		$AdobeReaderDCx64BoxUpdate.checked = $False
+		$BISFBox.checked = $False
+		$FSLogixBox.checked = $False
+		$GoogleChromeBox.checked = $False
+		$WorkspaceApp_CRBox.checked = $False
+		$WorkspaceApp_LTSRBox.checked = $False
+		$Citrix_VMToolsBox.checked = $False
+		$Citrix_XenCenterBox.checked = $False
+		$VMWareToolsBox.checked = $False
+		$RemoteDesktopManagerBox.checked = $False
+		$deviceTRUSTBox.checked = $False
+		$KeePassBox.checked = $False
+		$KeePassXCBox.checked = $False
+		$IGELUniversalManagementSuiteBox.checked = $False
+		$mRemoteNGBox.checked = $False
+		$WinSCPBox.checked = $False
+		$PuttyBox.checked = $False
+		$MS365AppsBox_SAC.checked = $False
+		$MS365AppsBox_MEC.checked = $False
+		$MSOffice2019Box.checked = $False
+		$MSOffice2021Box.checked = $False
+		$MSOffice2024Box.checked = $False
+		$MSEdgeBox.checked = $False
+		$MSOneDriveBox.checked = $False
+		$NEWMSTeamsBox.checked = $False
+		$MSPowershellBox.checked = $False
+		$MSDotNetDesktopRuntimeBox.checked = $False
+		$MSDotNetRuntimeBox.checked = $False
+		$MSSQLManagementStudioDEBox.checked = $False
+		$MSSQLManagementStudioENBox.checked = $False
+		$VcRedistBox.checked = $False
+		$MSSysinternalsBox.checked = $False
+		$MSWVDDesktopAgentBox.checked = $False
+		$MSWVDRTCServiceBox.checked = $False
+		$MSWVDBootLoaderBox.checked = $False
+		$MSVisualStudioCodeBox.checked = $False
+		$TreeSizeFreeBox.checked = $False
+		$ControlUpConsoleBox.checked = $False
+		$ControlUpConsoleBox.checked = $False
+		$ZoomVDIBox.checked = $False
+		$ZoomCitrixBox.checked = $False
+		#$ZoomVMWareBox.checked = $False
+		$VLCPlayerBox.checked = $False
+		$FirefoxBox.checked = $False
+		$FirefoxBoxDE.checked = $False
+		$FirefoxBoxEN.checked = $False
+		$FileZillaBox.checked = $False
+		$CiscoWebExVDIBox.checked = $False
+		$RDAnalyzerBox.checked = $False
+		$WinRARBox.checked = $False
+		#$CiscoWebExDesktopBox.checked = $False
+		$MicrosoftOpenJDKBox.checked = $False
+		$GreenshotBox.checked = $False
+		$OracleJava8Box.checked = $False
+		$OracleJava8_32Box.checked = $False
+		$ImageGlassBox.checked = $False
+		$ShareXBox.checked = $False
+		$pdf24CreatorBox.checked = $False
+		$FoxItReaderBox.checked = $False
+		})
+    $form.Controls.Add($UnselectButton)
 
     # OK Button
     $OKButton = New-Object system.Windows.Forms.Button
-	$OKButton.text = "Save && Start Update"
-	$OKButton.width = 210
-	$OKButton.height = 40
+    $OKButton.text = "OK"
+    $OKButton.width = 60
+    $OKButton.height = 30
 	$OKButton.Font = $Font
-	$OKButton.location = New-Object System.Drawing.Point(1046,632)
-	$OKButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
-	$OKButton.BackColor = [System.Drawing.Color]::FromArgb(31,120,180)
-	$OKButton.ForeColor = [System.Drawing.Color]::White
-	$OKButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-	& $StyleEvergreenButton $OKButton $true
+    $OKButton.location = New-Object System.Drawing.Point(271,540)
+	#$OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
     $OKButton.Add_Click({		
 		$SoftwareSelection = New-Object PSObject
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "NotepadPlusPlus" -Value $NotePadPlusPlusBox.checked -Force
@@ -2515,9 +1280,9 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSsmsDE" -Value $MSSQLManagementStudioDEBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VcRedist" -Value $VcRedistBox.checked -Force		
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSSysinternals" -Value $MSSysinternalsBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDDesktopAgent" -Value $OriginalSoftwareSelection.MSWVDDesktopAgent -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDRTCService" -Value $OriginalSoftwareSelection.MSWVDRTCService -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDBootLoader" -Value $OriginalSoftwareSelection.MSWVDBootLoader -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDDesktopAgent" -Value $MSWVDDesktopAgentBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDRTCService" -Value $MSWVDRTCServiceBox.checked -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSWVDBootLoader" -Value $MSWVDBootLoaderBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MicrosoftOpenJDK" -Value $MicrosoftOpenJDKBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "MSVisualStudioCode" -Value $MSVisualStudioCodeBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "Greenshot" -Value $GreenshotBox.checked -Force
@@ -2538,7 +1303,7 @@ function gui_mode{
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "RDAnalyzer" -Value $RDAnalyzerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinRAR" -Value $WinRARBox.checked -Force
 		#Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "CiscoWebExDesktop" -Value $CiscoWebExDesktopBox.checked -Force
-		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "deviceTRUST" -Value $OriginalSoftwareSelection.deviceTRUST -Force
+		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "deviceTRUST" -Value $deviceTRUSTBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "VMWareTools" -Value $VMWareToolsBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "RemoteDesktopManager" -Value $RemoteDesktopManagerBox.checked -Force
 		Add-member -inputobject $SoftwareSelection -MemberType NoteProperty -Name "WinSCP" -Value $WinSCPBox.checked -Force
@@ -2550,120 +1315,95 @@ function gui_mode{
 	
 	# Export objects to	XML
 	$SoftwareSelection | Export-Clixml $SoftwareToUpdate
-	& $StartWorkflow
+    $Form.Close()
     })
-    $SelectionPanel.Controls.Add($OKButton)
+    $form.Controls.Add($OKButton)
 
     # Cancel Button
     $CancelButton = New-Object system.Windows.Forms.Button
-    $CancelButton.text = "Exit"
-	$CancelButton.width = 110
-	$CancelButton.height = 40
+    $CancelButton.text = "Cancel"
+    $CancelButton.width = 80
+    $CancelButton.height = 30
 	$CancelButton.Font = $Font
-	$CancelButton.location = New-Object System.Drawing.Point(926,632)
-	$CancelButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
+    $CancelButton.location = New-Object System.Drawing.Point(341,540)
 	$CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
-	& $StyleEvergreenButton $CancelButton
     $CancelButton.Add_Click({
         #$Script:download = $true
         Write-Host -ForegroundColor Red "Canceled - Nothing happens!"
         $Form.Close()
 		[System.Environment]::Exit(0)
     })
-    $SelectionPanel.Controls.Add($CancelButton)
-	$ProcessContext.CancelButton = $CancelButton
-	$Form.Tag = $OKButton
-	$Form.AcceptButton = $OKButton
-	$Form.CancelButton = $CancelButton
+    $form.Controls.Add($CancelButton)
 	
-    # Activate the form and confirm a successful post-update GUI start.
-    $Form.Add_Shown({$Form.Activate(); Write-EvergreenUpdateHealthCheck})
-	Close-StartupWindow
+    # Activate the form
+    $Form.Add_Shown({$Form.Activate()})
     [void] $Form.ShowDialog()
 }
 # ========================================================================================================================================
 
 
-# Show a dependency-free startup window before running startup checks.
-Start-StartupWindow
+# We open our splash-screen
+if ($SplashScreen -ne $False) {
+	if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
+		if ($noGUI -eq $False) {
+			Start-SplashScreen
+		}
+}
+# Load Main Panel #
+# =============== #
+
+$Global:pathPanel= split-path -parent $MyInvocation.MyCommand.Definition
+
+function LoadXaml ($filename){
+    $XamlLoader=(New-Object System.Xml.XmlDocument)
+    $XamlLoader.Load($filename)
+    return $XamlLoader
+}
+
+
+$XamlMainWindow=LoadXaml("$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen\form.xaml")
+$reader = (New-Object System.Xml.XmlNodeReader $XamlMainWindow)
+$Form = [Windows.Markup.XamlReader]::Load($reader)
+# Main Pannel Event #
+# ================= #
+}
+
 
 # FUNCTION Check internet access
 # ========================================================================================================================================
-function Test-EvergreenInternetConnection {
-	$Endpoint = "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1"
-	$ExpectedMarker = "Download Software packages with Evergreen powershell module"
-	$Errors = New-Object System.Collections.ArrayList
-	try {
-		$Response = Invoke-WebRequest -UseBasicParsing -Uri $Endpoint -TimeoutSec 8 -Headers @{ "User-Agent" = "Evergreen-Startup-Check" } -ErrorAction Stop
-		$Content = [string]$Response.Content
-			$VersionMatch = [regex]::Match($Content,'(?m)^Version:\s*(?<Version>\d+(?:\.\d+){1,3})\s*$')
-			$LooksLikeHtml = [regex]::IsMatch($Content,'(?is)<!doctype\s+html|<html\b|<form\b')
-			$HasExpectedMarker = $Content.IndexOf($ExpectedMarker,[StringComparison]::OrdinalIgnoreCase) -ge 0
-			if ([String]::IsNullOrWhiteSpace($Content)) {
-				[void]$Errors.Add("The GitHub update source returned an empty response.")
-			}
-			elseif ($LooksLikeHtml) {
-				[void]$Errors.Add("The GitHub update source returned an HTML or authentication page instead of the updater script.")
-			}
-			elseif (-not $HasExpectedMarker -or -not $VersionMatch.Success) {
-				[void]$Errors.Add("The response from the GitHub update source is not a valid Evergreen updater script.")
-			}
-			else {
-				return [PSCustomObject]@{ Connected = $true; Endpoint = $Endpoint; Content = $Content; Version = $VersionMatch.Groups['Version'].Value; Errors = @() }
-			}
+Function Test-InternetConnection1 {
+	param($Website)
+	Try {
+    (Invoke-WebRequest -Uri $Website -TimeoutSec 1 -UseBasicParsing).StatusCode
 	}
-	catch { [void]$Errors.Add($_.Exception.Message) }
-	return [PSCustomObject]@{ Connected = $false; Endpoint = $Endpoint; Content = ""; Version = $null; Errors = @($Errors) }
+	Catch {
+    }
 }
+$InternetAccess1 = Test-InternetConnection1 -Website github.com
 
-# A validated self-update restarts this script with -SkipUpdateCheck.
-# In that startup path GitHub was already reached and the downloaded script already passed
-# version and PowerShell syntax validation. Do not perform a second GitHub request here.
-if ($SkipUpdateCheck) {
-	$InternetResult = [PSCustomObject]@{
-		Connected = $true
-		Endpoint  = ""
-		Content   = ""
-		Version   = [string]$EvergreenVersion
-		Errors    = @()
-	}
+IF($internetAccess1 -eq 200) {
 	$InternetCheck1 = "True"
-	$InternetCheck2 = "True"
-	if ($noGUI -eq $False) {
-		Set-StartupStatus "Starting updated updater..." "Version $EvergreenVersion passed package validation. Skipping the second GitHub update check." 900
-	}
 }
-else {
-	Set-StartupStatus "Checking update access..." "Validating secure access to the Evergreen update source on GitHub."
-	do {
-		$InternetResult = Test-EvergreenInternetConnection
-		if ($InternetResult.Connected) { break }
-		if ($NoGUI) { break }
+ELSE {
+    $InternetCheck1 = "False"
+}
 
-		$InternetFailureDetail = if ($InternetResult.Errors.Count -gt 0) {
-			"GitHub update source could not be validated: " + ($InternetResult.Errors -join " | ") + " You can retry, continue with the locally available updater files, or exit."
-		}
-		else {
-			"GitHub update source could not be validated. You can retry, continue with the locally available updater files, or exit."
-		}
-		$InternetChoice = Wait-StartupInternetChoice $InternetFailureDetail
-		if ($InternetChoice -eq "Exit") {
-			Close-StartupWindow
-			Restore-StartupConsole
-			exit 1
-		}
-		if ($InternetChoice -eq "Continue") { break }
-		Set-StartupStatus "Retrying update access..." "Validating the Evergreen update source on GitHub again."
-	} while ($true)
+function Test-InternetConnection2 {
+    try {
+        $WebClient = New-Object System.Net.WebClient
+        $WebClient.DownloadString("https://github.com")
+        return $true
+    } catch {
+        return $false
+    }
+}
 
-	$InternetCheck1 = if ($InternetResult.Connected) { "True" } else { "False" }
-	$InternetCheck2 = $InternetCheck1
-	if ($InternetResult.Connected) {
-		Set-StartupStatus "Update source available" "The Evergreen updater script and its version were verified successfully." 900
-	}
-	else {
-		Set-StartupStatus "Continuing in offline mode" "The updater will use the locally available scripts and package information." 900
-	}
+$InternetAccess2 = Test-InternetConnection2
+
+if ($InternetAccess2) {
+    $InternetCheck2 = "True"
+} else {
+    $InternetCheck2 = "False"
 }
 # ========================================================================================================================================
 
@@ -2671,32 +1411,25 @@ else {
 
 # Do you run the script as admin?
 # ========================================================================================================================================
-Set-StartupStatus "Checking permissions..." "Verifying that the updater is running with administrator rights."
 $myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
 $myWindowsPrincipal=new-object System.Security.Principal.WindowsPrincipal($myWindowsID)
 $adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
 
-IF ($myWindowsPrincipal.IsInRole($adminRole) -or $UpdateDryRun)
+IF ($myWindowsPrincipal.IsInRole($adminRole))
    {
     # OK, runs as admin
     Write-Host "OK, script is running with Admin rights"
     Write-Output ""
-	if ($UpdateDryRun -and -not $myWindowsPrincipal.IsInRole($adminRole)) {
-		Set-StartupStatus "Update dry run" "Administrator rights are not required because no file will be changed." 500
-	}
-	else { Set-StartupStatus "Administrator rights confirmed" "The updater has the required permissions." 500 }
+	start-sleep -seconds 2
    }
 
 else
    {
     # Script doesn't run as admin, stop!
     Write-Host -ForegroundColor Red "Error! Script is NOT running with Admin rights!"
-	if ($null -ne $script:StartupForm) {
-		[void][System.Windows.Forms.MessageBox]::Show($script:StartupForm,"The Software Updater must be started with administrator rights.","Administrator rights required",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Warning)
-	}
-	Close-StartupWindow
-	Restore-StartupConsole
-	exit 1
+	Write-Host "Press any key to exit"
+	Read-Host
+    BREAK
    }
 # ========================================================================================================================================
 
@@ -2704,62 +1437,57 @@ else
 # Is there a newer Evergreen Script version?
 # ========================================================================================================================================
 
-$WebVersion = ""
-[bool]$NewerVersion = $false
-$UpdateCandidate = $null
-$UpdateDryRunResult = $null
-if ($noGUI -eq $False -and -not $SkipUpdateCheck) {
-	Set-StartupStatus "Checking the updater version..." "Comparing the local script with the published Evergreen version."
-	if (-not [String]::IsNullOrWhiteSpace($UpdateManifestPath)) {
-		try {
-			Set-StartupStatus "Loading the test update manifest..." "No production files will be changed."
-			$UpdateCandidate = Get-EvergreenUpdateCandidate $UpdateManifestPath "Updater"
-			[version]$WebVersion = $UpdateCandidate.Version
-			$NewerVersion = $WebVersion -gt $EvergreenVersion
-			if ($UpdateDryRun -or $NewerVersion) {
-				Set-StartupStatus "Validating updater update $WebVersion..." "Staging the package and checking SHA-256, version, and PowerShell syntax."
-				$UpdateDryRunResult = Test-EvergreenUpdateCandidate $UpdateCandidate -KeepStagedFile:(-not $UpdateDryRun)
+if ($noGUI -eq $False) {
+	[version]$EvergreenVersion = "2.12.40"
+	$WebVersion = ""
+	[bool]$NewerVersion = $false
+	IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
+		Write-Host -ForegroundColor Green "Internet access is working!"
+		Write-Output ""
+		start-sleep -seconds 2
+		$WebResponseVersion = Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1"
+		If ($WebResponseVersion) {
+			[version]$WebVersion = (($WebResponseVersion.tostring() -split "[`r`n]" | select-string "Version:" | Select-Object -First 1) -split ":")[1].Trim()
+		}
+		If ($WebVersion -gt $EvergreenVersion) {
+			$NewerVersion = $true
+		}
+	}
+
+	ELSE {
+		Write-Host -ForegroundColor Red "Check your internet connection to get updated scripts, server can't reach the GitHub URL!"
+		Write-Output ""
+		
+		$title = ""
+		$message = "Do you want to cancel the update? The update script may be outdated!"
+		$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes"
+		$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No"
+		$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
+		$choice=$host.ui.PromptForChoice($title, $message, $options, 0)
+
+		switch ($choice) {
+			0 {
+			$answer = 'Yes'       
+			}
+			1 {
+			$answer = 'No'
 			}
 		}
-		catch {
-			$UpdateDryRunResult = [PSCustomObject]@{ Success = $false; Version = $null; Hash = ""; Message = $_.Exception.Message }
-			$WebVersion = ""
+
+		if ($answer -eq 'Yes') {
+			BREAK
 		}
-	}
-	elseif ($UpdateDryRun) {
-		$UpdateDryRunResult = [PSCustomObject]@{ Success = $false; Version = $null; Hash = ""; Message = "-UpdateDryRun requires -UpdateManifestPath." }
-	}
-	elseif ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
-		try {
-			[version]$WebVersion = $InternetResult.Version
-			If ($WebVersion -gt $EvergreenVersion) { $NewerVersion = $true }
-		}
-		catch {
-			$WebVersion = ""
-			Set-StartupStatus "Version check unavailable" "Local updater version: $EvergreenVersion. The locally available scripts can still be used." 1100
-		}
-	}
-	if ($null -ne $UpdateDryRunResult) {
-		if ($UpdateDryRunResult.Success) {
-			if ($UpdateDryRun) { Set-StartupStatus "Dry run completed successfully" "Updater $($UpdateDryRunResult.Version): staging, SHA-256, version, and syntax checks passed. No file was replaced." 1500 }
-			else { Set-StartupStatus "Update package validated" "Updater $($UpdateDryRunResult.Version) is ready for the transactional test update." 1200 }
-		}
-		else {
-			Set-StartupStatus "Dry run validation failed" $UpdateDryRunResult.Message 1800
-		}
-	}
-	elseif ($NewerVersion) {
-		Set-StartupStatus "New updater version available" "Installed: $EvergreenVersion  |  Available: $WebVersion" 1200
-	}
-	elseif ($InternetResult.Connected -and -not [String]::IsNullOrWhiteSpace([string]$WebVersion)) {
-		Set-StartupStatus "Updater is up to date" "Installed version: $EvergreenVersion" 1200
-	}
-	elseif (-not $InternetResult.Connected) {
-		Set-StartupStatus "Version check skipped in offline mode" "Installed version: $EvergreenVersion" 1200
 	}
 }
-elseif ($noGUI -eq $False) {
-	Set-StartupStatus "Starting updated updater..." "Version $EvergreenVersion passed package validation. Waiting for the main GUI." 900
+
+
+# Everything is loaded so we close the splash-screen
+if ($Splashscreen -ne $False) {
+	if (Test-Path -Path "$ENV:ProgramFiles\WindowsPowershell\Modules\SplashScreen") {
+		if ($noGUI -eq $False) {
+			close-SplashScreen
+		}
+	}
 }
 
 
@@ -2775,23 +1503,16 @@ Write-Host -ForegroundColor Cyan "Setting Variables"
 Write-Output ""
 
 # Variables
-Set-StartupStatus "Preparing the updater..." "Loading paths, saved selections, and local package information."
 $SoftwareFolder = ("$PSScriptRoot" + "\" + "Software\")
 $ErrorActionPreference = "SilentlyContinue"
 #$WarningPreference = "Continue"
 $SoftwareToUpdate = "$SoftwareFolder\Software-to-update.xml"
 
-if ($noGUI -eq $False -and -not $SkipUpdateCheck) {
+if ($noGUI -eq $False) {
 Write-Host -Foregroundcolor Cyan "Current script version: $EvergreenVersion
 Is there a newer Evergreen Script version?"
 Write-Output ""
-If ($null -ne $UpdateDryRunResult -and ($UpdateDryRun -or -not $UpdateDryRunResult.Success)) {
-	$DryRunMessage = if ($UpdateDryRunResult.Success) { "Dry run passed for Updater $($UpdateDryRunResult.Version).`r`n`r`n$($UpdateDryRunResult.Message)`r`n`r`nNo file was replaced." } elseif ($UpdateDryRun) { "Dry run failed:`r`n`r`n$($UpdateDryRunResult.Message)`r`n`r`nNo file was replaced." } else { "Update package validation failed:`r`n`r`n$($UpdateDryRunResult.Message)`r`n`r`nNo file was replaced." }
-	$DryRunIcon = if ($UpdateDryRunResult.Success) { [System.Windows.Forms.MessageBoxIcon]::Information } else { [System.Windows.Forms.MessageBoxIcon]::Warning }
-	if ($null -ne $script:StartupForm) { [void][System.Windows.Forms.MessageBox]::Show($script:StartupForm,$DryRunMessage,"Update dry run",[System.Windows.Forms.MessageBoxButtons]::OK,$DryRunIcon) }
-	else { [void][System.Windows.Forms.MessageBox]::Show($DryRunMessage,"Update dry run",[System.Windows.Forms.MessageBoxButtons]::OK,$DryRunIcon) }
-}
-ElseIf ($NewerVersion -eq $false) {
+If ($NewerVersion -eq $false) {
         # No new version available
         Write-Host -Foregroundcolor Green "OK, script is newest version!"
         Write-Output ""
@@ -2800,43 +1521,18 @@ Else {
         # There is a new Evergreen Script Version
         Write-Host -Foregroundcolor Red "Attention! There is a new version $WebVersion of the Evergreen Updater!"
         Write-Output ""
-		Set-StartupStatus "A newer updater is available" "Version $WebVersion can be downloaded before continuing."
-		if (-not [String]::IsNullOrWhiteSpace($UpdateManifestPath)) {
-			if ($null -ne $UpdateDryRunResult -and $UpdateDryRunResult.Success -and $UpdateCandidate.Channel -eq "Test") {
-				$AnswerPending = [System.Windows.Forms.MessageBox]::Show($script:StartupForm,"Updater $WebVersion passed all package checks.`r`n`r`nThe test update will create a backup, replace only this script, restart the GUI, and automatically roll back if the new GUI does not report a healthy start.`r`n`r`nStart the transactional test update now?","Validated test update",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
+		$wshell = New-Object -ComObject Wscript.Shell
+            $AnswerPending = $wshell.Popup("Do you want to download the new version?",0,"New Version available",32+4)
+            If ($AnswerPending -eq "6") {
+				$update = @'
+                Remove-Item -Path "$PSScriptRoot\Evergreen-Software Updater.ps1" -Force 
+                Invoke-WebRequest -Uri https://raw.githubusercontent.com/Mohrpheus78/Evergreen/main/Evergreen-Software%20Updater.ps1 -OutFile ("$PSScriptRoot\" + "Evergreen-Software Updater.ps1")
+                & "$PSScriptRoot\Evergreen-Software Updater.ps1"
+'@
+                $update > "$PSScriptRoot\UpdateUpdater.ps1"
+                & "$PSScriptRoot\UpdateUpdater.ps1"
+                BREAK
 			}
-			else {
-				[void][System.Windows.Forms.MessageBox]::Show($script:StartupForm,"The manifest update was not started because validation failed or the manifest is not using the Test channel.","Test update blocked",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Warning)
-				$AnswerPending = [System.Windows.Forms.DialogResult]::No
-			}
-		}
-		elseif ($null -ne $script:StartupForm) {
-			$AnswerPending = [System.Windows.Forms.MessageBox]::Show($script:StartupForm,"Evergreen Updater $WebVersion is available. Do you want to download it now?","New updater version",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
-		}
-		else {
-			$AnswerPending = [System.Windows.Forms.MessageBox]::Show("Evergreen Updater $WebVersion is available. Do you want to download it now?","New updater version",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
-		}
-			If ($AnswerPending -eq [System.Windows.Forms.DialogResult]::Yes) {
-				if ([String]::IsNullOrWhiteSpace($UpdateManifestPath)) {
-					Set-StartupStatus "Validating the new updater..." "Checking version metadata and PowerShell syntax before replacing any file."
-					$UpdateDryRunResult = New-EvergreenValidatedUpdateFromContent $InternetResult.Content ([version]$WebVersion) "Updater"
-				}
-				if ($null -ne $UpdateDryRunResult -and $UpdateDryRunResult.Success) {
-					Set-StartupStatus "Installing the validated updater..." "Creating a backup, replacing this script, and checking the restarted GUI."
-					$UpdateInstallResult = Install-EvergreenValidatedUpdate $UpdateDryRunResult "Updater"
-					Remove-EvergreenStagedUpdate $UpdateDryRunResult
-					if ($UpdateInstallResult.Success) {
-						Close-StartupWindow
-						return
-					}
-					[void][System.Windows.Forms.MessageBox]::Show($script:StartupForm,"The update was rolled back.`r`n`r`n$($UpdateInstallResult.Message)","Update could not be completed",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Error)
-				}
-				else {
-					$ValidationMessage = if ($null -ne $UpdateDryRunResult) { $UpdateDryRunResult.Message } else { "The update package could not be validated." }
-					[void][System.Windows.Forms.MessageBox]::Show($script:StartupForm,$ValidationMessage,"Update validation failed",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Warning)
-				}
-			}
-			if (-not [String]::IsNullOrWhiteSpace($UpdateManifestPath) -and $AnswerPending -ne [System.Windows.Forms.DialogResult]::Yes) { Remove-EvergreenStagedUpdate $UpdateDryRunResult }
 
 }
 }
@@ -2852,12 +1548,7 @@ if (Test-Path -Path $SoftwareToUpdate) {$SoftwareSelection = Import-Clixml $Soft
 
 # Call Form
 if ($noGUI -eq $False) {
-Set-StartupStatus "Opening software selection..." "The updater is ready."
 gui_mode
-	if ($script:GuiWorkflowStarted) {
-		exit [int]$script:GuiWorkflowExitCode
-	}
-	exit 0
 }
 
 # Disable progress bar while downloading
@@ -2890,23 +1581,19 @@ IF ($InternetCheck1 -eq "True" -or $InternetCheck2 -eq "True") {
 		
 		}
 	# Check for Updates
-	# Update-Module only works reliably for modules that were originally installed
-	# with Install-Module. Evergreen can also exist from a manual/copy deployment.
-	# Install-Module -Force handles both cases and avoids the non-terminating
-	# "was not installed by using Install-Module" error in the Process results.
+
 	$Installed = Get-Module -Name "Evergreen" -ListAvailable | `
     	Sort-Object -Property @{ Expression = { [System.Version]$_.Version }; Descending = $true } | `
     	Select-Object -First 1
-	$Published = Find-Module -Name "Evergreen" -Repository PSGallery -ErrorAction SilentlyContinue
+	$Published = Find-Module -Name "Evergreen"
 	if ($Null -eq $Installed) {
-		Install-Module -Name "Evergreen" -Repository PSGallery -Force -AllowClobber -ErrorAction Stop
+		Install-Module -Name "Evergreen"
 	}
-	elseif ($null -ne $Published -and [System.Version]$Published.Version -gt [System.Version]$Installed.Version) {
-		Write-Host -ForegroundColor Yellow "Evergreen update available: $($Installed.Version) -> $($Published.Version)"
-		Install-Module -Name "Evergreen" -Repository PSGallery -Force -AllowClobber -ErrorAction Stop
+	elseif ([System.Version]$Published.Version -gt [System.Version]$Installed.Version) {
+		Update-Module -Name "Evergreen"
 	}
 
-	Import-Module Evergreen -Force -ErrorAction Stop
+	Install-Module -Name Evergreen -force
 	Update-Evergreen
 
 	<#
@@ -2954,24 +1641,12 @@ ELSE {
 }
 
 # Release notes
-# Read the currently running script instead of relying on a fixed file name.
-$CurrentScriptPath = $PSCommandPath
-if ([String]::IsNullOrWhiteSpace($CurrentScriptPath)) {
-    $CurrentScriptPath = $MyInvocation.MyCommand.Path
-}
-
-$lastLineBeforeNotes = $null
-if (-not [String]::IsNullOrWhiteSpace($CurrentScriptPath) -and (Test-Path -LiteralPath $CurrentScriptPath)) {
-    $scriptContent = @(Get-Content -LiteralPath $CurrentScriptPath -ErrorAction SilentlyContinue)
-    $notesIndex = [Array]::IndexOf($scriptContent, "# Notes")
-    if ($notesIndex -gt 0) { $lastLineBeforeNotes = $scriptContent[$notesIndex - 1] }
-}
+$scriptContent = Get-Content -Path "$PSScriptRoot\Evergreen-Software Updater.ps1"
+$notesIndex = $scriptContent.IndexOf("# Notes")
+# Find index of the line with "# Notes"
+$lastLineBeforeNotes = $scriptContent[$notesIndex - 1]
 Write-Output ""
-if (-not [String]::IsNullOrWhiteSpace($lastLineBeforeNotes)) {
-    Write-Host -Foregroundcolor Cyan "Last changes: $lastLineBeforeNotes"
-} else {
-    Write-Host -Foregroundcolor DarkGray "Last changes: release note information unavailable"
-}
+Write-Host -Foregroundcolor Cyan "Last changes: $lastLineBeforeNotes"
 Write-Output ""
 
 # Start logfile Update Log
@@ -4835,48 +3510,11 @@ IF ($SoftwareSelection.CitrixVMTools -eq $true) {
 	$URL = $CitrixTools.uri
 	#>
 	$URLVersionCitrixVMTools = "https://www.xenserver.com/downloads"
-	$VersionCitrixVMTools = $null
-	$URL = $null
-
-	try {
-		$ResponseCitrixVMTools = Invoke-WebRequest -UseBasicParsing -Uri $URLVersionCitrixVMTools -ErrorAction Stop
-
-		$HtmlCitrixVMTools = [System.Net.WebUtility]::HtmlDecode(
-			[string]$ResponseCitrixVMTools.Content
-		)
-
-		# Version aus dem Dateinamen managementagentx64-VERSION.msi lesen.
-		# Das Versionsverzeichnis muss dabei nicht dem Dateinamen entsprechen.
-		$PatternCitrixVMTools = 'https://downloads\.xenserver\.com/vm-tools-windows/[^/"\s]+/managementagentx64-(\d+(?:\.\d+){2,3})\.msi'
-
-		$MatchCitrixVMTools = [regex]::Match(
-			$HtmlCitrixVMTools,
-			$PatternCitrixVMTools,
-			[System.Text.RegularExpressions.RegexOptions]::IgnoreCase
-		)
-
-		if ($MatchCitrixVMTools.Success) {
-			$VersionTextCitrixVMTools = $MatchCitrixVMTools.Groups[1].Value
-			$ParsedVersionCitrixVMTools = $null
-
-			if ([version]::TryParse($VersionTextCitrixVMTools, [ref]$ParsedVersionCitrixVMTools)) {
-				$VersionCitrixVMTools = $ParsedVersionCitrixVMTools
-				$URL = $MatchCitrixVMTools.Value
-
-				Write-Host -ForegroundColor Green "Detected Citrix VM Tools version: $VersionCitrixVMTools"
-				# Write-Host "Download URL: $URL"
-			}
-			else {
-				Write-Host -ForegroundColor Red "Invalid Citrix VM Tools version: '$VersionTextCitrixVMTools'"
-			}
-		}
-		else {
-			Write-Host -ForegroundColor Red 'Not able to get version of Citrix VM Tools: x64 MSI link was not found.'
-		}
-	}
-	catch {
-		Write-Host -ForegroundColor Red "Not able to get version of Citrix VM Tools: $($_.Exception.Message)"
-	}
+	$webRequestCitrixVMTools = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionCitrixVMTools) -SessionVariable websession
+	$regexAppVersionCitrixVMTools = "<b>XenServer VM Tools for Windows \d\.\d\.\d</b>"
+	$webVersionCitrixVMTools = $webRequestCitrixVMTools.RawContent | Select-String -Pattern $regexAppVersionCitrixVMTools -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+    $webVersionCitrixVMTools = $webVersionCitrixVMTools.Split("s ")[7] -replace ".{4}$"
+    [Version]$VersionCitrixVMTools  = $webVersionCitrixVMTools
 	$InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$URL = "https://downloads.xenserver.com/vm-tools-windows/9.6.0/managementagentx64-9.6.0.msi"
@@ -4884,7 +3522,7 @@ IF ($SoftwareSelection.CitrixVMTools -eq $true) {
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $VersionCitrixVMTools"
 	Write-Host "Current Version: $CurrentVersion"
-	IF ($VersionCitrixVMTools -and $URL) {
+	IF ($VersionCitrixVMTools) {
 		IF ($VersionCitrixVMTools -gt $CurrentVersion) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product")) {New-Item -Path "$SoftwareFolder\Citrix\$Product" -ItemType Directory | Out-Null}
@@ -4924,49 +3562,12 @@ IF ($SoftwareSelection.CitrixVMTools -eq $true) {
 IF ($SoftwareSelection.CitrixXenCenter -eq $true) {
 	$Product = "Citrix XenCenter"
 	$PackageName = "XenCenter"
-	$URLVersionCitrixXenCenter = 'https://www.xenserver.com/downloads'
-	$VersionCitrixXenCenter = $null
-	$URL = $null
-
-	try {
-		$ResponseCitrixXenCenter = Invoke-WebRequest -UseBasicParsing -Uri $URLVersionCitrixXenCenter -ErrorAction Stop
-
-		$HtmlCitrixXenCenter = [System.Net.WebUtility]::HtmlDecode(
-			[string]$ResponseCitrixXenCenter.Content
-		)
-
-		# Gruppe 1: Version im Verzeichnis.
-		# Der Dateiname muss dieselbe Version enthalten.
-		$PatternCitrixXenCenter = 'https://downloads\.xenserver\.com/xencenter/(\d+(?:\.\d+){2,3})/XenCenter-\1\.msi'
-
-		$MatchCitrixXenCenter = [regex]::Match(
-			$HtmlCitrixXenCenter,
-			$PatternCitrixXenCenter,
-			[System.Text.RegularExpressions.RegexOptions]::IgnoreCase
-		)
-
-		if ($MatchCitrixXenCenter.Success) {
-			$ParsedVersionCitrixXenCenter = $null
-			$VersionTextCitrixXenCenter = $MatchCitrixXenCenter.Groups[1].Value
-
-			if ([version]::TryParse($VersionTextCitrixXenCenter, [ref]$ParsedVersionCitrixXenCenter)) {
-				$VersionCitrixXenCenter = $ParsedVersionCitrixXenCenter
-				$URL = $MatchCitrixXenCenter.Value
-
-				Write-Host -ForegroundColor Green "Detected XenCenter version: $VersionCitrixXenCenter"
-				#Write-Host "Download URL: $URL"
-			}
-			else {
-				Write-Host -ForegroundColor Red "Invalid XenCenter version: '$VersionTextCitrixXenCenter'"
-			}
-		}
-		else {
-			Write-Host -ForegroundColor Red 'Not able to get version of Citrix XenCenter: MSI link was not found.'
-		}
-	}
-	catch {
-		Write-Host -ForegroundColor Red "Not able to get version of Citrix XenCenter: $($_.Exception.Message)"
-	}
+	$URLVersionCitrixXenCenter = "https://www.xenserver.com/downloads"
+	$webRequestCitrixXenCenter = Invoke-WebRequest -UseBasicParsing -Uri ($URLVersionCitrixXenCenter) -SessionVariable websession
+	$regexAppVersionCitrixXenCenter = "<b>XenCenter \d\d\d\d\.\d\.\d</b>"
+	$webVersionCitrixXenCenter = $webRequestCitrixXenCenter.RawContent | Select-String -Pattern $regexAppVersionCitrixXenCenter -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 1
+    $webVersionCitrixXenCenter = $webVersionCitrixXenCenter.Split("r ")[2] -replace ".{4}$"
+    [Version]$VersionCitrixXenCenter  = $webVersionCitrixXenCenter
     $InstallerType = "msi"
 	$Source = "$PackageName" + "." + "$InstallerType"
 	$URL = "https://downloads.xenserver.com/xencenter/$VersionCitrixXenCenter/XenCenter-$VersionCitrixXenCenter.msi"
@@ -4974,7 +3575,7 @@ IF ($SoftwareSelection.CitrixXenCenter -eq $true) {
 	Write-Host -ForegroundColor Yellow "Download $Product"
 	Write-Host "Download Version: $VersionCitrixXenCenter"
 	Write-Host "Current Version: $CurrentVersion"
-	IF ($VersionCitrixXenCenter -and $URL) {
+	IF ($VersionCitrixXenCenter) {
 		IF ($VersionCitrixXenCenter -gt $CurrentVersion) {
 		Write-Host -ForegroundColor Green "Update available"
 		IF (!(Test-Path -Path "$SoftwareFolder\Citrix\$Product")) {New-Item -Path "$SoftwareFolder\Citrix\$Product" -ItemType Directory | Out-Null}
