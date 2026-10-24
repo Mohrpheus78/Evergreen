@@ -104,6 +104,7 @@ Version: 3.0
 26/09/21: Update FSLogix 3.26.826.17182
 26/10/20: Wrong download name for MS .NET Desktop Runtime 10.0.12, changed to WindowsDesktopRuntime-10.0.12-win-x86.exe
 26/10/21: Fixed ImageGlass download
+26/10/23: Version 3.0 with complete redesign, fixed download for XenCenter and VM Tools
 # Notes
 #>
 Param (

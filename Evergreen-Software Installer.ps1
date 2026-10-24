@@ -115,6 +115,7 @@ Version: 3.0
 26/10/23: Addtional exclusions for Citrix VDA LTSR 2607
 26/10/24: Changed components for Citrix VDA
 26/10/24: Fixed ImageGlass installer
+26/10/23: Version 3.0 with complete redesign
 # Notes
 #>
 Param (
