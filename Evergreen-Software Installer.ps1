@@ -150,7 +150,7 @@ Param (
 
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-[version]$EvergreenVersion = "3.0.1"
+[version]$EvergreenVersion = "3.0.2"
 
 
 # ======================
