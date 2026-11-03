@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 3.0
+Version: 3.0.1
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -116,6 +116,7 @@ Version: 3.0
 26/10/24: Changed components for Citrix VDA
 26/10/24: Fixed ImageGlass installer
 26/10/23: Version 3.0 with complete redesign
+26/11/03: Interactive questions, if Citrix components should be installed or upgraded
 # Notes
 #>
 Param (
@@ -124,11 +125,13 @@ Param (
     [Parameter(Mandatory = $false)]
     [switch]$SoftwareToAutoInstall,
     [Parameter(Mandatory = $false)]
-    [switch]$SoftwareToRemoteInstall
+    [switch]$SoftwareToRemoteInstall,
+    [Parameter(Mandatory = $false)]
+    [switch]$GuiHosted
 )
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-[version]$EvergreenVersion = "3.0"
+[version]$EvergreenVersion = "3.0.1"
 
 
 # ======================
@@ -374,6 +377,221 @@ Function DS_WriteLog {
 }
 #========================================================================================================================================
 
+
+# GUI-capable PowerShell host for component scripts that use Read-Host or PromptForChoice.
+# Questions are displayed as WinForms dialogs, while normal output is returned to Process & results.
+function Initialize-EvergreenGuiHost {
+    if ($null -ne ("Evergreen.GuiPowerShellHost" -as [type])) { return }
+    $GuiHostSource = @'
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Concurrent;
+using System.Globalization;
+using System.Management.Automation;
+using System.Management.Automation.Host;
+using System.Security;
+using System.Windows.Forms;
+
+namespace Evergreen {
+    public sealed class GuiPowerShellHost : PSHost {
+        private readonly Guid id = Guid.NewGuid();
+        private readonly GuiHostUserInterface ui;
+        public GuiPowerShellHost(ConcurrentQueue<string> output) { ui = new GuiHostUserInterface(output); }
+        public override Guid InstanceId { get { return id; } }
+        public override string Name { get { return "Evergreen GUI Host"; } }
+        public override Version Version { get { return new Version(1,0); } }
+        public override PSHostUserInterface UI { get { return ui; } }
+        public override CultureInfo CurrentCulture { get { return CultureInfo.CurrentCulture; } }
+        public override CultureInfo CurrentUICulture { get { return CultureInfo.CurrentUICulture; } }
+        public override void EnterNestedPrompt() { }
+        public override void ExitNestedPrompt() { }
+        public override void NotifyBeginApplication() { }
+        public override void NotifyEndApplication() { }
+        public override void SetShouldExit(int exitCode) { ExitCode = exitCode; ShouldExit = true; }
+        public int ExitCode { get; private set; }
+        public bool ShouldExit { get; private set; }
+    }
+
+    public sealed class GuiHostUserInterface : PSHostUserInterface {
+        private readonly ConcurrentQueue<string> output;
+        private readonly GuiRawUserInterface raw = new GuiRawUserInterface();
+        public GuiHostUserInterface(ConcurrentQueue<string> queue) { output = queue; }
+        public override PSHostRawUserInterface RawUI { get { return raw; } }
+        // Text written without a line break is collected as the pending prompt (Read-Host writes its
+        // prompt this way). Completed lines are sent to Process & results.
+        private readonly object sync = new object();
+        private readonly System.Text.StringBuilder pending = new System.Text.StringBuilder();
+        private string lastLine = String.Empty;
+        private void Commit(string value) {
+            string line;
+            lock (sync) { pending.Append(value); line = pending.ToString(); pending.Length = 0; }
+            if (String.IsNullOrWhiteSpace(line)) return;
+            lock (sync) { lastLine = line.Trim(); }
+            output.Enqueue(line);
+        }
+        private void Add(string value) { if (!String.IsNullOrWhiteSpace(value)) { lock (sync) { lastLine = value.Trim(); } output.Enqueue(value); } }
+        private void TakePrompt(out string question, out string prompt) {
+            lock (sync) { question = lastLine; prompt = pending.ToString().Trim(); pending.Length = 0; lastLine = String.Empty; }
+            prompt = prompt.TrimEnd(':').Trim();
+        }
+        public override void Write(string value) { lock (sync) { pending.Append(value); } }
+        public override void Write(ConsoleColor foregroundColor, ConsoleColor backgroundColor, string value) { lock (sync) { pending.Append(value); } }
+        public override void WriteLine(string value) { Commit(value); }
+        public override void WriteLine(ConsoleColor foregroundColor, ConsoleColor backgroundColor, string value) { Commit(value); }
+        public override void WriteErrorLine(string value) { Add("ERROR: " + value); }
+        public override void WriteDebugLine(string message) { Add("DEBUG: " + message); }
+        public override void WriteVerboseLine(string message) { Add("VERBOSE: " + message); }
+        public override void WriteWarningLine(string message) { Add("WARNING: " + message); }
+        public override void WriteProgress(long sourceId, ProgressRecord record) { }
+        public override string ReadLine() {
+            string question, prompt; TakePrompt(out question, out prompt);
+            return Ask("Evergreen Installer", question, prompt, false);
+        }
+        public override SecureString ReadLineAsSecureString() {
+            string text = ShowInput("Evergreen Installer", "Enter the requested value:", true);
+            SecureString secure = new SecureString(); foreach(char c in text) secure.AppendChar(c); secure.MakeReadOnly(); return secure;
+        }
+        public override Dictionary<string, PSObject> Prompt(string caption, string message, Collection<FieldDescription> descriptions) {
+            Dictionary<string, PSObject> result = new Dictionary<string, PSObject>();
+            foreach (FieldDescription field in descriptions) {
+                string question, prompt; TakePrompt(out question, out prompt);
+                if (!String.IsNullOrWhiteSpace(message)) question = message;
+                // Read-Host -Prompt "x" passes the prompt text as field Name; Label is empty.
+                string fieldPrompt = !String.IsNullOrWhiteSpace(field.Label) ? field.Label : field.Name;
+                if (!String.IsNullOrWhiteSpace(prompt)) fieldPrompt = prompt + " " + fieldPrompt;
+                string value = Ask(String.IsNullOrWhiteSpace(caption) ? "Evergreen Installer" : caption, question, fieldPrompt, field.ParameterTypeName == "System.Security.SecureString");
+                result[field.Name] = new PSObject(value);
+            }
+            return result;
+        }
+        public override PSCredential PromptForCredential(string caption, string message, string userName, string targetName) {
+            string user = ShowInput(caption, message + "\r\n\r\nUser name", false);
+            string password = ShowInput(caption, "Password", true);
+            SecureString secure = new SecureString(); foreach(char c in password) secure.AppendChar(c); secure.MakeReadOnly();
+            return new PSCredential(user, secure);
+        }
+        public override PSCredential PromptForCredential(string caption, string message, string userName, string targetName, PSCredentialTypes allowedCredentialTypes, PSCredentialUIOptions options) { return PromptForCredential(caption,message,userName,targetName); }
+        public override int PromptForChoice(string caption, string message, Collection<ChoiceDescription> choices, int defaultChoice) {
+            using (Form form = NewDialog(caption, 620, 210 + Math.Max(0, choices.Count - 2) * 44)) {
+                Label label = new Label { Text = message, AutoSize = false, Location = new System.Drawing.Point(20,20), Size = new System.Drawing.Size(565,70) };
+                form.Controls.Add(label);
+                FlowLayoutPanel panel = new FlowLayoutPanel { Location = new System.Drawing.Point(20,100), Size = new System.Drawing.Size(565, Math.Max(55, choices.Count * 44)), AutoScroll = true };
+                int selected = defaultChoice >= 0 ? defaultChoice : 0;
+                for (int i=0; i<choices.Count; i++) {
+                    int index=i; string text=choices[i].Label.Replace("&","");
+                    Button button = new Button { Text=text, Width=170, Height=36, Tag=index };
+                    button.Click += delegate { selected=index; form.DialogResult=DialogResult.OK; form.Close(); };
+                    panel.Controls.Add(button);
+                }
+                form.Controls.Add(panel); form.ShowDialog(); return selected;
+            }
+        }
+        [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+        [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hWnd, IntPtr processId);
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")] private static extern uint GetCurrentThreadId();
+        [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hWnd);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern bool BringWindowToTop(IntPtr hWnd);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        private static void ForceForeground(Form form) {
+            try {
+                IntPtr foreground = GetForegroundWindow();
+                uint foreThread = GetWindowThreadProcessId(foreground, IntPtr.Zero);
+                uint thisThread = GetCurrentThreadId();
+                bool attached = foreThread != thisThread && AttachThreadInput(foreThread, thisThread, true);
+                ShowWindow(form.Handle, 9);
+                BringWindowToTop(form.Handle);
+                SetForegroundWindow(form.Handle);
+                if (attached) AttachThreadInput(foreThread, thisThread, false);
+            } catch { }
+            form.Activate();
+        }
+        private static Form NewDialog(string caption, int width, int height) {
+            Form form = new Form { Text = String.IsNullOrWhiteSpace(caption) ? "Evergreen Installer" : caption, StartPosition=FormStartPosition.CenterScreen, FormBorderStyle=FormBorderStyle.FixedDialog, MinimizeBox=false, MaximizeBox=false, ShowInTaskbar=true, TopMost=true, WindowState=FormWindowState.Normal, Size=new System.Drawing.Size(width,height), Font=new System.Drawing.Font("Segoe UI",10), BackColor=System.Drawing.Color.White };
+            form.Shown += delegate { ForceForeground(form); };
+            return form;
+        }
+        private static Label NewMessage(string text, int height) {
+            return new Label { Text=text, AutoSize=false, Location=new System.Drawing.Point(24,22), Size=new System.Drawing.Size(580,height), ForeColor=System.Drawing.Color.FromArgb(30,40,55) };
+        }
+        private static Button NewButton(string text, int x, int y, DialogResult result, bool primary) {
+            Button b = new Button { Text=text, Location=new System.Drawing.Point(x,y), Size=new System.Drawing.Size(100,36), DialogResult=result, FlatStyle=FlatStyle.Flat, Cursor=Cursors.Hand };
+            b.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(180,201,218);
+            b.BackColor = primary ? System.Drawing.Color.FromArgb(22,112,184) : System.Drawing.Color.FromArgb(216,229,240);
+            b.ForeColor = primary ? System.Drawing.Color.White : System.Drawing.Color.FromArgb(23,63,102);
+            return b;
+        }
+        private static bool IsYesNo(string text) {
+            string c = (text ?? "").ToLowerInvariant().Replace(" ", "");
+            return c.Contains("y/n") || c.Contains("j/n") || c.Contains("yes/no") || c.Contains("ja/nein") || c.StartsWith("doyouwant") || c.StartsWith("wouldyoulike") || c.StartsWith("möchtensie") || c.StartsWith("wollensie");
+        }
+        private static string Ask(string caption, string question, string prompt, bool password) {
+            question = (question ?? "").Trim(); prompt = (prompt ?? "").Trim();
+            if (!password && (IsYesNo(prompt) || IsYesNo(question))) {
+                using (Form form = NewDialog(caption, 640, 230)) {
+                    form.Controls.Add(NewMessage(question, 110));
+                    Button yes = NewButton("Yes", 394, 140, DialogResult.Yes, true);
+                    Button no = NewButton("No", 504, 140, DialogResult.No, false);
+                    form.Controls.Add(yes); form.Controls.Add(no); form.AcceptButton=yes; form.CancelButton=no;
+                    return form.ShowDialog() == DialogResult.Yes ? "y" : "n";
+                }
+            }
+            if (!password && String.IsNullOrWhiteSpace(prompt)) {
+                // Plain Read-Host / pause: confirmation only.
+                using (Form form = NewDialog(caption, 640, 230)) {
+                    form.Controls.Add(NewMessage(String.IsNullOrWhiteSpace(question) ? "Press OK to continue." : question, 110));
+                    Button ok = NewButton("OK", 504, 140, DialogResult.OK, true);
+                    form.Controls.Add(ok); form.AcceptButton=ok; form.CancelButton=ok;
+                    form.ShowDialog(); return String.Empty;
+                }
+            }
+            string text = String.IsNullOrWhiteSpace(question) ? prompt : question + "\r\n\r\n" + prompt;
+            return ShowInput(caption, text, password);
+        }
+        private static string ShowInput(string caption, string message, bool password) {
+            using (Form form = NewDialog(caption, 640, 280)) {
+                form.Controls.Add(NewMessage(message, 110));
+                TextBox box = new TextBox { Location=new System.Drawing.Point(24,140), Size=new System.Drawing.Size(580,28), UseSystemPasswordChar=password };
+                Button ok = NewButton("OK", 394, 186, DialogResult.OK, true);
+                Button cancel = NewButton("Cancel", 504, 186, DialogResult.Cancel, false);
+                form.Controls.Add(box); form.Controls.Add(ok); form.Controls.Add(cancel); form.AcceptButton=ok; form.CancelButton=cancel;
+                return form.ShowDialog() == DialogResult.OK ? box.Text : String.Empty;
+            }
+        }
+    }
+
+    public sealed class GuiRawUserInterface : PSHostRawUserInterface {
+        private Size bufferSize = new Size(120,3000);
+        private Size windowSize = new Size(120,50);
+        private Coordinates cursor = new Coordinates(0,0);
+        private Coordinates windowPosition = new Coordinates(0,0);
+        private ConsoleColor background = ConsoleColor.Black;
+        private ConsoleColor foreground = ConsoleColor.White;
+        private int cursorSize = 25;
+        private string title = "Evergreen Installer";
+        public override ConsoleColor BackgroundColor { get { return background; } set { background = value; } }
+        public override Size BufferSize { get { return bufferSize; } set { bufferSize = value; } }
+        public override Coordinates CursorPosition { get { return cursor; } set { cursor = value; } }
+        public override int CursorSize { get { return cursorSize; } set { cursorSize = value; } }
+        public override ConsoleColor ForegroundColor { get { return foreground; } set { foreground = value; } }
+        public override bool KeyAvailable { get { return false; } }
+        public override Size MaxPhysicalWindowSize { get { return new Size(200,80); } }
+        public override Size MaxWindowSize { get { return new Size(200,80); } }
+        public override Coordinates WindowPosition { get { return windowPosition; } set { windowPosition = value; } }
+        public override Size WindowSize { get { return windowSize; } set { windowSize = value; } }
+        public override string WindowTitle { get { return title; } set { title = value; } }
+        public override void FlushInputBuffer() { }
+        public override BufferCell[,] GetBufferContents(Rectangle rectangle) { return new BufferCell[0,0]; }
+        public override KeyInfo ReadKey(ReadKeyOptions options) { return new KeyInfo(); }
+        public override void ScrollBufferContents(Rectangle source, Coordinates destination, Rectangle clip, BufferCell fill) { }
+        public override void SetBufferContents(Coordinates origin, BufferCell[,] contents) { }
+        public override void SetBufferContents(Rectangle rectangle, BufferCell fill) { }
+    }
+}
+'@
+    Add-Type -TypeDefinition $GuiHostSource -ReferencedAssemblies @('System.Management.Automation','System.Windows.Forms','System.Drawing') -ErrorAction Stop
+}
 
 # FUNCTION GUI
 # ========================================================================================================================================
@@ -1749,6 +1967,14 @@ function gui_mode{
 
 	$ProcessContext = [PSCustomObject]@{
 		Job = $null
+		PowerShell = $null
+		Runspace = $null
+		AsyncResult = $null
+		OutputCollection = $null
+		OutputIndex = 0
+		HostQueue = $null
+		InputCollection = $null
+		StreamErrorIndex = 0
 		Running = $false
 		Completed = $false
 		ExitCode = 1
@@ -1968,45 +2194,44 @@ function gui_mode{
 	}.GetNewClosure()
 
 	$DrainProcessOutput = {
-		if ($null -eq $ProcessContext.Job) { return }
-		$JobErrors = @()
-		$JobInformation = @()
-		$JobWarnings = @()
-		$JobOutput = @(Receive-Job -Job $ProcessContext.Job -ErrorAction SilentlyContinue -ErrorVariable +JobErrors -InformationAction SilentlyContinue -InformationVariable +JobInformation -WarningAction SilentlyContinue -WarningVariable +JobWarnings)
-		$ProcessedLineCount = 0
-		$LatestProgressText = $null
-		foreach ($OutputItem in $JobOutput) {
-			if ($null -ne $OutputItem.PSObject.Properties['EvergreenJobResult'] -and $OutputItem.EvergreenJobResult) {
-				$ProcessContext.ExitCode = [int]$OutputItem.ExitCode
-				continue
+		if ($null -ne $ProcessContext.Job) {
+			$JobErrors = @(); $JobInformation = @(); $JobWarnings = @()
+			$JobOutput = @(Receive-Job -Job $ProcessContext.Job -ErrorAction SilentlyContinue -ErrorVariable +JobErrors -InformationAction SilentlyContinue -InformationVariable +JobInformation -WarningAction SilentlyContinue -WarningVariable +JobWarnings)
+			foreach ($OutputItem in $JobOutput) { & $AppendProcessLine ([string]$OutputItem) $false }
+			foreach ($JobError in $JobErrors) { & $AppendProcessLine ([string]$JobError) $true }
+			foreach ($InformationItem in $JobInformation) { & $AppendProcessLine ([string]$InformationItem) $false }
+			foreach ($JobWarning in $JobWarnings) { & $AppendProcessLine ([string]$JobWarning) $false }
+		}
+		if ($null -ne $ProcessContext.HostQueue) {
+			$HostLine = $null
+			while ($ProcessContext.HostQueue.TryDequeue([ref]$HostLine)) { & $AppendProcessLine ([string]$HostLine) ($HostLine -match '^(?i)ERROR:') }
+		}
+		if ($null -ne $ProcessContext.OutputCollection) {
+			while ($ProcessContext.OutputIndex -lt $ProcessContext.OutputCollection.Count) {
+				& $AppendProcessLine ([string]$ProcessContext.OutputCollection[$ProcessContext.OutputIndex]) $false
+				$ProcessContext.OutputIndex++
 			}
-			$OutputText = if ($OutputItem -is [System.Management.Automation.InformationRecord]) { [string]$OutputItem.MessageData } else { [string]$OutputItem }
-			if ($OutputText -match '(?i)%\s*complete') { $LatestProgressText = $OutputText; continue }
-			if ($ProcessedLineCount -ge 200) { continue }
-			& $AppendProcessLine $OutputText $false
-			$ProcessedLineCount++
 		}
-		if (-not [String]::IsNullOrWhiteSpace($LatestProgressText)) { & $AppendProcessLine $LatestProgressText $false }
-		foreach ($JobError in $JobErrors) {
-			& $AppendProcessLine ([string]$JobError) $true
+		if ($null -ne $ProcessContext.PowerShell) {
+			while ($ProcessContext.StreamErrorIndex -lt $ProcessContext.PowerShell.Streams.Error.Count) {
+				& $AppendProcessLine ([string]$ProcessContext.PowerShell.Streams.Error[$ProcessContext.StreamErrorIndex]) $true
+				$ProcessContext.StreamErrorIndex++
+			}
 		}
-		foreach ($InformationItem in $JobInformation) {
-			$InformationText = if ($InformationItem -is [System.Management.Automation.InformationRecord]) { [string]$InformationItem.MessageData } else { [string]$InformationItem }
-			& $AppendProcessLine $InformationText $false
-		}
-		foreach ($JobWarning in $JobWarnings) { & $AppendProcessLine ([string]$JobWarning) $false }
 	}.GetNewClosure()
-
 	$ProcessTimer = New-Object System.Windows.Forms.Timer
 	$ProcessTimer.Interval = 200
 	$ProcessTimer.Add_Tick({
 		& $DrainProcessOutput
-		if ($ProcessContext.Running -and $ProcessContext.Job.State -in @('Completed','Failed','Stopped')) {
+		if ($ProcessContext.Running -and (($null -ne $ProcessContext.AsyncResult -and $ProcessContext.AsyncResult.IsCompleted) -or ($null -ne $ProcessContext.Job -and $ProcessContext.Job.State -in @('Completed','Failed','Stopped')))) {
 			& $DrainProcessOutput
 			$ProcessTimer.Stop()
 			$ProcessContext.Running = $false
 			$ProcessContext.Completed = $true
-			if ($ProcessContext.Job.State -ne 'Completed') { $ProcessContext.ExitCode = 1 }
+			if ($null -ne $ProcessContext.AsyncResult) {
+				try { $null = $ProcessContext.PowerShell.EndInvoke($ProcessContext.AsyncResult); $ProcessContext.ExitCode = if ($ProcessContext.PowerShell.HadErrors) { 1 } else { 0 } } catch { $ProcessContext.ExitCode = 1; & $AppendProcessLine $_.Exception.Message $true }
+				try { $ProcessContext.PowerShell.Dispose(); $ProcessContext.Runspace.Dispose() } catch {}
+			} elseif ($ProcessContext.Job.State -ne 'Completed') { $ProcessContext.ExitCode = 1 }
 			$script:GuiWorkflowExitCode = [int]$ProcessContext.ExitCode
 			$ProcessProgress.Style = [System.Windows.Forms.ProgressBarStyle]::Continuous
 			$ProcessProgress.Value = 100
@@ -2072,7 +2297,7 @@ function gui_mode{
 		$CopySummaryButton.Enabled = $false
 		$ProcessState.Text = "Installation is running..."
 		$ProcessState.ForeColor = [System.Drawing.Color]::FromArgb(30,40,55)
-		$ProcessInfo.Text = "The existing installer is running with -NoGUI. Output is transferred live into this window."
+		$ProcessInfo.Text = "The installer is running in the background. Component questions will appear as GUI dialogs. This can take a while - please be patient."
 		$ProcessProgress.Value = 0
 		$ProcessProgress.Style = [System.Windows.Forms.ProgressBarStyle]::Marquee
 		$ProcessProgress.MarqueeAnimationSpeed = 25
@@ -2086,24 +2311,28 @@ function gui_mode{
 		try {
 			if ($null -ne $ProcessContext.Job) { Remove-Job -Job $ProcessContext.Job -Force -ErrorAction SilentlyContinue }
 			& $AppendProcessLine "Starting installer process..." $false
-			# Pass switch states as 0/1 because Start-Job serializes ArgumentList values.
-			# Binding a serialized string such as "False" directly to [bool] fails in PowerShell.
-			$AutoInstallJobValue = if ($SoftwareToAutoInstall.IsPresent) { 1 } else { 0 }
-			$RemoteInstallJobValue = if ($SoftwareToRemoteInstall.IsPresent) { 1 } else { 0 }
-			$ProcessContext.Job = Start-Job -Name "Evergreen-Installer-GUI" -ScriptBlock {
-				param([string]$ScriptPath,[int]$AutoInstall,[int]$RemoteInstall)
-				$InvocationParameters = @{ NoGUI = $true }
-				if ($AutoInstall -eq 1) { $InvocationParameters.SoftwareToAutoInstall = $true }
-				if ($RemoteInstall -eq 1) { $InvocationParameters.SoftwareToRemoteInstall = $true }
-				try {
-					& $ScriptPath @InvocationParameters 6>&1 3>&1
-					[PSCustomObject]@{ EvergreenJobResult = $true; ExitCode = 0 }
-				}
-				catch {
-					Write-Error -ErrorRecord $_
-					[PSCustomObject]@{ EvergreenJobResult = $true; ExitCode = 1 }
-				}
-			} -ArgumentList $PSCommandPath,$AutoInstallJobValue,$RemoteInstallJobValue
+			# Run in an STA runspace with a GUI-capable PSHost. Component Read-Host and
+			# PromptForChoice calls are displayed as dialogs inside the GUI session.
+			Initialize-EvergreenGuiHost
+			$ProcessContext.HostQueue = New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'
+			$GuiHost = [Evergreen.GuiPowerShellHost]::new($ProcessContext.HostQueue)
+			$ProcessContext.Runspace = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace($GuiHost)
+			$ProcessContext.Runspace.ApartmentState = [System.Threading.ApartmentState]::STA
+			$ProcessContext.Runspace.ThreadOptions = [System.Management.Automation.Runspaces.PSThreadOptions]::ReuseThread
+			$ProcessContext.Runspace.Open()
+			$ProcessContext.PowerShell = [System.Management.Automation.PowerShell]::Create()
+			$ProcessContext.PowerShell.Runspace = $ProcessContext.Runspace
+			$null = $ProcessContext.PowerShell.AddCommand($PSCommandPath).AddParameter('NoGUI',$true).AddParameter('GuiHosted',$true)
+			if ($SoftwareToAutoInstall.IsPresent) { $null = $ProcessContext.PowerShell.AddParameter('SoftwareToAutoInstall',$true) }
+			if ($SoftwareToRemoteInstall.IsPresent) { $null = $ProcessContext.PowerShell.AddParameter('SoftwareToRemoteInstall',$true) }
+			$ProcessContext.OutputCollection = New-Object 'System.Management.Automation.PSDataCollection[psobject]'
+			$ProcessContext.OutputIndex = 0
+			$ProcessContext.StreamErrorIndex = 0
+			$ProcessContext.InputCollection = New-Object 'System.Management.Automation.PSDataCollection[psobject]'
+			$ProcessContext.InputCollection.Complete()
+			$ProcessContext.AsyncResult = $ProcessContext.PowerShell.BeginInvoke($ProcessContext.InputCollection,$ProcessContext.OutputCollection)
+			& $AppendProcessLine "Installer started. Component questions will open as GUI dialogs." $false
+			& $AppendProcessLine "Please be patient - it can take a while until the first question or output appears." $false
 			$ProcessContext.Running = $true
 			$ProcessTimer.Start()
 		}
@@ -2447,6 +2676,9 @@ gui_mode
 }
 
 # Import selection
+# When started from the GUI, the component scripts run in the GUI host and may ask
+# their questions (Read-Host). They check $noGUI, so mark the session as interactive.
+if ($GuiHosted) { $noGUI = $false }
 $SoftwareSelection = Import-Clixml $SoftwareToInstall
 Write-Host -ForegroundColor Cyan "Import selection"
 Write-Output ""
@@ -3326,5 +3558,5 @@ Write-Host -ForegroundColor Yellow "Copy summary for your documentation:"
 $Updates
 Write-Output ""
 
-if ($noGUI -eq $False) {
+if ($noGUI -eq $False -and -not $GuiHosted) {
     pause}
