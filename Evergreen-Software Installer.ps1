@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 3.0.1
+Version: 3.0.2
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -117,6 +117,7 @@ Version: 3.0.1
 26/10/24: Fixed ImageGlass installer
 26/10/23: Version 3.0 with complete redesign
 26/11/03: Interactive questions, if Citrix components should be installed or upgraded
+26/11/04: Last update prevented installer from running > fixed!
 # Notes
 #>
 Param (
@@ -131,7 +132,7 @@ Param (
 )
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-[version]$EvergreenVersion = "3.0.1"
+[version]$EvergreenVersion = "3.0.2"
 
 
 # ======================
@@ -598,6 +599,11 @@ namespace Evergreen {
 function gui_mode{
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.Application]::EnableVisualStyles()
+
+	# Compile the GUI PowerShell host here, while the script function is guaranteed to
+	# be visible. Event-handler closures created later do not reliably resolve script
+	# functions by command name in Windows PowerShell 5.1.
+	Initialize-EvergreenGuiHost
 	$OriginalSoftwareSelection = $SoftwareSelection
 
 	# Set the size of your form
@@ -2313,7 +2319,9 @@ function gui_mode{
 			& $AppendProcessLine "Starting installer process..." $false
 			# Run in an STA runspace with a GUI-capable PSHost. Component Read-Host and
 			# PromptForChoice calls are displayed as dialogs inside the GUI session.
-			Initialize-EvergreenGuiHost
+			if ($null -eq ("Evergreen.GuiPowerShellHost" -as [type])) {
+				throw "The Evergreen GUI PowerShell host could not be initialized."
+			}
 			$ProcessContext.HostQueue = New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'
 			$GuiHost = [Evergreen.GuiPowerShellHost]::new($ProcessContext.HostQueue)
 			$ProcessContext.Runspace = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace($GuiHost)
