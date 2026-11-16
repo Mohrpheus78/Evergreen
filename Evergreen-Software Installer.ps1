@@ -19,7 +19,7 @@ If you made your selection once, you can run the script with the -noGUI paramete
 .NOTES
 Thanks to Trond Eric Haarvarstein, I used some code from his great Automation Framework! Thanks to Manuel Winkel for the forms ;-)
 Run as admin!
-Version: 3.0.2
+Version: 3.0.3
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -118,6 +118,7 @@ Version: 3.0.2
 26/10/23: Version 3.0 with complete redesign
 26/11/03: Interactive questions, if Citrix components should be installed or upgraded
 26/11/04: Last update prevented installer from running > fixed!
+26/11/16: Remove MS Edge Update/Install polices, that prevent MS Edge from updating
 # Notes
 #>
 Param (
@@ -132,7 +133,7 @@ Param (
 )
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-[version]$EvergreenVersion = "3.0.2"
+[version]$EvergreenVersion = "3.0.3"
 
 
 # ======================
