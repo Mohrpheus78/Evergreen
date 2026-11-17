@@ -17,7 +17,7 @@ the version number and will update the package.
 Many thanks to Aaron Parker, Bronson Magnan and Trond Eric Haarvarstein for the module!
 https://github.com/aaronparker/Evergreen
 Run as admin!
-Version: 3.0.2
+Version: 3.0.3
 06/24: Changed internet connection check
 06/25: Changed internet connection check
 06/27: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 at the top of the script
@@ -105,6 +105,7 @@ Version: 3.0.2
 26/10/20: Wrong download name for MS .NET Desktop Runtime 10.0.12, changed to WindowsDesktopRuntime-10.0.12-win-x86.exe
 26/10/21: Fixed ImageGlass download
 26/10/23: Version 3.0 with complete redesign, fixed download for XenCenter and VM Tools, corrected KeepassXC download
+26/11/17: Firefox download correction
 # Notes
 #>
 Param (
@@ -113,7 +114,7 @@ Param (
 )
 # TLS settings
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-[version]$EvergreenVersion = "3.0.2"
+[version]$EvergreenVersion = "3.0.3"
 
 
 # ======================
@@ -3064,7 +3065,9 @@ IF ($SoftwareSelection.VLCPlayer -eq $true) {
 IF ($SoftwareSelection.Firefox -eq $true) {
 	$Product = "Mozilla Firefox"
 	Try {
-		$Firefox = Get-EvergreenApp -Name MozillaFirefox | Where-Object {$_.Channel -eq "Current" -and $_.Architecture -eq "x64" -and $_.Type -eq "msi"} -ErrorAction Stop
+		$FirefoxLanguage = if ($SoftwareSelection.FirefoxDE -eq $true) { "de" } else { "en-US" }
+		$Firefox = Get-EvergreenApp -Name MozillaFirefox | Where-Object {$_.Channel -eq "Current" -and $_.Architecture -eq "x64" -and $_.Type -eq "msi" -and $_.Language -eq $FirefoxLanguage} -ErrorAction Stop
+		if (@($Firefox).Count -ne 1) { throw "Mozilla Firefox: Evergreen lieferte $(@($Firefox).Count) Treffer statt genau einem." }
 	} catch {
 		Write-Warning "Failed to find update of $Product because $_.Exception.Message"
 	}
@@ -3097,7 +3100,7 @@ IF ($SoftwareSelection.Firefox -eq $true) {
 		#Invoke-WebRequest -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source))
 		IF (($SoftwareSelection.FirefoxEN -eq $true) -or ($SoftwareSelection.FirefoxDE -eq $true)) {
 			Try {
-				Get-FileFromWeb -Url $URL -File ("$SoftwareFolder\$Product\" + ($Source))
+				Invoke-WebRequest -UseBasicParsing -Uri $URL -OutFile ("$SoftwareFolder\$Product\" + ($Source)) -ErrorAction Stop
 			} catch {
 				throw $_.Exception.Message
 			}
